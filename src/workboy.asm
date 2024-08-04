@@ -10,7 +10,7 @@ _RAM_C100_: db
 
 SECTION "wram_c102", WRAM0[$C102]
 _RAM_C102_: db
-_RAM_C103_: db
+gamepad_buttons__RAM_C103: db
 _RAM_C104_: db
 _RAM_C105_: db
 _RAM_C106_: db
@@ -988,7 +988,7 @@ _LABEL_2D2_:
 	jr   _LABEL_29A_
 
 _LABEL_2E7_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   z, _LABEL_29A_
 	bit  5, a
@@ -3863,7 +3863,7 @@ _LABEL_1684_:
 	jr   z, _LABEL_169C_
 	dec  a
 	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $C4
 	jr   nz, _LABEL_16BF_
 	xor  a
@@ -3871,7 +3871,7 @@ _LABEL_1684_:
 	jr   _LABEL_16BF_
 
 _LABEL_169C_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $C4
 	jr   z, _LABEL_16BF_
 	ld   e, a
@@ -3885,7 +3885,7 @@ _LABEL_169C_:
 	bit  2, a
 	jr   z, _LABEL_16BF_
 _LABEL_16B6_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	bit  2, a
 	jr   nz, _LABEL_16B6_
 	jr   _LABEL_16F5_
@@ -4044,7 +4044,7 @@ _LABEL_17B0_:
 	jr   z, _LABEL_17CF_
 	dec  a
 	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $C4
 	jr   nz, _LABEL_17F4_
 	xor  a
@@ -4052,7 +4052,7 @@ _LABEL_17B0_:
 	jr   _LABEL_17F4_
 
 _LABEL_17CF_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $C4
 	jr   z, _LABEL_17F4_
 	ld   e, a
@@ -4066,7 +4066,7 @@ _LABEL_17CF_:
 	bit  2, a
 	jr   z, _LABEL_17F4_
 _LABEL_17EA_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	bit  2, a
 	jr   nz, _LABEL_17EA_
 	jp   _LABEL_1963_
@@ -4309,7 +4309,7 @@ _LABEL_1982_:
 	jr   _LABEL_199D_
 
 _LABEL_198F_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   z, _LABEL_199D_
 	ld   a, $32
@@ -5146,7 +5146,7 @@ _LABEL_20B8_:
 	jr   z, _LABEL_20D2_
 	dec  a
 	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $C4
 	jr   nz, _LABEL_20F5_
 	xor  a
@@ -5154,7 +5154,7 @@ _LABEL_20B8_:
 	jr   _LABEL_20F5_
 
 _LABEL_20D2_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $C4
 	jr   z, _LABEL_20F5_
 	ld   e, a
@@ -5168,7 +5168,7 @@ _LABEL_20D2_:
 	bit  2, a
 	jr   z, _LABEL_20F5_
 _LABEL_20EC_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	bit  2, a
 	jr   nz, _LABEL_20EC_
 	jr   _LABEL_2145_
@@ -5806,7 +5806,7 @@ _LABEL_24DA_:
 	ld   [_RAM_C27C_], a
 	ret
 
-_LABEL_24F4_:
+input_read_gamepad_buttons__ROM_24F4:
 	ld   a, $20
 	ldh  [rP1], a
 	ldh  a, [rP1]
@@ -5830,15 +5830,15 @@ _LABEL_24F4_:
 	and  $0F
 	or   b
 	ld   c, a
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	xor  c
 	and  c
-	ld   [_RAM_C104_], a
+	ld   [_RAM_C104_], a  ; TODO: label: maybe buttons changed?
 	ld   a, c
-	ld   [_RAM_C103_], a
+	ld   [gamepad_buttons__RAM_C103], a
 	ld   a, [$0030]
 	ldh  [rP1], a
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  $0F
 	xor  $0F
 	add  a
@@ -5847,9 +5847,9 @@ _LABEL_24F4_:
 	add  a
 	add  $0F
 	ld   e, a
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	and  e
-	ld   [_RAM_C103_], a
+	ld   [gamepad_buttons__RAM_C103], a
 	ret
 
 _LABEL_2540_:
@@ -5926,7 +5926,7 @@ _LABEL_25CC_:
 	ld   a, [_RAM_C10E_]
 	or   a
 	jr   nz, _LABEL_25E0_
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	ld   [_RAM_C592_], a
 	and  $0F
 	xor  $0F
@@ -5951,7 +5951,7 @@ _LABEL_25F7_:
 	ldh  [rBGP], a
 	ld   a, [_RAM_C399_]
 	ldh  [rLYC], a
-	call _LABEL_24F4_
+	call input_read_gamepad_buttons__ROM_24F4
 	ld   hl, _RAM_C100_
 	inc  [hl]
 	call _LABEL_2FE6_
@@ -5959,7 +5959,7 @@ _LABEL_25F7_:
 	ld   a, [_RAM_C3AA_]
 	or   a
 	jr   z, _LABEL_2659_
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	bit  0, a
 	jr   z, _LABEL_2628_
 	call _LABEL_1E88_
@@ -6309,7 +6309,7 @@ _LABEL_2854_:
 	ld   a, [_RAM_C10A_]
 	cp   $02
 	jr   nz, _LABEL_2866_
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   z, _LABEL_2866_
 	xor  a
@@ -7189,7 +7189,7 @@ _LABEL_2DA2_:
 	ret
 
 _LABEL_2DA7_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   nz, _LABEL_2DA7_
 	call _LABEL_380D_
@@ -7204,7 +7204,7 @@ _LABEL_2DA7_:
 	ld   hl, $98E0
 	rst  $20	; _LABEL_20_
 _LABEL_2DC8_:
-	ld   a, [_RAM_C103_]
+	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   z, _LABEL_2DC8_
 	pop  de
