@@ -1,5 +1,5 @@
 
-all: gb duck
+all: duck gb
 
 DIRDUCK=build_duck
 DIRGB=build_gb
