@@ -3,7 +3,7 @@ include "inc/hardware.inc"
 
 
 SECTION "wram_c000", WRAM0[$C000]
-_RAM_C000_: db
+shadow_oam_base__RAM_C000: db
 
 SECTION "wram_c100", WRAM0[$C100]
 _RAM_C100_: db
@@ -529,11 +529,10 @@ SECTION "wram_d0d0", WRAMX[$D0D0]
 _RAM_D0D0_: db
 
 SECTION "hram_ff80", HRAM[$FF80]
-_RAM_FF80_: db
-_RAM_FF81_: db
+gfx__oam_dma__RAM_FF80: db
 
 SECTION "hram_ff8a", HRAM[$FF8A]
-_RAM_FF8A_: db
+ie_reg_cache__RAM_FF8A: db
 
 SECTION "hram_ff8c", HRAM[$FF8C]
 _RAM_FF8C_: db
@@ -669,7 +668,7 @@ _SRAM_6100_: db
 
 SECTION "rom0", ROM0
 _LABEL_0_:
-	jp   _LABEL_150_
+	jp   startup_init__0150
 
 ; Data from 3 to 6 (4 bytes)
 _DATA_3_:
@@ -759,9 +758,9 @@ _LABEL_F2_:
 ; Data from F9 to FF (7 bytes)
 db $00, $4C, $27, $0E, $00, $84, $27
 
-_LABEL_100_:
+gb_entry_point__0100:
 	nop
-	jp   _LABEL_150_
+	jp   startup_init__0150
 
 GBcartridgeHeader:
 ; Nintendo Logo: OK
@@ -783,20 +782,23 @@ db $00      ; Mask ROM Version number
 db $69      ; Header Checksum: OK
 dw $DC17    ; Global Checksum: OK
 
-_LABEL_150_:
+startup_init__0150:
 	di
 	ld   hl, $FFFE
 	ld   sp, hl
-	call _LABEL_2743_
-	ld   hl, _RAM_C000_
+	call gfx__copy_oam_dma_to_RAM__2743
+
+    ; Clear WRAM
+	ld   hl, _RAM
 	ld   bc, $2000
-_LABEL_15E_:
-	xor  a
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_15E_
+    .startup__clear_wram_loop__015E:
+    	xor  a
+    	ldi  [hl], a
+    	dec  bc
+    	ld   a, b
+    	or   c
+    	jr   nz, .startup__clear_wram_loop__015E
+
 	ld   a, $04
 	ldh  [rSTAT], a
 	ld   [_RAM_C110_], a
@@ -806,12 +808,12 @@ _LABEL_15E_:
 	ld   a, $D2
 	ldh  [rOBP0], a
 	ldh  [rOBP1], a
-	ld   a, $83
+	ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
 	ldh  [rLCDC], a
 	ld   a, $01
 	ldh  [rIE], a
 	ldh  [_RAM_FF8C_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   hl, _RAM_C19C_
 	ld   a, $1E
 	ld   de, $0005
@@ -883,7 +885,7 @@ _LABEL_200_:
 	ld   de, _RAM_C700_
 	call _LABEL_F0_
 	call _LABEL_380D_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C110_], a
 	ld   [$3FFF], a
@@ -925,7 +927,7 @@ _LABEL_26C_:
 _LABEL_277_:
 	xor  a
 	ld   [_RAM_C27C_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   hl, $8010
 	ld   a, $FF
 	ld   b, $10
@@ -942,7 +944,7 @@ _LABEL_285_:
 	ld   [_RAM_C114_], a
 _LABEL_29A_:
 	rst  $18	; _LABEL_18_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C113_]
 	or   a
 	jr   z, _LABEL_2C2_
@@ -1090,7 +1092,7 @@ _LABEL_382_:
 	ld   [_RAM_C111_], a
 	ld   a, b
 	ld   [_RAM_C112_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	pop  af
 	add  a
 	ld   hl, _DATA_3A2_
@@ -1115,7 +1117,7 @@ _LABEL_3BA_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00E6
 	call _LABEL_1D2D_
 	ld   bc, $0609
@@ -1139,7 +1141,7 @@ _LABEL_3EF_:
 	ld   a, $1B
 	ldh  [rBGP], a
 	ld   [_RAM_C27D_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   bc, $1008
 	call _LABEL_27DD_
 	call _LABEL_450_
@@ -1164,7 +1166,7 @@ _LABEL_424_:
 	ld   a, $1B
 	ldh  [rBGP], a
 	ld   [_RAM_C27D_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   bc, $1008
 	call _LABEL_27DD_
 	call _LABEL_450_
@@ -1445,7 +1447,7 @@ _LABEL_62C_:
 	jp   _LABEL_7B6_
 
 _LABEL_64E_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 _LABEL_654_:
 	call _LABEL_65D_
@@ -1453,12 +1455,12 @@ _LABEL_654_:
 	jp   _LABEL_6D0_
 
 _LABEL_65D_:
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0003
 	ld   hl, $99E0
 	rst  $20	; _LABEL_20_
 _LABEL_667_:
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, $99C0
 	ld   de, $0617
 	rst  $20	; _LABEL_20_
@@ -1788,7 +1790,7 @@ _LABEL_839_:
 	ld   [_RAM_C27E_], a
 	xor  a
 	ld   [_RAM_C27F_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   a, $01
 	ld   [$3FFF], a
 	ld   bc, _DATA_4000_
@@ -1824,11 +1826,11 @@ _LABEL_897_:
 	xor  a
 	call _LABEL_BB1_
 	ld   [_RAM_C23E_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_27DD_
 	call _LABEL_481_
 	call _LABEL_B45_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
 	ld   [$3FFF], a
@@ -1856,13 +1858,13 @@ _LABEL_8C5_:
 _LABEL_8E3_:
 	ld   a, $D2
 	ldh  [rOBP0], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_27DD_
 	call _LABEL_481_
 	ld   a, $C8
 	ld   [_RAM_C399_], a
 	call _LABEL_B45_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
 	ld   [$3FFF], a
@@ -2207,7 +2209,7 @@ _LABEL_B36_:
 	jr   _LABEL_B2E_
 
 _LABEL_B45_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   bc, _DATA_15B4C_
 	ld   hl, $9000
 	ld   a, $05
@@ -2423,7 +2425,7 @@ _LABEL_CAD_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1D5B_
 	call _LABEL_206D_
 	cp   $01
@@ -2484,7 +2486,7 @@ db $3E, $03, $EA, $FF, $3F, $C3, $3E, $59
 _LABEL_D49_:
 	xor  a
 	call _LABEL_BB1_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, $03
 	ld   [$3FFF], a
 	jp   _LABEL_D714_
@@ -3065,7 +3067,7 @@ _LABEL_10C3_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
 	ld   [$3FFF], a
 	ld   a, [_RAM_C233_]
@@ -3227,7 +3229,7 @@ _LABEL_11F7_:
 _LABEL_1210_:
 	xor  a
 	ld   [_RAM_C234_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [$3FFF], a
 	ld   hl, $9000
@@ -3240,7 +3242,7 @@ _LABEL_1210_:
 	call _LABEL_3969_
 	ld   a, $03
 	ld   [$3FFF], a
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, $9840
 	rst  $20	; _LABEL_20_
@@ -3249,7 +3251,7 @@ _LABEL_1210_:
 _LABEL_1241_:
 	ld   a, $01
 	ld   [_RAM_C234_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [$3FFF], a
 	ld   hl, $9000
@@ -3262,7 +3264,7 @@ _LABEL_1241_:
 	call _LABEL_3969_
 	ld   a, $03
 	ld   [$3FFF], a
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, $9840
 	rst  $20	; _LABEL_20_
@@ -3740,7 +3742,7 @@ _LABEL_1572_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1D88_
 	call _LABEL_206D_
 	cp   $01
@@ -3758,7 +3760,7 @@ _LABEL_1598_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DDC_
 	ld   a, $03
 	ld   [$3FFF], a
@@ -3772,7 +3774,7 @@ _LABEL_15BE_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1E06_
 	call _LABEL_206D_
 	cp   $01
@@ -3787,7 +3789,7 @@ _LABEL_15E1_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DB2_
 	call _LABEL_206D_
 	push af
@@ -3810,7 +3812,7 @@ _LABEL_160B_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   [_RAM_C23E_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	xor  a
 	ld   [_RAM_C102_], a
 	ld   a, $64
@@ -3818,7 +3820,7 @@ _LABEL_160B_:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1E34_
 	call _LABEL_206D_
 	cp   $01
@@ -3827,7 +3829,7 @@ _LABEL_160B_:
 	jp   z, _LABEL_200_
 	ld   a, $03
 	ld   [$3FFF], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   hl, _RAM_CFA6_
 	ld   e, [hl]
@@ -3850,7 +3852,7 @@ _LABEL_1665_:
 	pop  af
 	dec  a
 	jr   nz, _LABEL_1662_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	ld   bc, $09E0
@@ -3923,7 +3925,7 @@ _LABEL_16ED_:
 	jp   _LABEL_1684_
 
 _LABEL_16F5_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, [_RAM_C399_]
 	sub  $0E
@@ -3958,7 +3960,7 @@ _LABEL_16F5_:
 	ld   a, $03
 	ld   [$3FFF], a
 	call _LABEL_F790_
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	pop  de
 	pop  bc
@@ -4024,7 +4026,7 @@ _LABEL_1799_:
 	ld   [_RAM_C245_], a
 	ld   a, d
 	ld   [_RAM_C246_], a
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 _LABEL_17A4_:
 	ld   a, [_RAM_C399_]
 	or   a
@@ -4329,7 +4331,7 @@ _LABEL_19A9_:
 	ld   [_RAM_C102_], a
 	ld   a, $32
 	ld   [_RAM_C240_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, $C8
 	ld   [_RAM_C399_], a
@@ -4390,7 +4392,7 @@ _LABEL_1A02_:
 	pop  bc
 	dec  c
 	jr   nz, _LABEL_19EA_
-	jp   _LABEL_2540_
+	jp   gfx__turn_on_screen_bg_obj__2540
 
 ; Data from 1A0E to 1A4E (65 bytes)
 _DATA_1A0E_:
@@ -4433,7 +4435,7 @@ _LABEL_1A6A_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   [_RAM_C23B_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, $03
 	ld   [$3FFF], a
@@ -4441,12 +4443,12 @@ _LABEL_1A6A_:
 	call _LABEL_F74D_
 	ld   a, $F2
 	ldh  [rOBP0], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   a, $C8
 	ld   [_RAM_C399_], a
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0012
 	call _LABEL_1D2D_
 	ld   bc, $0509
@@ -4550,7 +4552,7 @@ _LABEL_1B47_:
 	add  hl, de
 	xor  a
 	ld   [hl], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C24B_], a
 	call _LABEL_1CC6_
@@ -4640,7 +4642,7 @@ _LABEL_1BF6_:
 	jr   _LABEL_1BF6_
 
 _LABEL_1C17_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   de, $0014
 	ld   hl, $98A0
@@ -4651,7 +4653,7 @@ _LABEL_1C17_:
 	ld   de, $0016
 	ld   hl, $9940
 	rst  $10	; _LABEL_10_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 _LABEL_1C35_:
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -4978,7 +4980,7 @@ _LABEL_1E34_:
 _LABEL_1E6A_:
 	xor  a
 	ld   [_RAM_C27C_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_424_
 	call _LABEL_2735_
 	ld   a, $03
@@ -5082,9 +5084,9 @@ _LABEL_2044_:
 	ld   [_RAM_C258_], a
 	ld   a, b
 	ld   [_RAM_C259_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_463_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	xor  a
 	ld   [_RAM_C23E_], a
 	ld   a, $39
@@ -5225,7 +5227,7 @@ _LABEL_213A_:
 _LABEL_2145_:
 	xor  a
 	ld   [_RAM_C23F_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C257_]
 	ret
 
@@ -5342,7 +5344,7 @@ _LABEL_2215_:
 _LABEL_2218_:
 	ld   a, $F2
 	ldh  [rOBP0], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C260_], a
 	di
@@ -5389,7 +5391,7 @@ _LABEL_224C_:
 	ld   a, [_RAM_C10B_]
 	ld   [_RAM_C10D_], a
 	call _LABEL_4C9_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_B7F7_
 	pop  af
 	ld   [_RAM_C10D_], a
@@ -5666,7 +5668,7 @@ _LABEL_2400_:
 _LABEL_2411_:
 	call _LABEL_241A_
 	push af
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	pop  af
 	ret
 
@@ -5852,11 +5854,13 @@ input_read_gamepad_buttons__ROM_24F4:
 	ld   [gamepad_buttons__RAM_C103], a
 	ret
 
-_LABEL_2540_:
-	ld   a, $83
-	ld   [_RAM_C23C_], a
+
+gfx__turn_on_screen_bg_obj__2540:
+	ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
+	ld   [_RAM_C23C_], a ; TODO: VAR: Some cache of LCDC settings?
 	ldh  [rLCDC], a
 	ret
+
 
 _LABEL_2548_:
 	push af
@@ -5931,7 +5935,7 @@ _LABEL_25CC_:
 	and  $0F
 	xor  $0F
 _LABEL_25E0_:
-	call _RAM_FF80_	; Code is loaded from _LABEL_2751_
+	call gfx__oam_dma__RAM_FF80	; Code is loaded from gfx__oam_dma_in_ROM__2751
 	ld   a, [_RAM_C102_]
 	ldh  [rSCY], a
 	ld   a, [_RAM_C27C_]
@@ -6106,7 +6110,7 @@ _LABEL_271B_:
 	jp   _LABEL_25F7_
 
 _LABEL_2722_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   hl, $9800
 	ld   bc, $0400
 _LABEL_272B_:
@@ -6116,7 +6120,7 @@ _LABEL_272B_:
 	ld   a, b
 	or   c
 	jr   nz, _LABEL_272B_
-	jp   _LABEL_2540_
+	jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_2735_:
 	ld   hl, $9800
@@ -6130,42 +6134,48 @@ _LABEL_273B_:
 	jr   nz, _LABEL_273B_
 	ret
 
-_LABEL_2743_:
-	ld   c, LOW(_RAM_FF80_)
-	ld   b, $0A
-	ld   hl, _LABEL_2751_	; Loading Code into RAM
-_LABEL_274A_:
-	ldi  a, [hl]
-	ldh  [c], a
-	inc  c
-	dec  b
-	jr   nz, _LABEL_274A_
-	ret
+gfx__copy_oam_dma_to_RAM__2743:
+    ; Destination Address
+    ; Num Bytes to copy
+    ; Source Address
+	ld   c, LOW(gfx__oam_dma__RAM_FF80)
+	ld   b, (gfx__oam_dma_in_ROM_end__275B - gfx__oam_dma_in_ROM__2751) ; $0A
+	ld   hl, gfx__oam_dma_in_ROM__2751	; Loading Code into RAM
+    .oam_dma_copy_loop__274A:
+    	ldi  a, [hl]
+    	ldh  [c], a
+    	inc  c
+    	dec  b
+    	jr   nz, .oam_dma_copy_loop__274A
+    ret
 
 ; Executed in RAM at ff80
-_LABEL_2751_:
+gfx__oam_dma_in_ROM__2751:
 	ld   a, $C0
 	ldh  [rDMA], a
 	ld   a, $28
-; Executed in RAM at ff86
-_LABEL_2757_:
-	dec  a
-	jr   nz, _LABEL_2757_
+    ; Executed in RAM at ff86
+    .oam_dma_wait_loop__2757:
+    	dec  a
+    	jr   nz, .oam_dma_wait_loop__2757
+    ret
+    gfx__oam_dma_in_ROM_end__275B:
+
+
+gfx__clear_shadow_oam__275B:
+	ld   hl, shadow_oam_base__RAM_C000
+	ld   b, 160 ; $A0
+	xor  a
+    .shadow_oam_clear_loop__2761:
+    	ldi  [hl], a
+    	dec  b
+    	jr   nz, .shadow_oam_clear_loop__2761
+    	ld   [_RAM_C107_], a
 	ret
 
-_LABEL_275B_:
-	ld   hl, _RAM_C000_
-	ld   b, $A0
-	xor  a
-_LABEL_2761_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_2761_
-	ld   [_RAM_C107_], a
-	ret
 
 _LABEL_2769_:
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C280_]
 	cp   $04
 	jr   z, _LABEL_27A7_
@@ -6185,7 +6195,7 @@ _LABEL_278B_:
 	ld   a, [_RAM_C113_]
 	or   a
 	ret  z
-	ld   hl, _RAM_C000_
+	ld   hl, shadow_oam_base__RAM_C000
 	ld   a, [_RAM_C282_]
 	ldi  [hl], a
 	ld   a, [_RAM_C281_]
@@ -6277,24 +6287,35 @@ _LABEL_2812_:
 	ld   [_RAM_C114_], a
 	ret
 
-_LABEL_2827_:
+
+gfx__turn_off_screen_2827:
+    ; Check if Screen is already OFF, if it is then return immediately
 	ldh  a, [rLCDC]
-	bit  7, a
+	bit  LCDCF_B_ON, a ; 7, a
 	ret  z
+
+    ; Save IE state and turn OFF VBlank interrupt
 	ldh  a, [rIE]
-	ldh  [_RAM_FF8A_], a
-	and  $FE
+	ldh  [ie_reg_cache__RAM_FF8A], a
+	and  ~IEF_VBLANK ; $FE
 	ldh  [rIE], a
-_LABEL_2834_:
-	ldh  a, [rLY]
-	cp   $91
-	jr   nz, _LABEL_2834_
+
+    ; Wait until start of VBlank (scanline 145)
+    .ly_wait_loop__2834:
+    	ldh  a, [rLY]
+    	cp   145 ; $91
+    	jr   nz, .ly_wait_loop__2834
+
+    ; Turn Screen OFF
 	ldh  a, [rLCDC]
-	and  $7F
+	and  ~LCDCF_ON ; $7F
 	ldh  [rLCDC], a
-	ldh  a, [_RAM_FF8A_]
+
+    ; Restore Previous IE state
+	ldh  a, [ie_reg_cache__RAM_FF8A]
 	ldh  [rIE], a
 	ret
+
 
 ; 10th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_2845_:
@@ -6775,7 +6796,7 @@ db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $0
 _LABEL_2B3B_:
 	xor  a
 	call _LABEL_BB1_
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   hl, $8010
 	ld   c, $08
 	ld   b, $0E
@@ -6833,7 +6854,7 @@ _LABEL_2B7D_:
 	ret  z
 	call _LABEL_3EF_
 	call _LABEL_2735_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $02
 	ld   [$3FFF], a
 	jp   _LABEL_ACA0_
@@ -7358,7 +7379,7 @@ db $33, $80, $02, $02, $35, $00, $36, $00, $37, $00, $38, $00, $02, $02, $39, $0
 db $3A, $00, $3B, $00, $3C, $00
 
 _LABEL_2F41_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [$3FFF], a
 	ld   hl, $9000
@@ -7415,7 +7436,7 @@ _LABEL_2F8E_:
 	ei
 	ld   hl, $FFFE
 	ld   sp, hl
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   a, $FF
 	ldh  [rOBP0], a
 	ld   a, $AA
@@ -7704,7 +7725,7 @@ _LABEL_31E0_:
 _LABEL_31EA_:
 	ld   a, [_RAM_C27C_]
 	push af
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	xor  a
 	ld   [_RAM_C398_], a
 	ld   a, $1A
@@ -7907,7 +7928,7 @@ _LABEL_3327_:
 	ld   [_RAM_C111_], a
 	ld   a, b
 	ld   [_RAM_C112_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	pop  af
 	cp   $09
 	jp   z, _LABEL_3BA_
@@ -7977,7 +7998,7 @@ _LABEL_3388_:
 _LABEL_338A_:
 	xor  a
 	call _LABEL_BB1_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_2B_
 	ld   a, $02
 	call _LABEL_3918_
@@ -8663,7 +8684,7 @@ db $05, $14, $66, $00, $40, $01, $0C, $74, $00, $40, $01
 _LABEL_3918_:
 	push af
 	push af
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	pop  af
 	ld   e, a
 	add  a
@@ -8707,7 +8728,7 @@ _LABEL_395D_:
 	ld   [$3FFF], a
 	pop  de
 	call _LABEL_3969_
-	jp   _LABEL_2540_
+	jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_3969_:
 	ld   hl, $9800
@@ -13967,7 +13988,7 @@ _LABEL_B375_:
 	call _LABEL_B7BA_
 	call _LABEL_B4F8_
 	call _LABEL_26C_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_B3C0_
 	ld   a, [_RAM_C596_]
 	or   a
@@ -14593,7 +14614,7 @@ _LABEL_B73C_:
 	ret
 
 _LABEL_B743_:
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, $99C0
 	ld   de, $0617
 	rst  $20	; _LABEL_20_
@@ -14606,7 +14627,7 @@ _LABEL_B743_:
 	ret
 
 _LABEL_B75C_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	call _LABEL_B809_
 _LABEL_B765_:
@@ -14966,7 +14987,7 @@ _LABEL_BA05_:
 	ld   [_RAM_C476_], a
 	ld   [_RAM_C477_], a
 _LABEL_BA26_:
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_B145_
 	ld   a, [_RAM_C10A_]
 	or   a
@@ -15525,7 +15546,7 @@ _LABEL_BDFB_:
 	jr   nz, _LABEL_BDFB_
 	pop  hl
 _LABEL_BE02_:
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_B145_
 	ld   a, [_RAM_C10A_]
 	or   a
@@ -15708,7 +15729,7 @@ _LABEL_BF3B_:
 
 _LABEL_BF46_:
 	rst  $18	; _LABEL_18_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C355_]
 	bit  7, a
 	jr   z, _LABEL_BF54_
@@ -15742,7 +15763,7 @@ _LABEL_BF67_:
 	inc  e
 _LABEL_BF72_:
 	ld   b, $78
-	ld   hl, _RAM_C000_
+	ld   hl, shadow_oam_base__RAM_C000
 _LABEL_BF77_:
 	ld   a, e
 	cp   $08
@@ -16043,7 +16064,7 @@ _LABEL_C1DA_:
 	xor  a
 	ld   [hl], a
 	ld   [_RAM_C307_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, $00
 	ld   [_RAM_C24C_], a
 	ld   a, $A1
@@ -16070,7 +16091,7 @@ db $CD, $0D, $38
 _LABEL_C226_:
 	ld   a, $1B
 	ldh  [rOBP0], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_B45_
 	ld   hl, $9800
 	ld   de, $99E0
@@ -16210,7 +16231,7 @@ _LABEL_C2EF_:
 	call _LABEL_92C_
 	ld   a, $04
 	ld   [_RAM_C280_], a
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $0D
 	ld   [_RAM_C27C_], a
 _LABEL_C30A_:
@@ -16246,7 +16267,7 @@ _LABEL_C335_:
 	ld   [_RAM_C27C_], a
 	ld   a, [_RAM_C280_]
 	cp   $04
-	call nz, _LABEL_275B_
+	call nz, gfx__clear_shadow_oam__275B
 _LABEL_C348_:
 	rst  $18	; _LABEL_18_
 	call _LABEL_9CE_
@@ -16402,7 +16423,7 @@ _LABEL_C457_:
 _LABEL_C463_:
 	inc  hl
 	ld   [hl], $00
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, b
 	ld   [_RAM_C23B_], a
 	ret
@@ -16470,9 +16491,9 @@ _LABEL_C4BD_:
 	ret
 
 _LABEL_C4C3_:
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_26C_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, [_RAM_C59C_]
 	or   a
 	jr   z, _LABEL_C4F1_
@@ -16642,7 +16663,7 @@ _LABEL_C601_:
 	jr   z, _LABEL_C601_
 	cp   $FF
 	jr   z, _LABEL_C601_
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	jp   _LABEL_2722_
 
 _LABEL_C611_:
@@ -16861,7 +16882,7 @@ _LABEL_C8BE_:
 	inc  a
 	cp   c
 	jr   nz, _LABEL_C89A_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
 	ld   [_RAM_C27C_], a
 _LABEL_C8CC_:
@@ -16915,7 +16936,7 @@ _LABEL_C91B_:
 	ld   [_RAM_C240_], a
 	call _LABEL_41B_
 	call _LABEL_2735_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0068
 	call _LABEL_1D2D_
 	ld   bc, $0609
@@ -17091,7 +17112,7 @@ _LABEL_CABA_:
 _LABEL_CAC0_:
 	call _LABEL_E3A3_
 _LABEL_CAC3_:
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 _LABEL_CAC6_:
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -17145,7 +17166,7 @@ _LABEL_CB15_:
 	or   a
 	jp   z, _LABEL_CAC3_
 	call _LABEL_4C9_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C10C_]
 	call _LABEL_7B6_
 	jp   _LABEL_CA9F_
@@ -17532,7 +17553,7 @@ _LABEL_CDC7_:
 	adc  $00
 	ld   h, a
 	ld   [hl], $00
-	jp   _LABEL_275B_
+	jp   gfx__clear_shadow_oam__275B
 
 _LABEL_CDE1_:
 	ld   a, [_SRAM_2001_]
@@ -18042,7 +18063,7 @@ _LABEL_D113_:
 	xor  a
 	ld   [_RAM_C5C9_], a
 _LABEL_D117_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, [_RAM_C5C9_]
 	or   a
@@ -18071,7 +18092,7 @@ _LABEL_D133_:
 	ld   bc, $09E0
 	ld   e, $16
 	call _LABEL_1CF6_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 _LABEL_D14A_:
 	rst  $18	; _LABEL_18_
 	ld   a, [_RAM_C240_]
@@ -18312,7 +18333,7 @@ _LABEL_D2ED_:
 	or   a
 	jr   nz, _LABEL_D2ED_
 	call _LABEL_D11_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   b, $0A
 	ld   hl, _RAM_C283_
 	ld   a, $20
@@ -18371,7 +18392,7 @@ _LABEL_D346_:
 	pop  bc
 	dec  b
 	jr   nz, _LABEL_D346_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	jp   _LABEL_D56A_
 
 _LABEL_D358_:
@@ -18391,12 +18412,12 @@ _LABEL_D358_:
 	ld   [_RAM_C5CB_], a
 	ld   a, $C8
 	ld   [_RAM_C399_], a
-	jp   _LABEL_2827_
+	jp   gfx__turn_off_screen_2827
 
 _LABEL_D386_:
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $009D
 	call _LABEL_1D2D_
 	ld   bc, $0309
@@ -18424,7 +18445,7 @@ _LABEL_D3AB_:
 	push af
 _LABEL_D3BB_:
 	pop  af
-	jp   _LABEL_275B_
+	jp   gfx__clear_shadow_oam__275B
 
 _LABEL_D3BF_:
 	push hl
@@ -18540,10 +18561,10 @@ _LABEL_D451_:
 
 _LABEL_D459_:
 	call _LABEL_D386_
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $009E
 	call _LABEL_1D2D_
 	ld   bc, $0309
@@ -18566,14 +18587,14 @@ _LABEL_D481_:
 _LABEL_D48C_:
 	xor  a
 	ld   [_RAM_C27C_], a
-	call _LABEL_275B_
-	call _LABEL_2827_
+	call gfx__clear_shadow_oam__275B
+	call gfx__turn_off_screen_2827
 	xor  a
 	ld   [_RAM_C5CC_], a
 	call _LABEL_2735_
 	call _LABEL_D337_
 	call _LABEL_D358_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 _LABEL_D4A6_:
 	call _LABEL_2722_
 	call _LABEL_D3E9_
@@ -18634,7 +18655,7 @@ _LABEL_D52E_:
 	inc  de
 	dec  b
 	jr   nz, _LABEL_D52E_
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_D386_
 	ld   de, _RAM_C283_
 	ld   hl, _RAM_C800_
@@ -18785,7 +18806,7 @@ db $7E, $2A, $34, $35, $36, $2B, $2D, $68, $6A, $28, $29, $37, $38, $39, $2E, $2
 db $3D, $7F, $0D, $0C, $30, $20, $3A, $40
 
 _LABEL_D6D6_:
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, _DATA_7_
 	ld   hl, $9900
 	rst  $28	; _LABEL_28_
@@ -18810,13 +18831,13 @@ _LABEL_D6D6_:
 	ld   de, $000E
 	ld   hl, $99E0
 	rst  $28	; _LABEL_28_
-	jp   _LABEL_2540_
+	jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_D714_:
 	call _LABEL_41B_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00A0
 	call _LABEL_1D2D_
 	ld   bc, $0009
@@ -18943,7 +18964,7 @@ _LABEL_D820_:
 	call _LABEL_E67B_
 	xor  a
 	ld   [_RAM_C27C_], a
-	jp   _LABEL_275B_
+	jp   gfx__clear_shadow_oam__275B
 
 _LABEL_D836_:
 	cp   $09
@@ -19406,7 +19427,7 @@ _LABEL_DCDE_:
 _LABEL_DCE7_:
 	ld   a, $02
 	call _LABEL_BB1_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_2722_
 	ld   a, $01
 	ld   [_RAM_C10D_], a
@@ -19461,7 +19482,7 @@ _LABEL_DD54_:
 _LABEL_DD5A_:
 	ld   a, $01
 	call _LABEL_BB1_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_2722_
 	ld   a, [_SRAM_2001_]
 	or   a
@@ -19527,14 +19548,14 @@ _LABEL_DDD6_:
 _LABEL_DDD9_:
 	xor  a
 	ld   [_RAM_C27C_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_SRAM_9EF_]
 	or   a
 	jp   z, _LABEL_DE1C_
 	call _LABEL_41B_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00A5
 	call _LABEL_1D2D_
 	ld   bc, $0309
@@ -19543,7 +19564,7 @@ _LABEL_DDD9_:
 	call _LABEL_E25B_
 	xor  a
 	ld   [_SRAM_9EF_], a
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   hl, _SRAM_9F0_
 	ld   de, _RAM_C283_
 	ld   bc, _SRAM_9FA_
@@ -19559,7 +19580,7 @@ _LABEL_DE1C_:
 	call _LABEL_41B_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, _RAM_C283_
 	ld   b, $14
 	ld   a, $20
@@ -19637,10 +19658,10 @@ _LABEL_DEB4_:
 	ld   a, [_SRAM_A04_]
 	ld   [_RAM_C5CD_], a
 _LABEL_DEBA_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, _RAM_D06C_
 	ld   e, [hl]
 	inc  hl
@@ -19839,10 +19860,10 @@ _LABEL_DFEE_:
 	ret
 
 _LABEL_E026_:
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00AC
 	call _LABEL_1D2D_
 	ld   bc, $0009
@@ -19882,7 +19903,7 @@ _LABEL_E063_:
 	call _LABEL_1D2D_
 	ld   bc, $0C09
 	call _LABEL_BC3_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   hl, _DATA_E1CC_
 	call _LABEL_2003_
 	call _LABEL_206D_
@@ -20331,7 +20352,7 @@ _LABEL_E396_:
 	ret
 
 _LABEL_E3A3_:
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   a, [_SRAM_2001_]
 	or   a
 	jr   nz, _LABEL_E3C3_
@@ -20351,7 +20372,7 @@ _LABEL_E3B1_:
 	jp   _LABEL_62C_
 
 _LABEL_E3C3_:
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	ld   de, $00B8
 	ld   hl, $9800
 	rst  $20	; _LABEL_20_
@@ -20524,7 +20545,7 @@ _LABEL_E4F1_:
 	or   a
 	jr   z, _LABEL_E4DB_
 	call _LABEL_4C9_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_7B3_
 	jr   _LABEL_E4DB_
 
@@ -20999,11 +21020,11 @@ _LABEL_E7EF_:
 	ld   [_RAM_C23E_], a
 	ld   a, $F2
 	ldh  [rOBP0], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_B99_
 	ld   de, _DATA_F40C_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BA
 	call _LABEL_1D2D_
 	ld   bc, $0009
@@ -21152,7 +21173,7 @@ _LABEL_E915_:
 	jp   _LABEL_E867_
 
 _LABEL_E92D_:
-	jp   _LABEL_275B_
+	jp   gfx__clear_shadow_oam__275B
 
 ; Data from E930 to E959 (42 bytes)
 db $02, $02, $FC, $00, $FD, $00, $FE, $00, $FF, $00, $50, $68, $38, $38, $50, $38
@@ -21173,11 +21194,11 @@ _LABEL_E95A_:
 	ld   a, $01
 	ldh  [rIE], a
 	ei
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	call _LABEL_B99_
 	ld   de, _DATA_F40C_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BC
 	call _LABEL_1D2D_
 	ld   bc, $0009
@@ -21250,7 +21271,7 @@ _LABEL_E9F3_:
 	rst  $18	; _LABEL_18_
 	dec  b
 	jr   nz, _LABEL_E9F3_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	jr   _LABEL_E98E_
 
 _LABEL_E9FC_:
@@ -21939,7 +21960,7 @@ _LABEL_F69E_:
 _LABEL_F6A6_:
 	call _LABEL_914_
 	rst  $18	; _LABEL_18_
-	call _LABEL_275B_
+	call gfx__clear_shadow_oam__275B
 	call _LABEL_F6F7_
 	ld   a, [_RAM_C3B0_]
 	or   a
@@ -22016,10 +22037,10 @@ _LABEL_F73F_:
 _LABEL_F74D_:
 	ld   a, $C8
 	ld   [_RAM_C399_], a
-	call _LABEL_2827_
+	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00E1
 	call _LABEL_1D2D_
 	ld   bc, $0109
@@ -22041,7 +22062,7 @@ _LABEL_F74D_:
 
 _LABEL_F790_:
 	call _LABEL_26C_
-	call _LABEL_2540_
+	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BF
 	ld   a, $09
 	ld   hl, $9826
