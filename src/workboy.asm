@@ -1,4 +1,13 @@
 
+; Turn on to enable skipping some hardware specific code
+; so that the QuiQue ROM will run the Main Menu on a GB
+; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
+
+; Temporary workaround until MBC1 or equiv support is
+; patched into Sameduck
+; def DEBUG_SKIP_BANKED_MBC1_CODE = 1
+
+
 include "inc/hardware.inc"
 
 
@@ -839,7 +848,13 @@ _LABEL_1A8_:
 	ld   [_RAM_C10E_], a
 	ld   a, $02
 	ld   [_RAM_C10A_], a
+IF (DEF(DEBUG_SKIP_WORKBOY_STARTUP_CHECK))
+    nop
+    nop
+    nop
+ELSE
 	call _LABEL_2854_
+ENDC
 	call _LABEL_AFD_
 	ld   a, $FF
 	ld   [_RAM_C3B2_], a
@@ -7391,7 +7406,13 @@ _LABEL_2F41_:
 	call _LABEL_F68_
 	ld   a, $03
 	ld   [$3FFF], a
+IF (DEF(DEBUG_SKIP_BANKED_MBC1_CODE))
+    nop
+    nop
+    ret
+ELSE
 	jp   _LABEL_D6D6_
+ENDC
 
 _LABEL_2F64_:
 	push af
