@@ -3,12 +3,18 @@
 ; so that the QuiQue ROM will run the Main Menu on a GB
 ; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
 
-; Temporary workaround until MBC1 or equiv support is
-; patched into Sameduck
-; def DEBUG_SKIP_BANKED_MBC1_CODE = 1
-
+; Temporary workaround while MBC1 isn't supported in Sameduck
+def DEBUG_USE_DUCK_MBC = 1
 
 include "inc/hardware.inc"
+
+
+
+IF (DEF(DEBUG_USE_DUCK_MBC) && DEF(TARGET_MEGADUCK))
+    DEF rMBC1_ROMBANK    EQU $0001
+ELSE
+    DEF rMBC1_ROMBANK    EQU $3FFF
+ENDC
 
 
 SECTION "wram_c000", WRAM0[$C000]
@@ -854,13 +860,13 @@ startup_init__0150:
 	ld   [_RAM_C10E_], a
 	ld   a, $02
 	ld   [_RAM_C10A_], a
-IF (DEF(DEBUG_SKIP_WORKBOY_STARTUP_CHECK))
-    nop
-    nop
-    nop
-ELSE
-	call _LABEL_2854_
-ENDC
+    IF (DEF(DEBUG_SKIP_WORKBOY_STARTUP_CHECK))
+        nop
+        nop
+        nop
+    ELSE
+    	call _LABEL_2854_
+    ENDC
 	call _LABEL_AFD_
 	ld   a, $FF
 	ld   [_RAM_C3B2_], a
@@ -880,7 +886,7 @@ ENDC
 	call _LABEL_AFD_
 	halt
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_E42E_
 	ld   a, $01
 	ld   [_RAM_C10F_], a
@@ -909,7 +915,7 @@ _LABEL_200_:
 	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C110_], a
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	xor  a
 	ld   [_RAM_C595_], a
 	ld   [_RAM_C19A_], a
@@ -1167,7 +1173,7 @@ _LABEL_3EF_:
 	call _LABEL_27DD_
 	call _LABEL_450_
 	ld   a, $01
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $9000
 	ld   bc, _DATA_4000_
 	xor  a
@@ -1176,7 +1182,7 @@ _LABEL_3EF_:
 _LABEL_41B_:
 	call _LABEL_424_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 _LABEL_424_:
@@ -1192,7 +1198,7 @@ _LABEL_424_:
 	call _LABEL_27DD_
 	call _LABEL_450_
 	ld   a, $01
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $9000
 	ld   bc, _DATA_5000_
 	xor  a
@@ -1200,7 +1206,7 @@ _LABEL_424_:
 
 _LABEL_450_:
 	ld   a, $07
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $8420
 	ld   de, _DATA_1CE92_
 	ld   bc, _DATA_1CE9A_
@@ -1209,7 +1215,7 @@ _LABEL_450_:
 
 _LABEL_463_:
 	ld   a, $07
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $8420
 	ld   de, _DATA_1FD5A_
 	ld   bc, _DATA_1FD62_
@@ -1224,7 +1230,7 @@ _LABEL_481_:
 	xor  a
 	ld   [_RAM_C116_], a
 	ld   a, $07
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $8420
 	ld   de, _DATA_1FEB1_
 	ld   bc, _DATA_1FEB9_
@@ -1249,7 +1255,7 @@ _LABEL_498_:
 	ld   e, $70
 	call _LABEL_1CF6_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_E4D0_
 
 _LABEL_4C9_:
@@ -1813,13 +1819,13 @@ _LABEL_839_:
 	ld   [_RAM_C27F_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $01
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   bc, _DATA_4000_
 	ld   hl, $9000
 	xor  a
 	call _LABEL_1437_
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_9E17_
 	ld   hl, $9800
 	ld   b, $12
@@ -1838,7 +1844,7 @@ _LABEL_882_:
 	dec  b
 	jr   nz, _LABEL_87F_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_C831_
 
 _LABEL_897_:
@@ -1854,13 +1860,13 @@ _LABEL_897_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_C154_
 
 _LABEL_8BC_:
 	call _LABEL_8E3_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 _LABEL_8C5_:
@@ -1869,7 +1875,7 @@ _LABEL_8C5_:
 	ld   a, $03
 	call _LABEL_BB1_
 	ld   a, $05
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $4E5C
 	ld   de, _SRAM_6100_
 	call _LABEL_17CAD_
@@ -1888,7 +1894,7 @@ _LABEL_8E3_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_C047_
 
 ; Data from 906 to 913 (14 bytes)
@@ -2106,10 +2112,10 @@ _LABEL_A69_:
 	dec  d
 	ret  nz
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_AF93_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 _LABEL_A84_:
@@ -2164,18 +2170,18 @@ _LABEL_AC8_:
 	dec  d
 	ret  nz
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_AF32_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 _LABEL_AE3_:
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_AF32_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 ; 9th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
@@ -2183,14 +2189,14 @@ _LABEL_AF1_:
 	xor  a
 	call _LABEL_BB1_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_DDD9_
 
 _LABEL_AFD_:
 	ld   a, $0A
 	ld   [$00FF], a
 	ld   a, $01
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   a, $01
 	ld   [$7FFF], a
 	xor  a
@@ -2212,12 +2218,12 @@ _LABEL_B21_:
 	ld   a, $03
 	call _LABEL_BB1_
 	ld   a, $01
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_7D28_
 _LABEL_B2E_:
 	push af
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	pop  af
 	ret
 
@@ -2225,7 +2231,7 @@ _LABEL_B36_:
 	ld   a, $03
 	call _LABEL_BB1_
 	ld   a, $05
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_2A05_
 	jr   _LABEL_B2E_
 
@@ -2234,11 +2240,11 @@ _LABEL_B45_:
 	ld   bc, _DATA_15B4C_
 	ld   hl, $9000
 	ld   a, $05
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	xor  a
 	call _LABEL_1437_
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_2735_
 	ld   de, _DATA_A524_
 	ld   hl, $9860
@@ -2248,7 +2254,7 @@ _LABEL_B45_:
 
 _LABEL_B6C_:
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_B160_
 	jr   _LABEL_B2E_
 
@@ -2260,7 +2266,7 @@ db $01, $0A, $63
 _LABEL_B99_:
 	call _LABEL_3EF_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 ; 12th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
@@ -2269,7 +2275,7 @@ _LABEL_BA2_:
 	call _LABEL_BB1_
 	call _LABEL_3EF_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_E7EC_
 
 _LABEL_BB1_:
@@ -2475,7 +2481,7 @@ _LABEL_CEE_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_CA9F_
 
 _LABEL_D11_:
@@ -2485,7 +2491,7 @@ _LABEL_D16_:
 	ld   a, [_RAM_C479_]
 	push af
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   de, _RAM_C3E0_
 	ld   hl, _RAM_C3F9_
 	call _LABEL_AAA8_
@@ -2497,7 +2503,7 @@ _LABEL_D16_:
 	call _LABEL_BD22_
 	call _LABEL_AB74_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ret
 
 ; Data from D41 to D48 (8 bytes)
@@ -2509,7 +2515,7 @@ _LABEL_D49_:
 	call _LABEL_BB1_
 	call gfx__clear_shadow_oam__275B
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_D714_
 
 _LABEL_D58_:
@@ -2860,7 +2866,7 @@ _LABEL_F77_:
 	ld   hl, _DATA_F4A_
 	add  hl, de
 	ldi  a, [hl]
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ldi  a, [hl]
 	ld   h, [hl]
 	ld   l, a
@@ -2895,7 +2901,7 @@ _LABEL_FA1_:
 	ld   hl, _DATA_F31_
 	add  hl, de
 	ldi  a, [hl]
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
@@ -2913,7 +2919,7 @@ _LABEL_FC1_:
 	or   c
 	jr   nz, _LABEL_FC1_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   a, [_RAM_CF16_]
 	ld   l, a
 	ld   a, [_RAM_CF17_]
@@ -3090,7 +3096,7 @@ _LABEL_10C3_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   a, [_RAM_C233_]
 	or   a
 	jr   z, _LABEL_10DF_
@@ -3170,7 +3176,7 @@ _LABEL_1174_:
 	ld   bc, $2808
 	call _LABEL_27DD_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_DB40_
 	push af
 	push bc
@@ -3204,7 +3210,7 @@ _LABEL_11B2_:
 	call _LABEL_BB1_
 	call _LABEL_2722_
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	dec  a
 	ld   [_RAM_C10B_], a
 	call _LABEL_B765_
@@ -3252,17 +3258,17 @@ _LABEL_1210_:
 	ld   [_RAM_C234_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $9000
 	ld   bc, _DATA_1DDCA_
 	xor  a
 	call _LABEL_1437_
 	ld   a, $05
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_178FC_
 	call _LABEL_3969_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, $9840
@@ -3274,17 +3280,17 @@ _LABEL_1241_:
 	ld   [_RAM_C234_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $9000
 	ld   bc, _DATA_1ED6A_
 	xor  a
 	call _LABEL_1437_
 	ld   a, $05
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_17A64_
 	call _LABEL_3969_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, $9840
@@ -3784,7 +3790,7 @@ _LABEL_1598_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DDC_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_D105_
 
 _LABEL_15BE_:
@@ -3815,7 +3821,7 @@ _LABEL_15E1_:
 	call _LABEL_206D_
 	push af
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	pop  af
 	cp   $01
 	jp   z, _LABEL_E7EF_
@@ -3849,7 +3855,7 @@ _LABEL_160B_:
 	cp   $03
 	jp   z, _LABEL_200_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   hl, _RAM_CFA6_
@@ -3968,7 +3974,7 @@ _LABEL_16F5_:
 	ld   l, a
 	ld   h, $40
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   e, [hl]
 	inc  l
 	ld   d, [hl]
@@ -3979,14 +3985,14 @@ _LABEL_16F5_:
 	push bc
 	push de
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_F790_
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	pop  de
 	pop  bc
 	pop  af
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   a, $00
 	ld   [_RAM_C135_], a
 	ld   a, $C7
@@ -4459,7 +4465,7 @@ _LABEL_1A6A_:
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_F790_
 	call _LABEL_F74D_
 	ld   a, $F2
@@ -4579,7 +4585,7 @@ _LABEL_1B47_:
 	call _LABEL_1CC6_
 _LABEL_1B6F_:
 	ld   a, [_RAM_C24A_]
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_1C3D_
 	or   a
 	jp   z, _LABEL_1C17_
@@ -4626,7 +4632,7 @@ _LABEL_1BC9_:
 	ld   hl, _RAM_C24E_
 	dec  [hl]
 	ld   a, [_RAM_C24A_]
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_19A9_
 	ld   a, $00
 	ld   [_RAM_C133_], a
@@ -4779,7 +4785,7 @@ _LABEL_1CC2_:
 
 _LABEL_1CC6_:
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   a, [_RAM_C24B_]
 	dec  a
 	add  a
@@ -4795,7 +4801,7 @@ _LABEL_1CC6_:
 	ld   a, [hl]
 	ld   [_RAM_C24E_], a
 	ld   a, [_RAM_C24A_]
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   a, [_RAM_C5F5_]
 	or   a
 	call nz, _LABEL_1A4F_
@@ -5005,7 +5011,7 @@ _LABEL_1E6A_:
 	call _LABEL_424_
 	call _LABEL_2735_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_C4C3_
 
 _LABEL_1E7F_:
@@ -5376,7 +5382,7 @@ _LABEL_2218_:
 	ei
 	call _LABEL_3EF_
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_B75C_
 	ld   bc, $FFE4
 	ld   e, $70
@@ -6281,7 +6287,7 @@ _LABEL_27DD_:
 	ld   [_RAM_C282_], a
 	ld   hl, $8010
 	ld   a, $01
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_130B_
 	ld   b, $20
 _LABEL_27F2_:
@@ -6358,7 +6364,7 @@ _LABEL_2845_:
 	call _LABEL_BB1_
 	call _LABEL_424_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_D459_
 
 _LABEL_2854_:
@@ -6869,7 +6875,7 @@ _LABEL_2B5C_:
 	ld   a, $0B
 	call _LABEL_3918_
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_BE47_
 
 _LABEL_2B7D_:
@@ -6882,7 +6888,7 @@ _LABEL_2B7D_:
 	or   a
 	ret  z
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	call _LABEL_ADDA_
 	ld   a, [_RAM_C58C_]
 	or   a
@@ -6891,7 +6897,7 @@ _LABEL_2B7D_:
 	call _LABEL_2735_
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_ACA0_
 
 _LABEL_2BA9_:
@@ -7416,7 +7422,7 @@ db $3A, $00, $3B, $00, $3C, $00
 _LABEL_2F41_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $9000
 	ld   bc, _DATA_1D252_
 	xor  a
@@ -7425,14 +7431,8 @@ _LABEL_2F41_:
 	call _LABEL_3969_
 	call _LABEL_F68_
 	ld   a, $03
-	ld   [$3FFF], a
-IF (DEF(DEBUG_SKIP_BANKED_MBC1_CODE))
-    nop
-    nop
-    ret
-ELSE
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_D6D6_
-ENDC
 
 _LABEL_2F64_:
 	push af
@@ -7483,7 +7483,7 @@ _LABEL_2F8E_:
 	ld   a, $AA
 	ldh  [rOBP1], a
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	ld   hl, $8000
 	ld   de, _DATA_EECC_
 	ld   bc, _DATA_EED4_
@@ -7492,7 +7492,7 @@ _LABEL_2F8E_:
 	ld   a, $04
 	call _LABEL_3918_
 	ld   a, $03
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_F69E_
 
 ; Data from 2FCB to 2FE5 (27 bytes)
@@ -7603,7 +7603,7 @@ _LABEL_3070_:
 	inc  hl
 	ld   [hl], $30
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_AED1_
 
 _LABEL_308C_:
@@ -8052,7 +8052,7 @@ _LABEL_338A_:
 	ldh  [rOBP0], a
 _LABEL_33A9_:
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	jp   _LABEL_B9F0_
 
 ; Data from 33B1 to 33C8 (24 bytes)
@@ -8744,7 +8744,7 @@ _LABEL_3918_:
 	ld   b, [hl]
 	inc  hl
 	ld   a, [hl]
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	pop  af
 	push de
 	ld   hl, $9000
@@ -8766,7 +8766,7 @@ _LABEL_3959_:
 	call _LABEL_1437_
 _LABEL_395D_:
 	ld   a, $02
-	ld   [$3FFF], a
+	ld   [rMBC1_ROMBANK], a
 	pop  de
 	call _LABEL_3969_
 	jp   gfx__turn_on_screen_bg_obj__2540
