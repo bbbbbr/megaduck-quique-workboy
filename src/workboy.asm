@@ -955,7 +955,7 @@ _LABEL_277_:
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	call gfx__turn_off_screen_2827
-	ld   hl, $8010
+	ld   hl, (_TILEDATA8000 + $10)
 	ld   a, $FF
 	ld   b, $10
 _LABEL_285_:
@@ -1174,7 +1174,7 @@ _LABEL_3EF_:
 	call _LABEL_450_
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_4000_
 	xor  a
 	jp   _LABEL_1437_
@@ -1199,7 +1199,7 @@ _LABEL_424_:
 	call _LABEL_450_
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_5000_
 	xor  a
 	jp   _LABEL_1437_
@@ -1571,7 +1571,7 @@ _LABEL_6D0_:
 	ret  z
 	call _LABEL_7B3_
 	rst  $18	; Call VSYNC__RST_18
-	ld   de, $9800
+	ld   de, _TILEMAP0
 	ld   hl, _RAM_C700_
 	ld   b, $0E
 	ld   a, $05
@@ -1635,7 +1635,7 @@ _LABEL_724_:
 	ld   [hl], a
 _LABEL_73A_:
 	push af
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   a, [_RAM_C282_]
 	ld   bc, $0020
 	sub  $10
@@ -1821,13 +1821,13 @@ _LABEL_839_:
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
 	ld   bc, _DATA_4000_
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	xor  a
 	call _LABEL_1437_
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_9E17_
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   b, $12
 _LABEL_87F_:
 	push bc
@@ -2238,7 +2238,7 @@ _LABEL_B36_:
 _LABEL_B45_:
 	call gfx__turn_off_screen_2827
 	ld   bc, _DATA_15B4C_
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	ld   a, $05
 	ld   [rMBC1_ROMBANK], a
 	xor  a
@@ -2247,7 +2247,7 @@ _LABEL_B45_:
 	ld   [rMBC1_ROMBANK], a
 	call _LABEL_2735_
 	ld   de, _DATA_A524_
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	ld   b, $0C
 	call _LABEL_396E_
 	jr   _LABEL_B2E_
@@ -2310,7 +2310,7 @@ _LABEL_BC3_:
 	add  hl, hl
 	add  hl, hl
 	add  hl, hl
-	ld   de, $9800
+	ld   de, _TILEMAP0
 	add  hl, de
 	ld   a, l
 	ld   [_RAM_C133_], a
@@ -3259,7 +3259,7 @@ _LABEL_1210_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1DDCA_
 	xor  a
 	call _LABEL_1437_
@@ -3271,7 +3271,7 @@ _LABEL_1210_:
 	ld   [rMBC1_ROMBANK], a
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	rst  $20	; _LABEL_20_
 	ret
 
@@ -3281,7 +3281,7 @@ _LABEL_1241_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1ED6A_
 	xor  a
 	call _LABEL_1437_
@@ -3293,7 +3293,7 @@ _LABEL_1241_:
 	ld   [rMBC1_ROMBANK], a
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	rst  $20	; _LABEL_20_
 	ret
 
@@ -3862,7 +3862,7 @@ _LABEL_160B_:
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	ld   a, $0E
 _LABEL_1662_:
 	push af
@@ -4005,7 +4005,7 @@ _LABEL_16F5_:
 	ld   [_RAM_C241_], a
 	ld   a, c
 	ld   [_RAM_C242_], a
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   a, [_RAM_C5F5_]
 	or   a
 	call nz, _LABEL_1A4F_
@@ -4151,7 +4151,7 @@ _LABEL_1840_:
 	ld   l, a
 	add  hl, hl
 	add  hl, hl
-	ld   de, $9800
+	ld   de, _TILEMAP0
 	add  hl, de
 	ld   a, l
 	ld   [_RAM_C133_], a
@@ -4252,7 +4252,7 @@ _LABEL_18ED_:
 	ld   l, a
 	add  hl, hl
 	add  hl, hl
-	ld   de, $9800
+	ld   de, _TILEMAP0
 	add  hl, de
 	ld   a, l
 	ld   [_RAM_C133_], a
@@ -4364,7 +4364,7 @@ _LABEL_19A9_:
 	ld   [_RAM_C399_], a
 	ld   c, $05
 	ld   de, _DATA_1A0E_
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 _LABEL_19C5_:
 	push bc
 	ld   b, $0D
@@ -4385,7 +4385,7 @@ _LABEL_19D2_:
 	pop  bc
 	dec  c
 	jr   nz, _LABEL_19C5_
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	ld   c, $05
 	ld   a, [_RAM_C247_]
 	ld   e, a
@@ -5596,7 +5596,7 @@ _LABEL_2385_:
 ; 25th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_238F_:
 	ld   b, $03
-	ld   hl, $9885
+	ld   hl, (_TILEMAP0 + $85)
 	ld   de, _RAM_C261_
 _LABEL_2397_:
 	ld   a, [de]
@@ -5643,7 +5643,7 @@ _LABEL_23BB_:
 
 ; 17th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23CC_:
-	ld   hl, $9805
+	ld   hl, (_TILEMAP0 + $05)
 	ld   a, [_RAM_C260_]
 	or   a
 	jr   nz, _LABEL_23D8_
@@ -5676,7 +5676,7 @@ _LABEL_23DD_:
 ; 18th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23F8_:
 	ld   de, _RAM_C261_
-	ld   hl, $9825
+	ld   hl, (_TILEMAP0 + $25)
 	ld   b, $02
 _LABEL_2400_:
 	ld   a, [de]
@@ -5817,7 +5817,7 @@ _LABEL_24CA_:
 	jr   _LABEL_24CA_
 
 _LABEL_24D5_:
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   b, $07
 _LABEL_24DA_:
 	ld   a, l
@@ -5916,7 +5916,7 @@ db $57, $4C, $B1, $2C, $92, $79, $AF, $79
 
 ; 21st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_2591_:
-	ld   hl, $9844
+	ld   hl, (_TILEMAP0 + $44)
 	ld   de, _RAM_C13D_
 	ld   b, $03
 	call _LABEL_25A5_
@@ -6152,7 +6152,7 @@ _LABEL_271B_:
 
 _LABEL_2722_:
 	call gfx__turn_off_screen_2827
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   bc, $0400
 _LABEL_272B_:
 	xor  a
@@ -6164,7 +6164,7 @@ _LABEL_272B_:
 	jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_2735_:
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   bc, $0240
 _LABEL_273B_:
 	xor  a
@@ -6285,7 +6285,7 @@ _LABEL_27DD_:
 	ld   [_RAM_C281_], a
 	ld   a, b
 	ld   [_RAM_C282_], a
-	ld   hl, $8010
+	ld   hl, (_TILEDATA8000 + $10)
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_130B_
@@ -6838,7 +6838,7 @@ _LABEL_2B3B_:
 	xor  a
 	call _LABEL_BB1_
 	call gfx__turn_off_screen_2827
-	ld   hl, $8010
+	ld   hl, (_TILEDATA8000 + $10)
 	ld   c, $08
 	ld   b, $0E
 _LABEL_2B49_:
@@ -7239,10 +7239,10 @@ _LABEL_2D89_:
 	jr   nz, _LABEL_2D89_
 	call _LABEL_2722_
 	ld   de, $2D29
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $28	; _LABEL_28_
 	ld   de, $2D39
-	ld   hl, $9880
+	ld   hl, (_TILEMAP0 + $80)
 	rst  $28	; _LABEL_28_
 _LABEL_2DA2_:
 	rst  $08	; _LABEL_8_
@@ -7423,7 +7423,7 @@ _LABEL_2F41_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1D252_
 	xor  a
 	call _LABEL_1437_
@@ -7484,7 +7484,7 @@ _LABEL_2F8E_:
 	ldh  [rOBP1], a
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a
-	ld   hl, $8000
+	ld   hl, _TILEDATA8000
 	ld   de, _DATA_EECC_
 	ld   bc, _DATA_EED4_
 	ld   a, $54
@@ -8747,12 +8747,12 @@ _LABEL_3918_:
 	ld   [rMBC1_ROMBANK], a
 	pop  af
 	push de
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	cp   $07
 	jr   nz, _LABEL_3959_
 	ld   a, $3B
 	ld   bc, _DATA_5FA0_
-	ld   hl, $9000
+	ld   hl, _TILEDATA9000
 	call _LABEL_1437_
 	ld   a, $99
 	ld   de, _DATA_6350_
@@ -8772,7 +8772,7 @@ _LABEL_395D_:
 	jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_3969_:
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   b, $12
 _LABEL_396E_:
 	push bc
@@ -13831,7 +13831,7 @@ _LABEL_B1F7_:
 	call _LABEL_2B_
 	ld   a, $03
 	ld   [_RAM_C280_], a
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   de, $002C
 	rst  $20	; _LABEL_20_
 _LABEL_B20C_:
@@ -13871,10 +13871,10 @@ _LABEL_B20C_:
 	or   a
 	jr   nz, _LABEL_B20C_
 	ld   de, $2150
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	rst  $20	; _LABEL_20_
 	call _LABEL_B62F_
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	ld   de, $002D
 	rst  $20	; _LABEL_20_
 _LABEL_B271_:
@@ -13895,10 +13895,10 @@ _LABEL_B271_:
 	cp   [hl]
 	jr   nz, _LABEL_B271_
 _LABEL_B28D_:
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	ld   de, $2150
 	rst  $20	; _LABEL_20_
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	ld   de, $002E
 	rst  $20	; _LABEL_20_
 	ld   hl, _RAM_C261_
@@ -13923,19 +13923,19 @@ _LABEL_B2BF_:
 	ld   a, $63
 	ld   [_RAM_C703_], a
 	ld   de, $2150
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $20	; _LABEL_20_
 	jr   _LABEL_B31C_
 
 _LABEL_B2CD_:
 	ld   de, $0030
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	rst  $20	; _LABEL_20_
 	ld   de, $0031
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 	ld   de, $0032
-	ld   hl, $9880
+	ld   hl, (_TILEMAP0 + $80)
 	rst  $20	; _LABEL_20_
 	ld   de, $0033
 	ld   hl, $98A0
@@ -13955,7 +13955,7 @@ _LABEL_B2F0_:
 	jr   nc, _LABEL_B2F0_
 	sub  $30
 	ld   [_RAM_C705_], a
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	ld   b, $05
 _LABEL_B30B_:
 	push bc
@@ -13976,7 +13976,7 @@ _LABEL_B31C_:
 _LABEL_B320_:
 	call _LABEL_B4D4_
 	ld   de, $0035
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 _LABEL_B32A_:
 	rst  $08	; _LABEL_8_
@@ -13996,7 +13996,7 @@ _LABEL_B32A_:
 	cp   [hl]
 	jr   nz, _LABEL_B32A_
 	ld   de, $0036
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 _LABEL_B34D_:
 	rst  $08	; _LABEL_8_
@@ -14021,7 +14021,7 @@ _LABEL_B34D_:
 
 _LABEL_B36E_:
 	ld   de, $2150
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 _LABEL_B375_:
 	call _LABEL_B6E0_
@@ -14269,7 +14269,7 @@ _LABEL_B4D4_:
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	rst  $20	; _LABEL_20_
 	ret
 
@@ -14568,7 +14568,7 @@ _LABEL_B6BE_:
 	dec  b
 	jr   nz, _LABEL_B6BE_
 	ld   [hl], b
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   de, $C261
 	rst  $20	; _LABEL_20_
 	ret
@@ -14591,7 +14591,7 @@ _LABEL_B6D8_:
 	ret
 
 _LABEL_B6E0_:
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	ld   de, $2150
 	rst  $20	; _LABEL_20_
 	ld   hl, _RAM_C261_
@@ -14631,7 +14631,7 @@ _LABEL_B71E_:
 	call _LABEL_B730_
 _LABEL_B728_:
 	ld   de, $C261
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 	ret
 
@@ -14702,10 +14702,10 @@ _LABEL_B77F_:
 	call _LABEL_B7E2_
 	ld   [hl], $00
 	ld   de, $002E
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $20	; _LABEL_20_
 	ld   de, $C261
-	ld   hl, $9825
+	ld   hl, (_TILEMAP0 + $25)
 	rst  $20	; _LABEL_20_
 _LABEL_B7B1_:
 	call _LABEL_B4D4_
@@ -14977,7 +14977,7 @@ _LABEL_B96C_:
 ; 2nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_B973_:
 	ld   a, [_SRAM_221_]
-	ld   [$9865], a
+	ld   [(_TILEMAP0 + $65)], a
 	ld   de, _RAM_C466_
 	ld   hl, $98E4
 	ld   b, $0B
@@ -15873,7 +15873,7 @@ _LABEL_C05D_:
 	dec  b
 	jr   nz, _LABEL_C05D_
 	ld   de, $2150
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	rst  $20	; _LABEL_20_
 	ld   hl, _RAM_C308_
 	ld   c, $00
@@ -15894,7 +15894,7 @@ _LABEL_C078_:
 	ld   de, $C308
 	rst  $20	; _LABEL_20_
 	ld   de, $2150
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $20	; _LABEL_20_
 	ld   a, [_RAM_C306_]
 	or   a
@@ -16134,7 +16134,7 @@ _LABEL_C226_:
 	ldh  [rOBP0], a
 	call gfx__turn_off_screen_2827
 	call _LABEL_B45_
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   de, $99E0
 	ld   b, $60
 	xor  a
@@ -16560,10 +16560,10 @@ _LABEL_C4F1_:
 	ld   de, $0067
 	rst  $20	; _LABEL_20_
 	ld   de, $0063
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $28	; _LABEL_28_
 	ld   de, $0064
-	ld   hl, $9880
+	ld   hl, (_TILEMAP0 + $80)
 	rst  $28	; _LABEL_28_
 	ld   de, $0065
 	ld   hl, $98E0
@@ -17530,7 +17530,7 @@ _LABEL_CD58_:
 	ld   l, a
 	add  hl, hl
 	add  hl, hl
-	ld   de, $9801
+	ld   de, (_TILEMAP0 + $01)
 	add  hl, de
 	ld   de, $C11B
 	rst  $20	; _LABEL_20_
@@ -17739,7 +17739,7 @@ _LABEL_CEC8_:
 	call _LABEL_21D7_
 	ld   b, a
 	ld   hl, _RAM_C700_
-	ld   de, $9840
+	ld   de, (_TILEMAP0 + $40)
 	call _LABEL_2173_
 	jr   _LABEL_CEAF_
 
@@ -18118,7 +18118,7 @@ _LABEL_D12B_:
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	ld   a, $0C
 _LABEL_D133_:
 	push af
@@ -18395,7 +18395,7 @@ _LABEL_D30C_:
 	jr   nz, _LABEL_D30C_
 _LABEL_D315_:
 	ld   de, $006C
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $28	; _LABEL_28_
 	ld   a, $17
 	ld   [vblank__dispatch_select__RAM_C27C], a
@@ -18413,7 +18413,7 @@ _LABEL_D321_:
 	jp   _LABEL_1598_
 
 _LABEL_D337_:
-	ld   hl, $9824
+	ld   hl, (_TILEMAP0 + $24)
 	ld   de, _DATA_9C_
 	rst  $10	; _LABEL_10_
 	ld   b, $07
@@ -18440,7 +18440,7 @@ _LABEL_D358_:
 	ld   a, [_RAM_C399_]
 	ld   [_RAM_C5CC_], a
 	ld   de, $009D
-	ld   hl, $9824
+	ld   hl, (_TILEMAP0 + $24)
 	rst  $20	; _LABEL_20_
 	call _LABEL_D56A_
 	ld   a, [_RAM_C5CC_]
@@ -18524,7 +18524,7 @@ db $3D, $00, $52, $61, $74, $65, $00
 
 _LABEL_D3E9_:
 	ld   de, $53E4
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	rst  $28	; _LABEL_28_
 	ld   hl, _RAM_C700_
 	ld   [hl], $31
@@ -18549,10 +18549,10 @@ _LABEL_D401_:
 	ld   [hl], $00
 _LABEL_D410_:
 	ld   de, $C700
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $28	; _LABEL_28_
 	ld   de, $53E2
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 	rst  $28	; _LABEL_28_
 	ld   de, _RAM_C283_
 	ld   hl, _RAM_C700_
@@ -18578,7 +18578,7 @@ _LABEL_D437_:
 	or   a
 	jr   nz, _LABEL_D437_
 	ld   de, $C700
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $28	; _LABEL_28_
 	ret
 
@@ -19058,7 +19058,7 @@ _LABEL_D871_:
 	call _LABEL_21D7_
 	ld   b, a
 	ld   hl, _RAM_C700_
-	ld   de, $9800
+	ld   de, _TILEMAP0
 	call _LABEL_2173_
 	jr   _LABEL_D820_
 
@@ -19218,7 +19218,7 @@ _LABEL_DB47_:
 	ld   [hl], b
 _LABEL_DB4C_:
 	ld   de, $C11B
-	ld   hl, $9860
+	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 	call _LABEL_2769_
 	ld   a, [_RAM_C258_]
@@ -19672,7 +19672,7 @@ _LABEL_DE70_:
 _LABEL_DE8C_:
 	push bc
 	ld   de, $00AA
-	ld   hl, $9844
+	ld   hl, (_TILEMAP0 + $44)
 	rst  $20	; _LABEL_20_
 	ld   b, $0A
 _LABEL_DE96_:
@@ -19680,7 +19680,7 @@ _LABEL_DE96_:
 	dec  b
 	jr   nz, _LABEL_DE96_
 	ld   de, $00AB
-	ld   hl, $9844
+	ld   hl, (_TILEMAP0 + $44)
 	rst  $20	; _LABEL_20_
 	ld   b, $0A
 _LABEL_DEA3_:
@@ -19691,7 +19691,7 @@ _LABEL_DEA3_:
 	dec  b
 	jr   nz, _LABEL_DE8C_
 	ld   de, $00AC
-	ld   hl, $9844
+	ld   hl, (_TILEMAP0 + $44)
 	rst  $20	; _LABEL_20_
 	jr   _LABEL_DE70_
 
@@ -19891,7 +19891,7 @@ _LABEL_DFEE_:
 	ld   a, [_RAM_C702_]
 	call _LABEL_235A_
 	ld   de, $00AE
-	ld   hl, $9887
+	ld   hl, (_TILEMAP0 + $87)
 	rst  $20	; _LABEL_20_
 	ld   a, $18
 	ld   [vblank__dispatch_select__RAM_C27C], a
@@ -19921,7 +19921,7 @@ _LABEL_E04B_:
 	dec  b
 	jr   nz, _LABEL_E04B_
 	ld   de, $00AF
-	ld   hl, $9821
+	ld   hl, (_TILEMAP0 + $21)
 	rst  $20	; _LABEL_20_
 	ld   a, $06
 	call _LABEL_E25B_
@@ -19934,7 +19934,7 @@ _LABEL_E063_:
 	or   a
 	jr   nz, _LABEL_E063_
 	ld   de, $00B0
-	ld   hl, $9821
+	ld   hl, (_TILEMAP0 + $21)
 	rst  $20	; _LABEL_20_
 	ld   de, $00B0
 	call _LABEL_1D2D_
@@ -19968,7 +19968,7 @@ _LABEL_E0A0_:
 	dec  a
 	ld   [_RAM_C5DF_], a
 	ld   de, $00B5
-	ld   hl, $9821
+	ld   hl, (_TILEMAP0 + $21)
 	rst  $20	; _LABEL_20_
 	ld   de, _DATA_2150_
 	ld   bc, $0C09
@@ -20181,7 +20181,7 @@ _LABEL_E1FD_:
 	ld   a, [_RAM_C702_]
 	call _LABEL_235A_
 	ld   de, $00AE
-	ld   hl, $9887
+	ld   hl, (_TILEMAP0 + $87)
 	rst  $20	; _LABEL_20_
 	ld   a, $18
 	ld   [vblank__dispatch_select__RAM_C27C], a
@@ -20397,7 +20397,7 @@ _LABEL_E3A3_:
 	ld   a, [_SRAM_2001_]
 	or   a
 	jr   nz, _LABEL_E3C3_
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	ld   b, $0E
 _LABEL_E3B1_:
 	push bc
@@ -20415,15 +20415,15 @@ _LABEL_E3B1_:
 _LABEL_E3C3_:
 	call gfx__clear_shadow_oam__275B
 	ld   de, $00B8
-	ld   hl, $9800
+	ld   hl, _TILEMAP0
 	rst  $20	; _LABEL_20_
 	ld   de, $481C
-	ld   hl, $9820
+	ld   hl, (_TILEMAP0 + $20)
 	rst  $20	; _LABEL_20_
 	ld   a, $06
 	ld   de, $C700
 	ld   bc, _RAM_C714_
-	ld   hl, $9840
+	ld   hl, (_TILEMAP0 + $40)
 _LABEL_E3DF_:
 	push af
 	push de
@@ -21324,11 +21324,11 @@ _LABEL_E9FF_:
 	or   a
 	ret  z
 	ld   de, $00BC
-	ld   hl, $9821
+	ld   hl, (_TILEMAP0 + $21)
 	rst  $20	; _LABEL_20_
 	call _LABEL_EA1F_
 	ld   de, $00BE
-	ld   hl, $9821
+	ld   hl, (_TILEMAP0 + $21)
 	rst  $20	; _LABEL_20_
 _LABEL_EA17_:
 	call _LABEL_3278_
@@ -22106,10 +22106,10 @@ _LABEL_F790_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BF
 	ld   a, $09
-	ld   hl, $9826
+	ld   hl, (_TILEMAP0 + $26)
 	rst  $20	; _LABEL_20_
 	ld   de, $00C0
-	ld   hl, $9886
+	ld   hl, (_TILEMAP0 + $86)
 	rst  $20	; _LABEL_20_
 	ld   de, $00C1
 	ld   hl, $98E6
