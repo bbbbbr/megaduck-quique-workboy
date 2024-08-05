@@ -15,10 +15,10 @@ SECTION "wram_c000", WRAM0[$C000]
 shadow_oam_base__RAM_C000: db
 
 SECTION "wram_c100", WRAM0[$C100]
-_RAM_C100_: db
+vblank__frame_counter_maybe__RAM_C100: db
 
 SECTION "wram_c102", WRAM0[$C102]
-_RAM_C102_: db
+gfx__shadow_y_scroll__RAM_C102: db
 gamepad_buttons__RAM_C103: db
 _RAM_C104_: db
 _RAM_C105_: db
@@ -165,7 +165,7 @@ _RAM_C278_: db
 _RAM_C279_: db
 _RAM_C27A_: db
 _RAM_C27B_: db
-_RAM_C27C_: db
+vblank__dispatch_select__RAM_C27C: db
 _RAM_C27D_: db
 _RAM_C27E_: db
 _RAM_C27F_: db
@@ -700,8 +700,8 @@ _LABEL_10_:
 _DATA_13_:
 db $25, $04, $00, $F4, $25
 
-_LABEL_18_:
-	jp   _LABEL_2548_
+VSYNC__RST_18:
+	jp   gfx__vsync__2548
 
 ; Data from 1B to 1F (5 bytes)
 db $25, $04, $00, $F4, $25
@@ -725,8 +725,8 @@ _LABEL_2B_:
 ; Data from 36 to 3F (10 bytes)
 db $06, $26, $06, $00, $06, $26, $06, $00, $06, $26
 
-_LABEL_40_:
-	jp   _LABEL_25CC_
+INT_VBL__RST_40:
+	jp   vblank__handler__25CC
 
 ; Data from 43 to 47 (5 bytes)
 db $26, $0E, $00, $12, $26
@@ -841,7 +841,7 @@ _LABEL_18E_:
 	call _LABEL_2F41_
 	ld   b, $4B
 _LABEL_1A8_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  b
 	jr   nz, _LABEL_1A8_
 	xor  a
@@ -894,7 +894,7 @@ _LABEL_200_:
 	call _LABEL_F0_
 	xor  a
 	ld   [_RAM_C5F3_], a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_BB1_
 	ld   hl, _SRAM_6_
 	ld   de, _RAM_C700_
@@ -910,7 +910,7 @@ _LABEL_200_:
 	ld   [_RAM_C23F_], a
 	ld   [_RAM_C117_], a
 	ld   [_RAM_C260_], a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ldh  [rSCX], a
 	call _LABEL_26C_
 	di
@@ -941,7 +941,7 @@ _LABEL_26C_:
 
 _LABEL_277_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call gfx__turn_off_screen_2827
 	ld   hl, $8010
 	ld   a, $FF
@@ -958,7 +958,7 @@ _LABEL_285_:
 	ld   a, $0A
 	ld   [_RAM_C114_], a
 _LABEL_29A_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C113_]
 	or   a
@@ -1266,9 +1266,9 @@ _LABEL_4C9_:
 	ld   [_RAM_C280_], a
 	call _LABEL_2B_
 	ld   a, $09
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_4F4_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -1327,7 +1327,7 @@ _LABEL_554_:
 	or   a
 	call nz, $667B	; Possibly invalid
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	pop  af
 	ld   [_RAM_C282_], a
 	pop  af
@@ -1426,7 +1426,7 @@ _LABEL_5E9_:
 	ld   [_RAM_C282_], a
 	ret
 
-; 10th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 10th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_604_:
 	ld   de, _RAM_C118_
 	ld   hl, $99F0
@@ -1558,12 +1558,12 @@ _LABEL_6D0_:
 	or   a
 	ret  z
 	call _LABEL_7B3_
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   de, $9800
 	ld   hl, _RAM_C700_
 	ld   b, $0E
 	ld   a, $05
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_6E6_:
 	push bc
 	push de
@@ -1576,7 +1576,7 @@ _LABEL_6E6_:
 	ld   [_RAM_C135_], a
 	ld   a, h
 	ld   [_RAM_C136_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	pop  hl
 	ld   bc, $0014
 	add  hl, bc
@@ -1591,7 +1591,7 @@ _LABEL_6E6_:
 	dec  b
 	jr   nz, _LABEL_6E6_
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_711_:
@@ -1684,7 +1684,7 @@ _LABEL_782_:
 	ld   [hl], a
 	jr   _LABEL_73A_
 
-; 8th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 8th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_79A_:
 	ld   a, [_RAM_C130_]
 	or   a
@@ -1731,13 +1731,13 @@ _LABEL_7CD_:
 	add  $30
 	ld   [_RAM_C134_], a
 	ld   a, $06
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
-; 7th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 7th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_7E9_:
 	ld   hl, $99F0
 	ld   de, _RAM_C133_
@@ -1751,7 +1751,7 @@ _LABEL_7F1_:
 	jr   nz, _LABEL_7F1_
 	jp   _LABEL_25F7_
 
-; 6th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 6th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_7FC_:
 	ld   a, [_RAM_C133_]
 	ld   e, a
@@ -1787,7 +1787,7 @@ _LABEL_819_:
 	ld   [_RAM_C153_], a
 _LABEL_839_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, [_RAM_C152_]
 	push af
 	ld   a, $01
@@ -2281,8 +2281,8 @@ _LABEL_BB1_:
 _LABEL_BC3_:
 	ld   [_RAM_C156_], a
 	xor  a
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, e
 	ld   [_RAM_C196_], a
 	ld   a, d
@@ -2306,9 +2306,9 @@ _LABEL_BC3_:
 	ld   [_RAM_C134_], a
 	ld   a, $02
 	ld   [_RAM_C159_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $16
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_BFA_:
 	ld   hl, _RAM_C15A_
 	ld   a, $FF
@@ -2400,7 +2400,7 @@ _LABEL_C76_:
 	jr   _LABEL_C76_
 
 _LABEL_C7F_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C156_]
 	ld   c, a
 	ld   a, [_RAM_C159_]
@@ -2415,9 +2415,9 @@ _LABEL_C7F_:
 	jp   _LABEL_BFA_
 
 _LABEL_C9A_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 ; 3rd entry of Jump Table from 3A2 (indexed by _RAM_C111_)
@@ -2434,7 +2434,7 @@ _LABEL_CAD_:
 	call _LABEL_BB1_
 	call _LABEL_26C_
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_424_
@@ -2958,10 +2958,10 @@ _LABEL_FFE_:
 	ld   a, d
 	ld   [_RAM_C136_], a
 	ld   a, $0F
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_1019_:
@@ -3005,10 +3005,10 @@ _LABEL_1034_:
 	ld   a, d
 	ld   [_RAM_C136_], a
 	ld   a, $0F
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 ; Data from 1058 to 1070 (25 bytes)
@@ -3424,7 +3424,7 @@ _LABEL_1352_:
 	ld   [_RAM_C701_], a
 	ret
 
-; 12th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 12th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_1366_:
 	ld   hl, $99E0
 	ld   b, $14
@@ -3451,7 +3451,7 @@ _LABEL_137D_:
 	jr   nz, _LABEL_137D_
 	jp   _LABEL_1410_
 
-; 14th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 14th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_1388_:
 	ld   hl, $99E1
 	ld   de, _RAM_C13D_
@@ -3488,7 +3488,7 @@ _LABEL_13AF_:
 ; Data from 13B9 to 13BB (3 bytes)
 db $C3, $F7, $25
 
-; 13th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 13th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_13BC_:
 	ld   hl, _RAM_CF20_
 	ld   e, [hl]
@@ -3513,10 +3513,10 @@ _LABEL_13D4_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_13D4_
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_25F7_
 
-; 22nd entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 22nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_13E2_:
 	ld   hl, $9A01
 	ld   b, $12
@@ -3532,10 +3532,10 @@ _LABEL_13EA_:
 	jr   nz, _LABEL_13EA_
 _LABEL_13F5_:
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_25F7_
 
-; 9th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 9th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_13FD_:
 	ld   hl, _RAM_CF1C_
 	ld   e, [hl]
@@ -3576,7 +3576,7 @@ _LABEL_142B_:
 	dec  b
 	jr   nz, _LABEL_142B_
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_25F7_
 
 _LABEL_1437_:
@@ -3751,7 +3751,7 @@ _LABEL_1563_:
 _LABEL_1572_:
 	call _LABEL_26C_
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_424_
@@ -3769,7 +3769,7 @@ _LABEL_1598_:
 	call _LABEL_27DD_
 	xor  a
 	call _LABEL_BB1_
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_424_
@@ -3783,7 +3783,7 @@ _LABEL_1598_:
 
 _LABEL_15BE_:
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_424_
@@ -3798,7 +3798,7 @@ _LABEL_15BE_:
 
 _LABEL_15E1_:
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_424_
@@ -3829,7 +3829,7 @@ _LABEL_160B_:
 	ld   [_RAM_C23E_], a
 	call gfx__clear_shadow_oam__275B
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_424_
@@ -3874,7 +3874,7 @@ _LABEL_1665_:
 	ld   e, $0E
 	call _LABEL_1CF6_
 _LABEL_1684_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_169C_
@@ -3986,7 +3986,7 @@ _LABEL_16F5_:
 	ld   a, $C7
 	ld   [_RAM_C136_], a
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   [_RAM_C399_], a
 	inc  a
 	ld   [_RAM_C249_], a
@@ -4053,9 +4053,9 @@ _LABEL_17AE_:
 	ld   a, $09
 _LABEL_17B0_:
 	ld   [_RAM_C39A_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_17CF_
@@ -4132,9 +4132,9 @@ _LABEL_1836_:
 _LABEL_1840_:
 	ld   hl, _RAM_C241_
 	dec  [hl]
-	ld   a, [_RAM_C102_]
+	ld   a, [gfx__shadow_y_scroll__RAM_C102]
 	sub  $08
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   h, $00
 	ld   l, a
 	add  hl, hl
@@ -4187,7 +4187,7 @@ _LABEL_189E_:
 	jr   nz, _LABEL_1890_
 _LABEL_18A3_:
 	ld   a, $05
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_17A4_
 
 _LABEL_18AB_:
@@ -4232,9 +4232,9 @@ _LABEL_18E3_:
 _LABEL_18ED_:
 	ld   hl, _RAM_C241_
 	inc  [hl]
-	ld   a, [_RAM_C102_]
+	ld   a, [gfx__shadow_y_scroll__RAM_C102]
 	add  $08
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	add  $88
 	ld   h, $00
 	ld   l, a
@@ -4288,7 +4288,7 @@ _LABEL_194D_:
 	jr   nz, _LABEL_193F_
 _LABEL_1952_:
 	ld   a, $05
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_17A4_
 
 _LABEL_195A_:
@@ -4317,7 +4317,7 @@ _LABEL_1963_:
 _LABEL_197F_:
 	call _LABEL_19A9_
 _LABEL_1982_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_198F_
@@ -4343,7 +4343,7 @@ _LABEL_199D_:
 
 _LABEL_19A9_:
 	xor  a
-	ld   [_RAM_C102_], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $32
 	ld   [_RAM_C240_], a
 	call gfx__turn_off_screen_2827
@@ -4481,7 +4481,7 @@ _LABEL_1A6A_:
 	ld   a, [_RAM_C282_]
 	ld   [_RAM_C238_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, [_RAM_C23B_]
 	add  a
 	add  a
@@ -4491,7 +4491,7 @@ _LABEL_1A6A_:
 	ld   a, $90
 	ld   [_RAM_C282_], a
 _LABEL_1AD9_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -4631,10 +4631,10 @@ _LABEL_1BC9_:
 	ld   a, [_RAM_CF2D_]
 	ld   [_RAM_C136_], a
 	ld   a, $05
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_1BF6_:
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -4994,7 +4994,7 @@ _LABEL_1E34_:
 
 _LABEL_1E6A_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_424_
 	call _LABEL_2735_
@@ -5115,7 +5115,7 @@ _LABEL_2044_:
 	ret
 
 _LABEL_206D_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C25B_]
 	ld   c, a
 	ld   a, [_RAM_C250_]
@@ -5325,11 +5325,11 @@ _LABEL_21C1_:
 	ld   [de], a
 	pop  hl
 	ld   de, $C261
-	ld   a, [_RAM_C27C_]
+	ld   a, [vblank__dispatch_select__RAM_C27C]
 	push af
 	rst  $20	; _LABEL_20_
 	pop  af
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_21D7_:
@@ -5574,14 +5574,14 @@ _LABEL_2369_:
 db $30, $38, $48, $50, $60, $68, $70, $78, $38, $40, $50, $58, $68, $70, $68, $70
 db $80, $88
 
-; 20th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 20th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_2385_:
 	call _LABEL_30A1_
 	ld   b, $02
 	ld   hl, $99AC
 	jr   _LABEL_23B8_
 
-; 25th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 25th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_238F_:
 	ld   b, $03
 	ld   hl, $9885
@@ -5609,7 +5609,7 @@ _LABEL_2397_:
 	ldi  [hl], a
 	jp   _LABEL_25F7_
 
-; 19th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 19th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23B3_:
 	ld   b, $03
 	ld   hl, $99E6
@@ -5629,7 +5629,7 @@ _LABEL_23BB_:
 	jr   nz, _LABEL_23BB_
 	jp   _LABEL_25F7_
 
-; 17th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 17th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23CC_:
 	ld   hl, $9805
 	ld   a, [_RAM_C260_]
@@ -5661,7 +5661,7 @@ _LABEL_23DD_:
 	ldi  [hl], a
 	jp   _LABEL_25F7_
 
-; 18th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 18th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23F8_:
 	ld   de, _RAM_C261_
 	ld   hl, $9825
@@ -5702,7 +5702,7 @@ _LABEL_241A_:
 	ld   a, h
 	ld   [_RAM_C279_], a
 _LABEL_2435_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C276_]
 	ld   l, a
 	ld   a, [_RAM_C277_]
@@ -5785,7 +5785,7 @@ _LABEL_24B4_:
 	ld   [_RAM_C27B_], a
 	jp   _LABEL_2435_
 
-; 16th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 16th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_24BA_:
 	ld   a, [_RAM_C133_]
 	ld   e, a
@@ -5813,14 +5813,14 @@ _LABEL_24DA_:
 	ld   a, h
 	ld   [_RAM_C106_], a
 	ld   a, $0E
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   de, $0040
 	add  hl, de
 	dec  b
 	jr   nz, _LABEL_24DA_
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 input_read_gamepad_buttons__ROM_24F4:
@@ -5877,30 +5877,32 @@ gfx__turn_on_screen_bg_obj__2540:
 	ret
 
 
-_LABEL_2548_:
+gfx__vsync__2548:
 	push af
 	push hl
-	ld   a, [_RAM_C100_]
-	ld   hl, $C100
+	ld   a, [vblank__frame_counter_maybe__RAM_C100]
+	ld   hl, vblank__frame_counter_maybe__RAM_C100 ; $C100
 	halt
-_LABEL_2551_:
-	cp   [hl]
-	jr   z, _LABEL_2551_
+    ; Wait for frame counter to change
+    .wait_new_frame_loop__2551_:
+    	cp   [hl]
+    	jr   z, .wait_new_frame_loop__2551_
 	pop  hl
 	pop  af
 	ret
 
-; Jump Table from 2557 to 2588 (25 entries, indexed by _RAM_C27C_)
-_DATA_2557_:
+; Jump Table from 2557 to 2588 (25 entries, indexed by vblank__dispatch_select__RAM_C27C)
+vblank__dispatch_table__2557:
 dw _LABEL_25F7_, _LABEL_B973_, _LABEL_26C6_, $2694, _LABEL_2667_, _LABEL_7FC_, _LABEL_7E9_, _LABEL_79A_
 dw _LABEL_13FD_, _LABEL_604_, _LABEL_309B_, _LABEL_1366_, _LABEL_13BC_, _LABEL_1388_, _LABEL_25AE_, _LABEL_24BA_
 dw _LABEL_23CC_, _LABEL_23F8_, _LABEL_23B3_, _LABEL_2385_, _LABEL_2591_, _LABEL_13E2_, _LABEL_2BCF_, $4C44
 dw _LABEL_238F_
 
+
 ; Data from 2589 to 2590 (8 bytes)
 db $57, $4C, $B1, $2C, $92, $79, $AF, $79
 
-; 21st entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 21st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_2591_:
 	ld   hl, $9844
 	ld   de, _RAM_C13D_
@@ -5920,7 +5922,7 @@ _LABEL_25A5_:
 	jr   nz, _LABEL_25A5_
 	ret
 
-; 15th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 15th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_25AE_:
 	ld   a, [_RAM_C105_]
 	ld   l, a
@@ -5937,97 +5939,109 @@ _LABEL_25B9_:
 ; Data from 25C0 to 25CB (12 bytes)
 db $CD, $F4, $24, $FA, $03, $C1, $B7, $20, $F7, $C3, $00, $00
 
-_LABEL_25CC_:
+vblank__handler__25CC:
 	push af
 	push bc
 	push de
 	push hl
+
+    ; TODO: maybe testing whether to load gamepad input vs keyboard input?
 	ld   a, [_RAM_C10E_]
 	or   a
-	jr   nz, _LABEL_25E0_
-	ld   a, [gamepad_buttons__RAM_C103]
-	ld   [_RAM_C592_], a
-	and  $0F
-	xor  $0F
-_LABEL_25E0_:
+	jr   nz, .todo_skip_something__25E0
+    	ld   a, [gamepad_buttons__RAM_C103]
+    	ld   [_RAM_C592_], a
+    	and  $0F
+    	xor  $0F
+
+    .todo_skip_something__25E0:
 	call gfx__oam_dma__RAM_FF80	; Code is loaded from gfx__oam_dma_in_ROM__2751
-	ld   a, [_RAM_C102_]
+    ; Update Y scroll
+	ld   a, [gfx__shadow_y_scroll__RAM_C102]
 	ldh  [rSCY], a
-	ld   a, [_RAM_C27C_]
+
+    ; Load and jump to currently selected vblank sub-routine
+	ld   a, [vblank__dispatch_select__RAM_C27C]
 	add  a
 	ld   d, $00
 	ld   e, a
-	ld   hl, _DATA_2557_
+	ld   hl, vblank__dispatch_table__2557
 	add  hl, de
 	ldi  a, [hl]
 	ld   h, [hl]
 	ld   l, a
 	jp   hl
 
-; 1st entry of Jump Table from 2557 (indexed by _RAM_C27C_)
-_LABEL_25F7_:
-	ld   a, [_RAM_C27D_]
-	ldh  [rBGP], a
-	ld   a, [_RAM_C399_]
-	ldh  [rLYC], a
-	call input_read_gamepad_buttons__ROM_24F4
-	ld   hl, _RAM_C100_
-	inc  [hl]
-	call _LABEL_2FE6_
-	call _LABEL_357E_
-	ld   a, [_RAM_C3AA_]
-	or   a
-	jr   z, _LABEL_2659_
-	ld   a, [gamepad_buttons__RAM_C103]
-	bit  0, a
-	jr   z, _LABEL_2628_
-	call _LABEL_1E88_
-	ld   a, [_RAM_C3DE_]
-	cp   $0D
-	call nc, _LABEL_380D_
-	jr   _LABEL_2659_
+    ; 1st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
+    _LABEL_25F7_:
+    	ld   a, [_RAM_C27D_]
+    	ldh  [rBGP], a
+    	ld   a, [_RAM_C399_]
+    	ldh  [rLYC], a
+    	call input_read_gamepad_buttons__ROM_24F4
+        ; MAYBE: Increment frame counter
+    	ld   hl, vblank__frame_counter_maybe__RAM_C100
+    	inc  [hl]
 
-_LABEL_2628_:
-	ld   a, [_RAM_C3DE_]
-	cp   $0D
-	jr   z, _LABEL_2659_
-	cp   $0E
-	jr   z, _LABEL_2659_
-	ld   a, [_RAM_C3AB_]
-	dec  a
-	jr   z, _LABEL_263E_
-	ld   [_RAM_C3AB_], a
-	jr   _LABEL_2659_
+    	call _LABEL_2FE6_
+    	call _LABEL_357E_
+    	ld   a, [_RAM_C3AA_]
+    	or   a
+    	jr   z, _LABEL_2659_
+    	ld   a, [gamepad_buttons__RAM_C103]
+    	bit  0, a
+    	jr   z, _LABEL_2628_
+    	call _LABEL_1E88_
+    	ld   a, [_RAM_C3DE_]
+    	cp   $0D
+    	call nc, _LABEL_380D_
+    	jr   _LABEL_2659_
 
-_LABEL_263E_:
-	ld   hl, _RAM_C3AA_
-	dec  [hl]
-	xor  a
-	cp   [hl]
-	jr   nz, _LABEL_264B_
-	call _LABEL_1E88_
-	jr   _LABEL_2659_
+    _LABEL_2628_:
+    	ld   a, [_RAM_C3DE_]
+    	cp   $0D
+    	jr   z, _LABEL_2659_
+    	cp   $0E
+    	jr   z, _LABEL_2659_
+    	ld   a, [_RAM_C3AB_]
+    	dec  a
+    	jr   z, _LABEL_263E_
 
-_LABEL_264B_:
-	ld   b, $04
-	ld   a, $2C
-	ld   c, $11
-	call _LABEL_33FC_
-	ld   a, $3C
-	ld   [_RAM_C3AB_], a
-_LABEL_2659_:
-	ld   a, [_RAM_C3DF_]
-	or   a
-	jr   z, _LABEL_2662_
-	call _LABEL_379C_
-_LABEL_2662_:
-	pop  hl
-	pop  de
-	pop  bc
-	pop  af
-	reti
+    	ld   [_RAM_C3AB_], a
+    	jr   _LABEL_2659_
 
-; 5th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+    _LABEL_263E_:
+    	ld   hl, _RAM_C3AA_
+    	dec  [hl]
+    	xor  a
+    	cp   [hl]
+    	jr   nz, _LABEL_264B_
+
+    	call _LABEL_1E88_
+    	jr   _LABEL_2659_
+
+    _LABEL_264B_:
+    	ld   b, $04
+    	ld   a, $2C
+    	ld   c, $11
+    	call _LABEL_33FC_
+    	ld   a, $3C
+    	ld   [_RAM_C3AB_], a
+    _LABEL_2659_:
+    	ld   a, [_RAM_C3DF_]
+    	or   a
+    	jr   z, _LABEL_2662_
+
+    	call _LABEL_379C_
+
+    _LABEL_2662_:
+    	pop  hl
+    	pop  de
+    	pop  bc
+    	pop  af
+    	reti
+
+; 5th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_2667_:
 	ld   de, _RAM_C283_
 	ld   hl, $98EA
@@ -6065,7 +6079,7 @@ db $C2, $FA, $3B, $C1, $6F, $FA, $3C, $C1, $67, $FA, $7F, $C2, $EE, $01, $EA, $7
 db $C2, $28, $08, $FA, $52, $C1, $CD, $90, $49, $18, $DE, $AF, $22, $3E, $C2, $77
 db $18, $D7
 
-; 3rd entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 3rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_26C6_:
 	xor  a
 	ld   [$99EB], a
@@ -6121,7 +6135,7 @@ _LABEL_2711_:
 
 _LABEL_271B_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_25F7_
 
 _LABEL_2722_:
@@ -6910,7 +6924,7 @@ _LABEL_2BC5_:
 	ldi  [hl], a
 	ret
 
-; 23rd entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 23rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_2BCF_:
 	ld   a, [_RAM_C133_]
 	ld   l, a
@@ -7603,7 +7617,7 @@ _LABEL_3096_:
 	inc  [hl]
 	ret
 
-; 11th entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 11th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_309B_:
 	call _LABEL_30A1_
 	jp   _LABEL_25F7_
@@ -7744,14 +7758,14 @@ _LABEL_31E0_:
 	ret
 
 _LABEL_31EA_:
-	ld   a, [_RAM_C27C_]
+	ld   a, [vblank__dispatch_select__RAM_C27C]
 	push af
 	call gfx__clear_shadow_oam__275B
 	xor  a
 	ld   [_RAM_C398_], a
 	ld   a, $1A
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   de, _DATA_617_
 	ld   hl, $98A0
 	rst  $20	; _LABEL_20_
@@ -7766,7 +7780,7 @@ _LABEL_3212_:
 	push bc
 	ld   a, $14
 _LABEL_3215_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  a
 	jr   nz, _LABEL_3215_
 	ld   de, $2152
@@ -7774,7 +7788,7 @@ _LABEL_3215_:
 	rst  $20	; _LABEL_20_
 	ld   a, $14
 _LABEL_3222_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  a
 	jr   nz, _LABEL_3222_
 	ld   de, $00D6
@@ -7786,10 +7800,10 @@ _LABEL_3222_:
 	ld   a, $01
 	ld   [_RAM_C398_], a
 	ld   a, $1A
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	pop  af
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_3241_:
@@ -7910,8 +7924,8 @@ _LABEL_32D7_:
 	ld   [_RAM_C117_], a
 	ld   [_RAM_C260_], a
 	ld   [_RAM_C5F3_], a
-	ld   [_RAM_C27C_], a
-	ld   [_RAM_C102_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	di
 	ld   a, $04
 	ldh  [rSTAT], a
@@ -12906,7 +12920,7 @@ _LABEL_AC43_:
 	xor  a
 	ld   [hl], a
 _LABEL_AC45_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   b, $00
 	ld   hl, _RAM_C455_
 _LABEL_AC4B_:
@@ -13841,7 +13855,7 @@ _LABEL_B20C_:
 	ld   a, [_RAM_C702_]
 	call _LABEL_235A_
 	ld   a, $10
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0700
 	ld   de, $2373
 	ld   hl, $C261
@@ -13888,7 +13902,7 @@ _LABEL_B28D_:
 	ldi  [hl], a
 	ldi  [hl], a
 	ld   a, $11
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0300
 	ld   de, $2373
 	ld   hl, $C261
@@ -14278,9 +14292,9 @@ _LABEL_B4F8_:
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_B513_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -14784,12 +14798,12 @@ _LABEL_B846_:
 	ld   [_RAM_C472_], a
 _LABEL_B856_:
 	ld   a, $1C
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $20
 	ld   [_RAM_C590_], a
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_B866_:
 	ld   hl, _RAM_C466_
 	ld   b, $0A
@@ -14838,7 +14852,7 @@ _LABEL_B894_:
 	ld   [_SRAM_223_], a
 _LABEL_B8AB_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_B948_
 	call _LABEL_B937_
 	call _LABEL_B8CE_
@@ -14849,7 +14863,7 @@ _LABEL_B8AB_:
 	call _LABEL_B91B_
 	call _LABEL_B964_
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_B8CE_:
@@ -14873,7 +14887,7 @@ _LABEL_B8E0_:
 	ld   [_SRAM_223_], a
 _LABEL_B8F7_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_B948_
 	call _LABEL_B937_
 	call _LABEL_B8CE_
@@ -14884,7 +14898,7 @@ _LABEL_B8F7_:
 	call _LABEL_B91B_
 	call _LABEL_B964_
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_B91B_:
@@ -14954,7 +14968,7 @@ _LABEL_B96C_:
 	jr   nz, _LABEL_B96C_
 	ret
 
-; 2nd entry of Jump Table from 2557 (indexed by _RAM_C27C_)
+; 2nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_B973_:
 	ld   a, [_SRAM_221_]
 	ld   [$9865], a
@@ -14986,8 +15000,8 @@ _LABEL_B9F0_:
 	ld   [_RAM_C591_], a
 	ld   [_RAM_C590_], a
 	ld   a, $1B
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   hl, _RAM_C466_
 	ld   b, $0A
 	ld   a, $20
@@ -14999,7 +15013,7 @@ _LABEL_BA05_:
 	inc  hl
 	ld   [hl], $00
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	dec  a
 	ld   [_RAM_C472_], a
 	ld   [_RAM_C475_], a
@@ -15021,7 +15035,7 @@ _LABEL_BA26_:
 	ld   e, a
 	call _LABEL_1504_
 _LABEL_BA41_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	rst  $08	; _LABEL_8_
 	push af
 	ld   a, [_RAM_C10A_]
@@ -15090,10 +15104,10 @@ _LABEL_BA9F_:
 	ld   [_RAM_C472_], a
 _LABEL_BAB0_:
 	ld   a, $1C
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, $20
 	ld   [_RAM_C590_], a
 	ld   a, c
@@ -15122,7 +15136,7 @@ _LABEL_BAE3_:
 	jp   z, _LABEL_BA26_
 	inc  a
 	ld   [_RAM_C474_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   hl, _RAM_C466_
 	ld   de, _RAM_C467_
 	ld   b, $0A
@@ -15159,14 +15173,14 @@ _LABEL_BB11_:
 	jp   nz, _LABEL_BA26_
 	ld   a, $3D
 	ld   [_RAM_C590_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $1C
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $20
 	ld   [_RAM_C590_], a
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_BB4C_
 	ld   a, $01
 	ld   [_RAM_C473_], a
@@ -15221,14 +15235,14 @@ _LABEL_BB89_:
 	push af
 	ld   a, $3D
 	ld   [_RAM_C590_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $1C
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	pop  af
 	ld   [_RAM_C590_], a
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_BB4C_
 	jr   _LABEL_BBC5_
 
@@ -15321,12 +15335,12 @@ _LABEL_BC48_:
 _LABEL_BC62_:
 	call _LABEL_BD22_
 	ld   a, $1C
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $20
 	ld   [_RAM_C590_], a
 	ld   a, $01
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_AB74_
 	ld   a, $01
 	ld   [_RAM_C473_], a
@@ -15349,7 +15363,7 @@ _LABEL_BC8D_:
 	ld   hl, $C40A
 	call _LABEL_BD08_
 	call _LABEL_B3A5_
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C479_]
 	cp   $02
 	jr   c, _LABEL_BCB4_
@@ -15364,7 +15378,7 @@ _LABEL_BCB4_:
 	ld   hl, $C3F9
 	call _LABEL_BD08_
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, [_RAM_C479_]
 	call _LABEL_BD22_
 	call _LABEL_AB74_
@@ -15580,7 +15594,7 @@ _LABEL_BE02_:
 	ld   e, a
 	call _LABEL_1504_
 _LABEL_BE1D_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	rst  $08	; _LABEL_8_
 	push af
 	ld   a, [_RAM_C10A_]
@@ -15716,7 +15730,7 @@ _LABEL_BF06_:
 	xor  a
 	ld   [de], a
 	ld   a, $02
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_BF46_
 	rst  $08	; _LABEL_8_
 	or   a
@@ -15749,7 +15763,7 @@ _LABEL_BF3B_:
 	jr   _LABEL_BF2D_
 
 _LABEL_BF46_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C355_]
 	bit  7, a
@@ -15903,7 +15917,7 @@ _LABEL_C0AD_:
 	ld   hl, $9A00
 	rst  $20	; _LABEL_20_
 _LABEL_C0B4_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -16005,7 +16019,7 @@ db $55, $53, $41, $00
 _LABEL_C154_:
 	xor  a
 	ld   [_RAM_C305_], a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   [_RAM_C130_], a
 	ld   [_RAM_C23B_], a
 	ld   [_RAM_C11B_], a
@@ -16015,8 +16029,8 @@ _LABEL_C154_:
 	ld   a, [_RAM_C282_]
 	ld   [_RAM_C238_], a
 	ld   a, $0B
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
 	ld   [_RAM_C23B_], a
 	ld   a, $08
@@ -16026,7 +16040,7 @@ _LABEL_C154_:
 	ld   a, $01
 	ld   [_RAM_C280_], a
 _LABEL_C18C_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -16254,9 +16268,9 @@ _LABEL_C2EF_:
 	ld   [_RAM_C280_], a
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $0D
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C30A_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_9CE_
 	call _LABEL_92C_
 	call _LABEL_2769_
@@ -16282,15 +16296,15 @@ _LABEL_C30A_:
 
 _LABEL_C335_:
 	ld   a, $0C
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $0D
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, [_RAM_C280_]
 	cp   $04
 	call nz, gfx__clear_shadow_oam__275B
 _LABEL_C348_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_9CE_
 	call _LABEL_92C_
 	ld   a, [_RAM_C280_]
@@ -16320,14 +16334,14 @@ _LABEL_C36A_:
 	ld   [_RAM_C130_], a
 	ld   [_RAM_C239_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, $10
 	ld   [_RAM_C281_], a
 	ld   a, $90
 	ld   [_RAM_C282_], a
 _LABEL_C391_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -16394,7 +16408,7 @@ _LABEL_C3FA_:
 	ld   hl, $9A01
 	rst  $20	; _LABEL_20_
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jr   _LABEL_C391_
 
 _LABEL_C410_:
@@ -16531,10 +16545,10 @@ _LABEL_C4E1_:
 	dec  b
 	jr   nz, _LABEL_C4E1_
 	ld   a, $13
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C4F1_:
 	ld   hl, $99E8
 	ld   de, $0067
@@ -16552,12 +16566,12 @@ _LABEL_C4F1_:
 	ld   hl, $9940
 	rst  $28	; _LABEL_28_
 	ld   a, $0A
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $09E0
 	ld   e, $06
 	call _LABEL_1CF6_
 _LABEL_C521_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_C539_
@@ -16630,7 +16644,7 @@ _LABEL_C592_:
 	jp   z, _LABEL_C7C2_
 	cp   $4E
 	jp   z, _LABEL_1E7F_
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2B_
 	ld   a, $03
 	ld   [_RAM_C280_], a
@@ -16648,7 +16662,7 @@ _LABEL_C5BC_:
 	dec  b
 	jr   nz, _LABEL_C5BC_
 	ld   a, $12
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0500
 	ld   de, $237B
 	ld   hl, $C261
@@ -16765,7 +16779,7 @@ _LABEL_C7D9_:
 	dec  b
 	jr   nz, _LABEL_C7D9_
 	ld   a, $13
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0300
 	ld   de, $2381
 	ld   hl, $C261
@@ -16905,7 +16919,7 @@ _LABEL_C8BE_:
 	jr   nz, _LABEL_C89A_
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C8CC_:
 	call _LABEL_3278_
 	or   a
@@ -16951,8 +16965,8 @@ _LABEL_C91B_:
 	ld   a, $F0
 	ldh  [rOBP0], a
 	xor  a
-	ld   [_RAM_C27C_], a
-	ld   [_RAM_C102_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
 	call _LABEL_41B_
@@ -17092,7 +17106,7 @@ _LABEL_CA12_:
 	ld   a, [_RAM_C702_]
 	call _LABEL_235A_
 	ld   a, $10
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0700
 	ld   de, $2373
 	ld   hl, $C261
@@ -17262,7 +17276,7 @@ _LABEL_CB97_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   a, $15
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, $90
 	call _LABEL_CCBD_
 	ld   a, [_RAM_C281_]
@@ -17424,7 +17438,7 @@ _LABEL_CCBD_:
 	ld   [_RAM_C237_], a
 	ld   a, [_RAM_C282_]
 	ld   [_RAM_C238_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   hl, _RAM_C11B_
 	ld   b, $12
 	ld   a, $20
@@ -17441,7 +17455,7 @@ _LABEL_CCD9_:
 	ld   a, $01
 	ld   [_RAM_C280_], a
 _LABEL_CCEF_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -17515,7 +17529,7 @@ _LABEL_CD58_:
 	ld   de, $C11B
 	rst  $20	; _LABEL_20_
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_CCEF_
 
 _LABEL_CD7A_:
@@ -17691,9 +17705,9 @@ _LABEL_CE9C_:
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_CEAF_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -17862,9 +17876,9 @@ _LABEL_CFB6_:
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_CFD1_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -18115,7 +18129,7 @@ _LABEL_D133_:
 	call _LABEL_1CF6_
 	call gfx__turn_on_screen_bg_obj__2540
 _LABEL_D14A_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_D162_
@@ -18217,12 +18231,12 @@ _LABEL_D200_:
 	jr   nz, _LABEL_D200_
 	call _LABEL_2B_
 	ld   a, $17
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	xor  a
 	ld   [_RAM_C474_], a
 	ld   [_RAM_C475_], a
 _LABEL_D213_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -18319,7 +18333,7 @@ _LABEL_D2B5_:
 	or   a
 	jp   z, _LABEL_D213_
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   hl, $C283
 	ld   a, [_RAM_C474_]
 	add  l
@@ -18378,16 +18392,16 @@ _LABEL_D315_:
 	ld   hl, $9820
 	rst  $28	; _LABEL_28_
 	ld   a, $17
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_D321_:
 	rst  $08	; _LABEL_8_
 	cp   $FF
 	jr   z, _LABEL_D321_
 	or   a
 	jp   z, _LABEL_200_
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, $C8
 	ld   [_RAM_C399_], a
 	jp   _LABEL_1598_
@@ -18607,7 +18621,7 @@ _LABEL_D481_:
 	ld   [de], a
 _LABEL_D48C_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call gfx__clear_shadow_oam__275B
 	call gfx__turn_off_screen_2827
 	xor  a
@@ -18705,7 +18719,7 @@ _LABEL_D56A_:
 _LABEL_D57C_:
 	call _LABEL_1CF6_
 _LABEL_D57F_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_D597_
@@ -18973,9 +18987,9 @@ _LABEL_D7FD_:
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_D820_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -18984,7 +18998,7 @@ _LABEL_D820_:
 	jr   nz, _LABEL_D836_
 	call _LABEL_E67B_
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   gfx__clear_shadow_oam__275B
 
 _LABEL_D836_:
@@ -19568,7 +19582,7 @@ _LABEL_DDD6_:
 
 _LABEL_DDD9_:
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call gfx__clear_shadow_oam__275B
 	ld   a, [_SRAM_9EF_]
 	or   a
@@ -19656,7 +19670,7 @@ _LABEL_DE8C_:
 	rst  $20	; _LABEL_20_
 	ld   b, $0A
 _LABEL_DE96_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  b
 	jr   nz, _LABEL_DE96_
 	ld   de, $00AB
@@ -19664,7 +19678,7 @@ _LABEL_DE96_:
 	rst  $20	; _LABEL_20_
 	ld   b, $0A
 _LABEL_DEA3_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  b
 	jr   nz, _LABEL_DEA3_
 	pop  bc
@@ -19874,10 +19888,10 @@ _LABEL_DFEE_:
 	ld   hl, $9887
 	rst  $20	; _LABEL_20_
 	ld   a, $18
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	xor  a
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
 _LABEL_E026_:
@@ -19960,7 +19974,7 @@ _LABEL_E0D0_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   a, $07
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, $10
 	ld   [_RAM_C281_], a
 	ld   a, $78
@@ -20164,7 +20178,7 @@ _LABEL_E1FD_:
 	ld   hl, $9887
 	rst  $20	; _LABEL_20_
 	ld   a, $18
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0700
 	ld   de, $2373
 	ld   hl, $C261
@@ -20211,12 +20225,12 @@ _LABEL_E289_:
 	jr   nz, _LABEL_E289_
 	call _LABEL_2B_
 	ld   a, $19
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	xor  a
 	ld   [_RAM_C474_], a
 	ld   [_RAM_C475_], a
 _LABEL_E29C_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -21064,7 +21078,7 @@ _LABEL_E830_:
 	jr   nz, _LABEL_E830_
 	ld   [hl], b
 	ld   a, $15
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_E843_
 	call _LABEL_E9FC_
 	jp   _LABEL_BA2_
@@ -21077,7 +21091,7 @@ _LABEL_E843_:
 	ld   [_RAM_C237_], a
 	ld   a, [_RAM_C282_]
 	ld   [_RAM_C238_], a
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   [_RAM_C281_], a
 	ld   a, $90
 	ld   [_RAM_C282_], a
@@ -21085,7 +21099,7 @@ _LABEL_E843_:
 	ld   a, $02
 	ld   [_RAM_C280_], a
 _LABEL_E867_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; _LABEL_8_
 	cp   $FF
@@ -21142,8 +21156,8 @@ _LABEL_E8C5_:
 	jr   nz, _LABEL_E8C5_
 	ld   [hl], $20
 	ld   a, $15
-	ld   [_RAM_C27C_], a
-	rst  $18	; _LABEL_18_
+	ld   [vblank__dispatch_select__RAM_C27C], a
+	rst  $18	; Call VSYNC__RST_18
 	jr   _LABEL_E867_
 
 _LABEL_E8D5_:
@@ -21289,7 +21303,7 @@ _LABEL_E9B3_:
 	call _LABEL_33FC_
 	ld   b, $0A
 _LABEL_E9F3_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  b
 	jr   nz, _LABEL_E9F3_
 	call gfx__clear_shadow_oam__275B
@@ -21384,7 +21398,7 @@ _LABEL_EA56_:
 	call _LABEL_33FC_
 	ld   b, $0F
 _LABEL_EA84_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	dec  b
 	jr   nz, _LABEL_EA84_
 	pop  hl
@@ -21977,10 +21991,10 @@ _LABEL_F688_:
 _LABEL_F69E_:
 	call _LABEL_914_
 	ld   a, $14
-	ld   [_RAM_C27C_], a
+	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_F6A6_:
 	call _LABEL_914_
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_F6F7_
 	ld   a, [_RAM_C3B0_]
@@ -22104,7 +22118,7 @@ _LABEL_F790_:
 	ld   e, $06
 	call _LABEL_1CF6_
 _LABEL_F7C3_:
-	rst  $18	; _LABEL_18_
+	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C240_]
 	or   a
 	jr   z, _LABEL_F7DB_
