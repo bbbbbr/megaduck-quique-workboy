@@ -826,11 +826,12 @@ startup_init__0150:
 	ld   hl, _RAM_C19C_
 	ld   a, $1E
 	ld   de, $0005
-_LABEL_18E_:
-	ld   [hl], $FF
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_18E_
+
+    .LABEL_018E:
+    	ld   [hl], $FF
+    	add  hl, de
+    	dec  a
+    	jr   nz, .LABEL_018E
 	ei
 	xor  a
 	ldh  [rSCX], a
@@ -839,11 +840,16 @@ _LABEL_18E_:
 	ld   a, [_DATA_3_ - 2]
 	ld   [_RAM_C10E_], a
 	call _LABEL_2F41_
-	ld   b, $4B
-_LABEL_1A8_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  b
-	jr   nz, _LABEL_1A8_
+
+    ; Maybe startup delay for the keyboard accessory hardware
+    ; Calls vsync() 75 times in a row, ~1250 msec
+    ;
+	ld   b, 75 ; Wait ~75 frames $4B
+    .startup_wait_loop__01A8:
+    	rst  $18	; Call VSYNC__RST_18
+    	dec  b
+    	jr   nz, .startup_wait_loop__01A8
+
 	xor  a
 	ld   [_RAM_C10E_], a
 	ld   a, $02
