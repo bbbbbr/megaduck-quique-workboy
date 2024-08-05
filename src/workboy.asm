@@ -1174,10 +1174,11 @@ _LABEL_3EF_:
 	call _LABEL_450_
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_4000_
-	xor  a
-	jp   _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	jp   gfx__copy_tile_patterns__1437
 
 _LABEL_41B_:
 	call _LABEL_424_
@@ -1199,43 +1200,48 @@ _LABEL_424_:
 	call _LABEL_450_
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_5000_
-	xor  a
-	jp   _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	jp   gfx__copy_tile_patterns__1437
 
 _LABEL_450_:
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, $8420
 	ld   de, _DATA_1CE92_
 	ld   bc, _DATA_1CE9A_
-	ld   a, $3C
-	jp   _LABEL_144C_
+	ld   a, 60; $3C ; Copy 60 tiles
+	jp   gfx__interleave_copy_tile_patterns__144C
 
 _LABEL_463_:
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, $8420
 	ld   de, _DATA_1FD5A_
 	ld   bc, _DATA_1FD62_
-	ld   a, $12
-	call _LABEL_144C_
+	ld   a, 18 ; $12 ; Copy 18 tiles
+	call gfx__interleave_copy_tile_patterns__144C
+
 	ld   hl, $8540
 	ld   bc, _DATA_1FE76_
-	ld   a, $04
-	jp   _LABEL_1437_
+	ld   a, $04 ; Copy 4 tiles
+	jp   gfx__copy_tile_patterns__1437
 
 _LABEL_481_:
 	xor  a
 	ld   [_RAM_C116_], a
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, $8420
 	ld   de, _DATA_1FEB1_
 	ld   bc, _DATA_1FEB9_
-	ld   a, $08
-	jp   _LABEL_144C_
+	ld   a, 8 ; $08 ; Copy 8 tiles
+	jp   gfx__interleave_copy_tile_patterns__144C
 
 _LABEL_498_:
 	ld   a, $02
@@ -1820,10 +1826,12 @@ _LABEL_839_:
 	call gfx__turn_off_screen_2827
 	ld   a, $01
 	ld   [rMBC1_ROMBANK], a
+
 	ld   bc, _DATA_4000_
 	ld   hl, _TILEDATA9000
-	xor  a
-	call _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	call gfx__copy_tile_patterns__1437
+
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_9E17_
@@ -2237,12 +2245,13 @@ _LABEL_B36_:
 
 _LABEL_B45_:
 	call gfx__turn_off_screen_2827
+
 	ld   bc, _DATA_15B4C_
 	ld   hl, _TILEDATA9000
 	ld   a, $05
 	ld   [rMBC1_ROMBANK], a
-	xor  a
-	call _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	call gfx__copy_tile_patterns__1437
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a
 	call _LABEL_2735_
@@ -3259,10 +3268,11 @@ _LABEL_1210_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1DDCA_
-	xor  a
-	call _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	call gfx__copy_tile_patterns__1437
 	ld   a, $05
 	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_178FC_
@@ -3281,10 +3291,11 @@ _LABEL_1241_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1ED6A_
-	xor  a
-	call _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	call gfx__copy_tile_patterns__1437
 	ld   a, $05
 	ld   [rMBC1_ROMBANK], a
 	ld   de, _DATA_17A64_
@@ -3591,64 +3602,88 @@ _LABEL_142B_:
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_25F7_
 
-_LABEL_1437_:
+
+; Copies N tiles worth of pattern data (16 bytes per tile)
+; Wraps around from 0x9800 to 0x8800 if needed
+;
+; Source    : BC
+; Dest      : HL
+; Num Tiles : A  (if 0, will copy 256)
+gfx__copy_tile_patterns__1437:
 	push af
-	ld   d, $10
-_LABEL_143A_:
-	ld   a, [bc]
-	inc  bc
-	ldi  [hl], a
-	dec  d
-	jr   nz, _LABEL_143A_
+	ld   d, 16 ; $10 ; 16 bytes is one tile pattern
+    .copy_tile_16_bytes_loop__143A:
+    	ld   a, [bc]
+    	inc  bc
+    	ldi  [hl], a
+    	dec  d
+    	jr   nz, .copy_tile_16_bytes_loop__143A
+    ; Handle wraparound to $8800 if write address reached end of _TILEDATA9000
 	ld   a, h
-	cp   $98
-	jr   nz, _LABEL_1447_
-	ld   h, $88
-_LABEL_1447_:
+	cp   HIGH(_TILEDATA9000 + $800) ; $98
+	jr   nz, .skip_tiledata_8800_wraparound__1447
+       ; Wrap around to tile data at 0x8800
+	   ld   h, HIGH(_TILEDATA8800) ; $88
+    .skip_tiledata_8800_wraparound__1447:
 	pop  af
 	dec  a
-	jr   nz, _LABEL_1437_
+    ; Done copying when A is 0 after decrement
+	jr   nz, gfx__copy_tile_patterns__1437
 	ret
 
-_LABEL_144C_:
+
+; Interleave Copies N tiles worth of pattern data (8 bytes + 8 bytes)
+;
+; Merges two separate 1bpp tiles into a single 2bpp tile
+; From  DE: 01234567
+;       BC: ABCDEFGH
+; TO -> HL: 0A 1B 2C 3D 4E 5F 6G 7H
+;
+; Wraps around from 0x9800 to 0x8800 if needed
+;
+; Source    : DE (LS bpp bytes)
+; Source    : BC (MS bpp bytes)
+; Dest      : HL
+; Num Tiles : A  (if 0, will copy 256)
+gfx__interleave_copy_tile_patterns__144C:
 	push af
 	ld   a, $08
-_LABEL_144F_:
-	push af
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	ld   a, [bc]
-	inc  bc
-	ldi  [hl], a
+    .copy_interleaved_tile_16_bytes_loop__144F:
+    	push af
+
+    	ld   a, [de]
+    	inc  de
+    	ldi  [hl], a
+
+    	ld   a, [bc]
+    	inc  bc
+    	ldi  [hl], a
+
+    	pop  af
+    	dec  a
+    	jp   nz, .copy_interleaved_tile_16_bytes_loop__144F
+    ; BC += 8
+    REPT 8
+    	inc  bc
+    ENDR
+    ; DE += 8
+    REPT 8
+	   inc  de
+    ENDR
+    ; Handle wraparound to $8800 if write address reached end of _TILEDATA9000
+    ld   a, h
+    cp   HIGH(_TILEDATA9000 + $800) ; $98
+    jr   nz, .skip_tiledata_8800_wraparound__1472
+       ; Wrap around to tile data at 0x8800
+       ld   h, HIGH(_TILEDATA8800) ; $88
+
+    .skip_tiledata_8800_wraparound__1472:
 	pop  af
 	dec  a
-	jp   nz, _LABEL_144F_
-	inc  bc
-	inc  bc
-	inc  bc
-	inc  bc
-	inc  bc
-	inc  bc
-	inc  bc
-	inc  bc
-	inc  de
-	inc  de
-	inc  de
-	inc  de
-	inc  de
-	inc  de
-	inc  de
-	inc  de
-	ld   a, h
-	cp   $98
-	jr   nz, _LABEL_1472_
-	ld   h, $88
-_LABEL_1472_:
-	pop  af
-	dec  a
-	jp   nz, _LABEL_144C_
+    ; Done copying when A is 0 after decrement
+	jp   nz, gfx__interleave_copy_tile_patterns__144C
 	ret
+
 
 ; Pointer Table from 1478 to 1479 (1 entries, indexed by _RAM_C251_)
 _DATA_1478_:
@@ -7423,10 +7458,11 @@ _LABEL_2F41_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1D252_
-	xor  a
-	call _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	call gfx__copy_tile_patterns__1437
 	ld   de, _DATA_1DC62_
 	call _LABEL_3969_
 	call _LABEL_F68_
@@ -7484,11 +7520,12 @@ _LABEL_2F8E_:
 	ldh  [rOBP1], a
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a
+
 	ld   hl, _TILEDATA8000
 	ld   de, _DATA_EECC_
 	ld   bc, _DATA_EED4_
-	ld   a, $54
-	call _LABEL_144C_
+	ld   a, 84 ; $54 ; Copy 84 tiles
+	call gfx__interleave_copy_tile_patterns__144C
 	ld   a, $04
 	call _LABEL_3918_
 	ld   a, $03
@@ -8750,20 +8787,22 @@ _LABEL_3918_:
 	ld   hl, _TILEDATA9000
 	cp   $07
 	jr   nz, _LABEL_3959_
-	ld   a, $3B
+
+	ld   a, $3B ; Copy 59 tiles
 	ld   bc, _DATA_5FA0_
 	ld   hl, _TILEDATA9000
-	call _LABEL_1437_
-	ld   a, $99
+	call gfx__copy_tile_patterns__1437
+
+	ld   a, 153 ; $99 ; Copy 153 tiles
 	ld   de, _DATA_6350_
 	ld   bc, _DATA_6358_
 	ld   hl, $93B0
-	call _LABEL_144C_
+	call gfx__interleave_copy_tile_patterns__144C
 	jr   _LABEL_395D_
 
 _LABEL_3959_:
-	xor  a
-	call _LABEL_1437_
+	xor  a ; Copy 256 tiles
+	call gfx__copy_tile_patterns__1437
 _LABEL_395D_:
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a
@@ -9032,6 +9071,9 @@ db $00, $00, $52, $50, $FF, $76, $FE, $FF, $76, $FC, $9A, $00, $00, $00, $00, $8
 db $C4, $0A
 
 SECTION "rom1", ROMX, BANK[$1]
+; TODO: GFX: Start of font + clock + ? tile pattern data
+;  95 chars + (256 - 95) clock/etc ... x 16 bytes = 0x1000, -> end ~0x4FFF
+
 ; 1st entry of Pointer Table from F32 (indexed by unknown)
 ; Data from 4000 to 4000 (1 bytes)
 _DATA_4000_:
