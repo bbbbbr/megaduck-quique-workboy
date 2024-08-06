@@ -3,8 +3,11 @@
 ; so that the QuiQue ROM will run the Main Menu on a GB
 ; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
 
-; Temporary workaround while MBC1 isn't supported in Sameduck
+; Temp workaround while MBC1 isn't supported in Sameduck
 def DEBUG_USE_DUCK_MBC = 1
+
+; Temp workaround for lack of duck MBC SRAM
+def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
 
 include "inc/hardware.inc"
 
@@ -2909,7 +2912,14 @@ _LABEL_FA1_:
 	pop  af
 	dec  a
 	jr   nz, _LABEL_F92_
-	ld   a, [_SRAM_1F9_]
+    ; The Duck MBC emulation doesn't support SRAM at the moment
+    ; so force the read to return "0" (expected result in normal ROM)
+    IF (DEF(DEBUG_USE_DUCK_MBC_NO_SRAM) && DEF(TARGET_MEGADUCK))
+        nop
+        ld   a, 0
+    ELSE
+	   ld   a, [_SRAM_1F9_]  ; Megaduck gets stuck here because it's MBC has no SRAM
+    ENDC
 	ld   e, a
 	add  a
 	add  a
