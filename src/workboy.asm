@@ -17,6 +17,13 @@ ELSE
 ENDC
 
 
+
+
+; Queue-able VBL Commands
+DEF VBL_CMD__DEFAULT__0x00 EQU $00
+DEF VBL_CMD__COPY_TEXT__0x0F EQU $0f
+
+
 SECTION "wram_c000", WRAM0[$C000]
 shadow_oam_base__RAM_C000: db
 
@@ -60,10 +67,10 @@ SECTION "wram_c130", WRAM0[$C130]
 _RAM_C130_: db
 _RAM_C131_: db
 _RAM_C132_: db
-_RAM_C133_: db
-_RAM_C134_: db
-_RAM_C135_: db
-_RAM_C136_: db
+gfx__dest_addr_lo__RAM_C133_maybe: db
+gfx__dest_addr_hi__RAM_C134_maybe: db
+gfx__src_addr_lo__RAM_C135_maybe: db
+gfx__src_addr_hi__RAM_C136_maybe: db
 _RAM_C137_: db
 _RAM_C138_: db
 _RAM_C139_: db
@@ -490,7 +497,7 @@ SECTION "wram_c900", WRAM0[$C900]
 _RAM_C900_: db
 
 SECTION "wram_cefe", WRAM0[$CEFE]
-_RAM_CEFE_: db
+gfx__tilemap_string_addr_table__RAM_CEFE: db
 
 SECTION "wram_cf00", WRAM0[$CF00]
 _RAM_CF00_: db
@@ -718,8 +725,9 @@ _LABEL_20_:
 ; Data from 23 to 27 (5 bytes)
 db $25, $0E, $00, $F5, $25
 
-_LABEL_28_:
-	jp   _LABEL_1019_
+; _RST_28:
+COPY_STRING_VRAM__RST_28:
+	jp   gfx__copy_string_to_vram_centered__1019
 
 _LABEL_2B_:
 	ld   a, $5D
@@ -1456,7 +1464,7 @@ _LABEL_60C_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_60C_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; Data from 617 to 62B (21 bytes)
 _DATA_617_:
@@ -1587,13 +1595,13 @@ _LABEL_6E6_:
 	push de
 	push hl
 	ld   a, e
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, d
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, l
-	ld   [_RAM_C135_], a
+	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, h
-	ld   [_RAM_C136_], a
+	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
 	rst  $18	; Call VSYNC__RST_18
 	pop  hl
 	ld   bc, $0014
@@ -1717,7 +1725,7 @@ _LABEL_79A_:
 	xor  a
 	ld   [_RAM_C130_], a
 _LABEL_7B0_:
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 _LABEL_7B3_:
 	ld   a, [_RAM_C10D_]
@@ -1741,16 +1749,17 @@ _LABEL_7C4_:
 
 _LABEL_7CD_:
 	add  $30
-	ld   [_RAM_C135_], a
+	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, b
 	add  $30
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, c
 	add  $30
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, $06
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
@@ -1758,7 +1767,7 @@ _LABEL_7CD_:
 ; 7th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_7E9_:
 	ld   hl, $99F0
-	ld   de, _RAM_C133_
+	ld   de, gfx__dest_addr_lo__RAM_C133_maybe
 	ld   b, $03
 _LABEL_7F1_:
 	ld   a, [de]
@@ -1767,17 +1776,17 @@ _LABEL_7F1_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_7F1_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 6th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_7FC_:
-	ld   a, [_RAM_C133_]
+	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
 	ld   e, a
-	ld   a, [_RAM_C134_]
+	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
 	ld   d, a
-	ld   a, [_RAM_C135_]
+	ld   a, [gfx__src_addr_lo__RAM_C135_maybe]
 	ld   l, a
-	ld   a, [_RAM_C136_]
+	ld   a, [gfx__src_addr_hi__RAM_C136_maybe]
 	ld   h, a
 	ld   b, $14
 _LABEL_80E_:
@@ -1787,7 +1796,7 @@ _LABEL_80E_:
 	inc  de
 	dec  b
 	jr   nz, _LABEL_80E_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 5th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_819_:
@@ -2014,7 +2023,7 @@ _LABEL_991_:
 	rst  $20	; _LABEL_20_
 	ld   de, $0006
 	ld   hl, $99E3
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 _LABEL_9C3_:
 	call _LABEL_E6C_
 	or   a
@@ -2322,9 +2331,9 @@ _LABEL_BC3_:
 	ld   de, _TILEMAP0
 	add  hl, de
 	ld   a, l
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, h
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, $02
 	ld   [_RAM_C159_], a
 	rst  $18	; Call VSYNC__RST_18
@@ -2918,37 +2927,43 @@ _LABEL_FA1_:
 	ld   c, [hl]
 	inc  hl
 	ld   b, [hl]
-	ld   hl, _RAM_D0D0_
-_LABEL_FC1_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_FC1_
+	ld   hl, _RAM_D0D0_ ; TODO: Label : gfx__temp_tilemap__RAM_D0D0
+    ; Loads a bunch of tile map data from ROM to RAM
+    ._LABEL_0FC1:
+    	ld   a, [de]
+    	inc  de
+    	ldi  [hl], a
+    	dec  bc
+    	ld   a, b
+    	or   c
+    	jr   nz, ._LABEL_0FC1
+
+    ; Search for start of displayed version text
+    ; Load RAM Address to start search
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a
 	ld   a, [_RAM_CF16_]
 	ld   l, a
 	ld   a, [_RAM_CF17_]
 	ld   h, a
-_LABEL_FD6_:
-	ld   a, [hl]
-	cp   $35
-	jr   z, _LABEL_FDE_
-	inc  hl
-	jr   _LABEL_FD6_
+    ;  a byte in RAM with value 0x35 ("5")
+    ._LABEL_0FD6:
+    	ld   a, [hl]
+    	cp   $35
+    	jr   z, _LABEL_FDE_
+    	inc  hl
+    	jr   ._LABEL_0FD6
 
-_LABEL_FDE_:
+    ; Overwrite "Version 5.74" with "Version 8.87"
+    _LABEL_FDE_:
 	ld   de, _DATA_FEA_
 	ld   b, $04
-_LABEL_FE3_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_FE3_
+    .overwrite_version_loop__0FE3:
+    	ld   a, [de]
+    	inc  de
+    	ldi  [hl], a
+    	dec  b
+    	jr   nz, .overwrite_version_loop__0FE3
 	ret
 
 ; Data from FEA to FED (4 bytes)
@@ -2963,7 +2978,7 @@ _LABEL_FEE_:
 	ld   h, a
 	ld   l, e
 	add  hl, hl
-	ld   de, _RAM_CEFE_
+	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE
 	add  hl, de
 	ld   e, [hl]
 	inc  hl
@@ -2971,63 +2986,80 @@ _LABEL_FEE_:
 	pop  hl
 _LABEL_FFE_:
 	ld   a, l
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, h
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, e
-	ld   [_RAM_C135_], a
+	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, d
-	ld   [_RAM_C136_], a
+	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
 	ld   a, $0F
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
-_LABEL_1019_:
+
+; Source address : DE (If MSB empty, E has index into pointer table to load source address instead)
+; Dest   address : HL
+gfx__copy_string_to_vram_centered__1019:
+    ; Check if MSByte of source address is populated
 	ld   a, d
 	or   a
-	jr   nz, _LABEL_1029_
+	jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__1029
+
+    ; If source addr MSB empty, it means load source addr from pointer table instead
+    ; pointer address =  0xCEFE + (LOW(Source Address) x 2)
 	push hl
 	ld   h, a
 	ld   l, e
 	add  hl, hl
-	ld   de, $CEFE
+	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
 	add  hl, de
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
 	pop  hl
-_LABEL_1029_:
+
+    .use_raw_source_addr__skip_load_from_pointer_table__1029:
+    ; Find the number of bytes to copy (0 terminated)
 	push de
 	ld   b, $00
-_LABEL_102C_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_1034_
-	inc  b
-	jr   _LABEL_102C_
+    .find_length_loop__102C:
+    	ld   a, [de]
+    	inc  de
+    	or   a
+    	jr   z, .length_count_done__1034
+    	inc  b
+    	jr   .find_length_loop__102C
 
-_LABEL_1034_:
-	ld   a, $14
+    .length_count_done__1034:
+    ; Calc to center the text on the tilemap Row ((20 - length) / 2)
+	ld   a, _TILEMAP_SCREEN_WIDTH ; $14
 	sub  b
 	or   a
 	rr   a
+
+    ; Add it to Dest Address and save that to RAM (TODO)
+    ; Dest  : RAM_C134,RAM_C133 (HL)
+    ; Source: RAM_C135,RAM_C136 (DE)
 	add  l
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, h
 	adc  $00
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	pop  de
 	ld   a, e
-	ld   [_RAM_C135_], a
+	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, d
-	ld   [_RAM_C136_], a
-	ld   a, $0F
+	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
+    ; Select copy command and wait until the next frame for it to execute
+	ld   a, VBL_CMD__COPY_TEXT__0x0F; $0F
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
@@ -3041,7 +3073,7 @@ _DATA_1071_:
 db $59, $4A, $4F, $53, $53
 
 _LABEL_1076_:
-	ld   de, $CEFE
+	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
 	add  hl, de
 	ld   e, [hl]
 	inc  hl
@@ -3488,7 +3520,7 @@ _LABEL_1388_:
 	inc  de
 	call _LABEL_13A6_
 	call _LABEL_13AF_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 _LABEL_13A6_:
 	ld   a, [de]
@@ -3537,7 +3569,7 @@ _LABEL_13D4_:
 	dec  b
 	jr   nz, _LABEL_13D4_
 	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 22nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_13E2_:
@@ -3556,7 +3588,7 @@ _LABEL_13EA_:
 _LABEL_13F5_:
 	ld   a, $07
 	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 9th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_13FD_:
@@ -3600,7 +3632,7 @@ _LABEL_142B_:
 	jr   nz, _LABEL_142B_
 	ld   a, $07
 	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 
 ; Copies N tiles worth of pattern data (16 bytes per tile)
@@ -4029,9 +4061,9 @@ _LABEL_16F5_:
 	pop  af
 	ld   [rMBC1_ROMBANK], a
 	ld   a, $00
-	ld   [_RAM_C135_], a
+	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, $C7
-	ld   [_RAM_C136_], a
+	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
 	xor  a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   [_RAM_C399_], a
@@ -4189,9 +4221,9 @@ _LABEL_1840_:
 	ld   de, _TILEMAP0
 	add  hl, de
 	ld   a, l
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, h
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, [_RAM_C243_]
 	ld   e, a
 	ld   a, [_RAM_C244_]
@@ -4290,9 +4322,9 @@ _LABEL_18ED_:
 	ld   de, _TILEMAP0
 	add  hl, de
 	ld   a, l
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, h
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, [_RAM_C245_]
 	ld   l, a
 	ld   a, [_RAM_C246_]
@@ -4670,16 +4702,17 @@ _LABEL_1BC9_:
 	ld   [rMBC1_ROMBANK], a
 	call _LABEL_19A9_
 	ld   a, $00
-	ld   [_RAM_C133_], a
+	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, $9A
-	ld   [_RAM_C134_], a
+	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
 	ld   a, [_RAM_CF2C_]
-	ld   [_RAM_C135_], a
+	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, [_RAM_CF2D_]
-	ld   [_RAM_C136_], a
+	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
 	ld   a, $05
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_1BF6_:
@@ -4869,7 +4902,7 @@ _LABEL_1D0D_:
 	ld   h, a
 	ld   l, e
 	add  hl, hl
-	ld   de, _RAM_CEFE_
+	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE
 	add  hl, de
 	ld   e, [hl]
 	inc  hl
@@ -5654,7 +5687,7 @@ _LABEL_2397_:
 	inc  de
 	sub  $20
 	ldi  [hl], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 19th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23B3_:
@@ -5674,7 +5707,7 @@ _LABEL_23BB_:
 	inc  hl
 	dec  b
 	jr   nz, _LABEL_23BB_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 17th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23CC_:
@@ -5706,7 +5739,7 @@ _LABEL_23DD_:
 	ld   a, [de]
 	sub  $20
 	ldi  [hl], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; 18th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_23F8_:
@@ -5725,7 +5758,7 @@ _LABEL_2400_:
 	inc  hl
 	dec  b
 	jr   nz, _LABEL_2400_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 _LABEL_2411_:
 	call _LABEL_241A_
@@ -5832,24 +5865,32 @@ _LABEL_24B4_:
 	ld   [_RAM_C27B_], a
 	jp   _LABEL_2435_
 
+
 ; 16th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_24BA_:
-	ld   a, [_RAM_C133_]
+vblank__cmd_copy_text__24BA:
+    ; Dest  : RAM_C134,RAM_C133 (DE)
+    ; Source: RAM_C135,RAM_C136 (HL)
+	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
 	ld   e, a
-	ld   a, [_RAM_C134_]
+	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
 	ld   d, a
-	ld   a, [_RAM_C135_]
+
+	ld   a, [gfx__src_addr_lo__RAM_C135_maybe]
 	ld   l, a
-	ld   a, [_RAM_C136_]
+	ld   a, [gfx__src_addr_hi__RAM_C136_maybe]
 	ld   h, a
-_LABEL_24CA_:
-	ldi  a, [hl]
-	or   a
-	jp   z, _LABEL_25F7_
-	sub  $20
-	ld   [de], a
-	inc  de
-	jr   _LABEL_24CA_
+    ; Copies bytes from Source (HL) to DE
+    ; subtracting 32 from each byte before writing it (adjust to start of font tiles)
+    .copy_loop__24CA:
+    	ldi  a, [hl]
+    	or   a
+        ; Jump back to vblank handler when done
+    	jp   z, vblank__cmd_default__25F7
+    	sub  32 ; $20
+    	ld   [de], a
+    	inc  de
+    	jr   .copy_loop__24CA
+
 
 _LABEL_24D5_:
 	ld   hl, _TILEMAP0
@@ -5866,6 +5907,7 @@ _LABEL_24DA_:
 	add  hl, de
 	dec  b
 	jr   nz, _LABEL_24DA_
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
@@ -5940,10 +5982,31 @@ gfx__vsync__2548:
 
 ; Jump Table from 2557 to 2588 (25 entries, indexed by vblank__dispatch_select__RAM_C27C)
 vblank__dispatch_table__2557:
-dw _LABEL_25F7_, _LABEL_B973_, _LABEL_26C6_, $2694, _LABEL_2667_, _LABEL_7FC_, _LABEL_7E9_, _LABEL_79A_
-dw _LABEL_13FD_, _LABEL_604_, _LABEL_309B_, _LABEL_1366_, _LABEL_13BC_, _LABEL_1388_, _LABEL_25AE_, _LABEL_24BA_
-dw _LABEL_23CC_, _LABEL_23F8_, _LABEL_23B3_, _LABEL_2385_, _LABEL_2591_, _LABEL_13E2_, _LABEL_2BCF_, $4C44
-dw _LABEL_238F_
+    dw vblank__cmd_default__25F7  ; VBL_CMD__DEFAULT__0x00
+    dw _LABEL_B973_  ; VBL_COMMAND__0x01
+    dw _LABEL_26C6_  ; VBL_COMMAND__0x02
+    dw $2694         ; VBL_COMMAND__0x03
+    dw _LABEL_2667_  ; VBL_COMMAND__0x04
+    dw _LABEL_7FC_   ; VBL_COMMAND__0x05
+    dw _LABEL_7E9_   ; VBL_COMMAND__0x06
+    dw _LABEL_79A_   ; VBL_COMMAND__0x07
+    dw _LABEL_13FD_  ; VBL_COMMAND__0x08
+    dw _LABEL_604_   ; VBL_COMMAND__0x09
+    dw _LABEL_309B_  ; VBL_COMMAND__0x0A
+    dw _LABEL_1366_  ; VBL_COMMAND__0x0B
+    dw _LABEL_13BC_  ; VBL_COMMAND__0x0C
+    dw _LABEL_1388_  ; VBL_COMMAND__0x0D
+    dw _LABEL_25AE_  ; VBL_COMMAND__0x0E
+    dw vblank__cmd_copy_text__24BA  ; VBL_CMD__COPY_TEXT__0x0F
+    dw _LABEL_23CC_  ; VBL_COMMAND__0x10
+    dw _LABEL_23F8_  ; VBL_COMMAND__0x11
+    dw _LABEL_23B3_  ; VBL_COMMAND__0x12
+    dw _LABEL_2385_  ; VBL_COMMAND__0x13
+    dw _LABEL_2591_  ; VBL_COMMAND__0x14
+    dw _LABEL_13E2_  ; VBL_COMMAND__0x15
+    dw _LABEL_2BCF_  ; VBL_COMMAND__0x16
+    dw $4C44         ; VBL_COMMAND__0x17
+    dw _LABEL_238F_  ; VBL_COMMAND__0x18
 
 
 ; Data from 2589 to 2590 (8 bytes)
@@ -5981,7 +6044,7 @@ _LABEL_25B9_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_25B9_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; Data from 25C0 to 25CB (12 bytes)
 db $CD, $F4, $24, $FA, $03, $C1, $B7, $20, $F7, $C3, $00, $00
@@ -6000,8 +6063,8 @@ vblank__handler__25CC:
     	ld   [_RAM_C592_], a
     	and  $0F
     	xor  $0F
-
     .todo_skip_something__25E0:
+
 	call gfx__oam_dma__RAM_FF80	; Code is loaded from gfx__oam_dma_in_ROM__2751
     ; Update Y scroll
 	ld   a, [gfx__shadow_y_scroll__RAM_C102]
@@ -6020,7 +6083,7 @@ vblank__handler__25CC:
 	jp   hl
 
     ; 1st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-    _LABEL_25F7_:
+    vblank__cmd_default__25F7:
     	ld   a, [_RAM_C27D_]
     	ldh  [rBGP], a
     	ld   a, [_RAM_C399_]
@@ -6118,7 +6181,7 @@ _LABEL_2689_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_2689_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; Data from 2694 to 26C5 (50 bytes)
 db $FA, $7E, $C2, $3D, $28, $06, $EA, $7E, $C2, $C3, $F7, $25, $3E, $14, $EA, $7E
@@ -6183,7 +6246,7 @@ _LABEL_2711_:
 _LABEL_271B_:
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 _LABEL_2722_:
 	call gfx__turn_off_screen_2827
@@ -6974,9 +7037,9 @@ _LABEL_2BC5_:
 
 ; 23rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_2BCF_:
-	ld   a, [_RAM_C133_]
+	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
 	ld   l, a
-	ld   a, [_RAM_C134_]
+	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
 	ld   h, a
 	ld   de, _RAM_C15A_
 	ld   b, $03
@@ -7187,7 +7250,7 @@ _LABEL_2CA4_:
 	ld   b, a
 	dec  b
 	jp   nz, _LABEL_2BDC_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; Data from 2CB1 to 2CEC (60 bytes)
 db $FA, $98, $C3, $B7, $20, $1B, $21, $A0, $98, $11, $5C, $C3, $06, $03, $C5, $06
@@ -7276,10 +7339,10 @@ _LABEL_2D89_:
 	call _LABEL_2722_
 	ld   de, $2D29
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   de, $2D39
 	ld   hl, (_TILEMAP0 + $80)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 _LABEL_2DA2_:
 	rst  $08	; _LABEL_8_
 	inc  a
@@ -7469,7 +7532,9 @@ _LABEL_2F41_:
 	call _LABEL_F68_
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a
-	jp   _LABEL_D6D6_
+    ; Copies rows of text from RAM to hardware tile map
+    ; Source is RAM because it copies there in order to patch the displayed version text
+	jp   gfx__title_screen_copy_text_D6D6_
 
 _LABEL_2F64_:
 	push af
@@ -7664,7 +7729,7 @@ _LABEL_3096_:
 ; 11th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 _LABEL_309B_:
 	call _LABEL_30A1_
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 _LABEL_30A1_:
 	ld   de, _RAM_C39B_
@@ -13992,7 +14057,7 @@ _LABEL_B689_:
 	ld   h, d
 	ld   l, e
 	add  hl, hl
-	ld   de, $CEFE
+	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
 	add  hl, de
 	ld   e, [hl]
 	inc  hl
@@ -14460,7 +14525,7 @@ _LABEL_B981_:
 	ld   a, [_RAM_C590_]
 	sub  $20
 	ldi  [hl], a
-	jp   _LABEL_25F7_
+	jp   vblank__cmd_default__25F7
 
 ; Data from B992 to B9EF (94 bytes)
 db $21, $84, $98, $CD, $A7, $79, $21, $A4, $98, $CD, $A7, $79, $21, $C4, $98, $CD
@@ -16022,6 +16087,7 @@ _LABEL_C4E1_:
 	ld   a, $13
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C4F1_:
@@ -16030,16 +16096,16 @@ _LABEL_C4F1_:
 	rst  $20	; _LABEL_20_
 	ld   de, $0063
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   de, $0064
 	ld   hl, (_TILEMAP0 + $80)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   de, $0065
 	ld   hl, $98E0
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   de, $0066
 	ld   hl, $9940
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   a, $0A
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $09E0
@@ -17865,7 +17931,7 @@ _LABEL_D30C_:
 _LABEL_D315_:
 	ld   de, $006C
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   a, $17
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_D321_:
@@ -17875,6 +17941,7 @@ _LABEL_D321_:
 	or   a
 	jp   z, _LABEL_200_
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, $C8
@@ -17971,7 +18038,7 @@ _LABEL_D3BF_:
 	ld   a, [de]
 	inc  de
 	pop  hl
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ret
 
 _LABEL_D3D2_:
@@ -17994,7 +18061,7 @@ db $3D, $00, $52, $61, $74, $65, $00
 _LABEL_D3E9_:
 	ld   de, $53E4
 	ld   hl, _TILEMAP0
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   hl, _RAM_C700_
 	ld   [hl], $31
 	inc  hl
@@ -18019,10 +18086,10 @@ _LABEL_D401_:
 _LABEL_D410_:
 	ld   de, $C700
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   de, $53E2
 	ld   hl, (_TILEMAP0 + $40)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   de, _RAM_C283_
 	ld   hl, _RAM_C700_
 _LABEL_D424_:
@@ -18048,7 +18115,7 @@ _LABEL_D437_:
 	jr   nz, _LABEL_D437_
 	ld   de, $C700
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ret
 
 _LABEL_D445_:
@@ -18113,17 +18180,17 @@ _LABEL_D4A6_:
 	call _LABEL_D16_
 	ld   de, $C29F
 	ld   hl, $98C0
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   a, [_RAM_C5CA_]
 	ld   hl, $98E0
 	call _LABEL_D3BF_
 	ld   de, $53E2
 	ld   hl, $9900
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	call _LABEL_D445_
 	ld   de, $C455
 	ld   hl, $9920
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   a, [_RAM_C5CB_]
 	ld   hl, $9940
 	call _LABEL_D3BF_
@@ -18138,17 +18205,17 @@ _LABEL_D4A6_:
 	call _LABEL_D16_
 	ld   de, $C29F
 	ld   hl, $99A0
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   a, [_RAM_C5CB_]
 	ld   hl, $99C0
 	call _LABEL_D3BF_
 	ld   de, $53E2
 	ld   hl, $99E0
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	call _LABEL_D445_
 	ld   de, $C455
 	ld   hl, $9A00
-	rst  $28	; _LABEL_28_
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	ld   a, [_RAM_C5CA_]
 	ld   hl, $9A20
 	call _LABEL_D3BF_
@@ -18315,32 +18382,49 @@ db $00, $0B, $3C, $3E, $23, $3F, $80, $0A, $31, $32, $33, $72, $74, $79, $75, $2
 db $7E, $2A, $34, $35, $36, $2B, $2D, $68, $6A, $28, $29, $37, $38, $39, $2E, $25
 db $3D, $7F, $0D, $0C, $30, $20, $3A, $40
 
-_LABEL_D6D6_:
+; Copies rows of text from RAM to hardware tile map
+; Source is RAM because it copies there in order to patch the displayed version text
+gfx__title_screen_copy_text_D6D6_:
 	call gfx__turn_on_screen_bg_obj__2540
+    ; Load tilemap data for title screen background borders with text "(c) 1992"
 	ld   de, _DATA_7_
-	ld   hl, $9900
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 8)) ; $9900 ; Row 8
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "Montague-Weston."
 	ld   de, $0008
-	ld   hl, $9920
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 9)) ; $9920 ; Row 9
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "Licensed"
 	ld   de, $0009
-	ld   hl, $9940
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 10)) ; $9940 ; Row 10
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "exclusively to"
 	ld   de, $000A
-	ld   hl, $9960
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 11)) ; $9960 ; Row 11
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "Fabtek, Inc."
 	ld   de, $000B
-	ld   hl, $9980
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 12)) ; $9980 ; Row 12
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "Version 8.87" - RAM Patched from "Version 5.74
 	ld   de, $000C
-	ld   hl, $99A0
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 13)) ; $99A0 ; Row 13
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "Licensed by"
 	ld   de, $000D
-	ld   hl, $99C0
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 14)) ; $99C0 ; Row 14
+	rst  $28	; COPY_STRING_VRAM__RST_28
+
+    ; Load tilemap data text "Nintendo"
 	ld   de, $000E
-	ld   hl, $99E0
-	rst  $28	; _LABEL_28_
+	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 15)) ; $992E ; Row 15
+	rst  $28	; COPY_STRING_VRAM__RST_28
 	jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_D714_:
@@ -18472,6 +18556,7 @@ _LABEL_D820_:
 	or   a
 	jr   nz, _LABEL_D836_
 	call _LABEL_E67B_
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   gfx__clear_shadow_oam__275B
@@ -19365,6 +19450,7 @@ _LABEL_DFEE_:
 	ld   a, $18
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
+    ; Reset vblank command to default
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
