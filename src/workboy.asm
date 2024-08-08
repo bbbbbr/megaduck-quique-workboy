@@ -14,13 +14,17 @@ include "inc/hardware.inc"
 
 
 ; MBC Register defines
-DEF rMBC1_RAM_ENABLE EQU $00FF
-DEF rMBC1_MODE_SEL   EQU $7FFF
+DEF rMBC1_RAM_ENABLE     EQU $00FF
+; $0002 used once instead of $00FF for (?) SRAM enable
+; TODO: WARNING! Writing to $0002 will clash with Zwenergy Pico Pi Mega Duck Flash cart : Cart Select Register address
+DEF rMBC1_RAM_ENABLE_ALT EQU $0002
+DEF rMBC1_MODE_SEL       EQU $7FFF
 
 DEF MBC1_RAM_ON         EQU $0A
+DEF MBC1_RAM_OFF        EQU $00
 DEF MBC1_MODE_RAMBANKED EQU $01
 
-; They seem to use both $4000 and $5FFF for ram bank switching
+; $4000 used once instead of $5FFF for SRAM bank switching
 DEF rRAMB_ALT           EQU $5FFF
 
 IF (DEF(DEBUG_USE_DUCK_MBC) && DEF(TARGET_MEGADUCK))
@@ -28,6 +32,9 @@ IF (DEF(DEBUG_USE_DUCK_MBC) && DEF(TARGET_MEGADUCK))
 ELSE
     DEF rMBC1_ROMBANK    EQU $3FFF
 ENDC
+
+DEF SERIAL_XFER_OFF EQU $00
+
 
 
 
@@ -2249,16 +2256,20 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
 	ret
 
 
-_LABEL_B11_:
+; Sends byte in A over Serial IO and waits ~3msec, then turns Serial RX OFF
+;
+; Preserves AF
+serial_io__send_byte_and_wait_3msec__0B11:
 	ldh  [rSB], a
 	push af
-	ld   a, $81
+	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
 	ldh  [rSC], a
 	call delay_2_94msec__334A
-	ld   a, $00
+	ld   a, ( SERIAL_XFER_OFF ) ; $00
 	ldh  [rSC], a
 	pop  af
 	ret
+
 
 _LABEL_B21_:
 	ld   a, $03
@@ -2788,7 +2799,7 @@ _LABEL_E76_:
 _LABEL_E90_:
 	ld   a, [de]
 	inc  de
-	call _LABEL_B11_
+	call serial_io__send_byte_and_wait_3msec__0B11
 	call delay_2_94msec__334A
 	dec  c
 	jr   nz, _LABEL_E90_
@@ -6729,33 +6740,54 @@ _LABEL_29BC_:
 	ld   [_RAM_C3A3_], a
 	ret
 
-_LABEL_29C3_:
+
+
+; Sends out 0x00 and waits for non-0x00 and non-0xFF response
+;
+; Details:
+; - Waits ~3msec
+; - Turns on Serial xfer + driving clock
+; - Puts byte 0x00 in Serial TX (should maybe be before turning on serial?)
+; - Waits ~3msec
+; - Saves resulting Serial RX Byte in A
+; - ?? Turns RAM off?
+; - Keeps send/wait/receiving until a non-0x00 and non-0xFF serial response
+;
+; Trashes A
+;
+; Returns RX byte in A
+serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 	call delay_2_94msec__334A
-	ld   a, $81
+    ; ? Start a transfer without loading data in rSB first ?
+    ; Maybe it's just a mistake and they load rSB after instead of before?
+	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
 	ldh  [rSC], a
 	ld   a, $00
 	ldh  [rSB], a
 	call delay_2_94msec__334A
 	ldh  a, [rSB]
 	push af
-	ld   a, $00
-	ld   [$0002], a
+    ; TODO: ? Is this doing something non-Standard for MBC1 instead of turning of SRAM enable
+	ld   a, MBC1_RAM_OFF  ; $00
+	ld   [rMBC1_RAM_ENABLE_ALT], a  ; $0002
 	pop  af
-	cp   $00
-	jr   z, _LABEL_29C3_
-	cp   $FF
-	jr   z, _LABEL_29C3_
+    ; Loop until a non-0x00 and non-0xFF serial response
+	cp   $00  ; TODO: Maybe GB_WORKBOY_EMPTY? 0x00?
+	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
+	cp   $FF  ; TODO: Maybe GB_WORKBOY_NONE 0xFF
+	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
 	ret
 
+
 _LABEL_29E3_:
-	call _LABEL_29C3_
+	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
 	call _LABEL_29FC_
 	sla  a
 	sla  a
 	sla  a
 	sla  a
 	push af
-	call _LABEL_29C3_
+	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
 	call _LABEL_29FC_
 	ld   b, a
 	pop  af
@@ -7436,7 +7468,7 @@ _LABEL_2DEA_:
 	call _LABEL_2722_
 	di
 _LABEL_2DEE_:
-	call _LABEL_2E84_
+	call serial_io__receive_byte_in_A_with_int__2E84
 	cp   $53
 	jr   nz, _LABEL_2DFB_
 	call _LABEL_2E0C_
@@ -7450,12 +7482,12 @@ _LABEL_2DFB_:
 
 _LABEL_2E05_:
 	xor  a
-	call _LABEL_2E74_
+	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
 	jp   _LABEL_2DEE_
 
 _LABEL_2E0C_:
 	ld   a, $53
-	call _LABEL_2E74_
+	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
 	call _LABEL_2E69_
 	call _LABEL_2E69_
 	xor  a
@@ -7470,7 +7502,7 @@ _LABEL_2E0C_:
 
 _LABEL_2E2B_:
 	ld   a, $57
-	call _LABEL_2E74_
+	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
 	xor  a
 	call _LABEL_2E44_
 	ld   a, $01
@@ -7485,7 +7517,7 @@ _LABEL_2E44_:
 	call mbc_sram_ON_set_srambank_to_A__2E9B
 	ld   de, _SRAM_0_
 _LABEL_2E4A_:
-	call _LABEL_2E84_
+	call serial_io__receive_byte_in_A_with_int__2E84
 	ld   [de], a
 	inc  de
 	ld   a, d
@@ -7498,7 +7530,7 @@ _LABEL_2E55_:
 	ld   de, _SRAM_0_
 _LABEL_2E5B_:
 	ld   a, [de]
-	call _LABEL_2E74_
+	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
 	call _LABEL_2E69_
 	inc  de
 	ld   a, d
@@ -7517,30 +7549,48 @@ _LABEL_2E6D_:
 	pop  bc
 	ret
 
-_LABEL_2E74_:
+
+; Sends byte in A over Serial IO and waits for reply via interrupt
+;
+; Returns RX byte in A
+serial_io__send_byte_with_int_receive_byte_in_A__2E74:
+    ; Load serial byte to send from A
+    ; Clear all pending interrupts
 	ldh  [rSB], a
 	xor  a
 	ldh  [rIF], a
-	ld   a, $08
+    ; Enable Serial Interrupt and start a transfer
+	ld   a, IEF_SERIAL ; $08
 	ldh  [rIE], a
-	ld   a, $81
+	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
 	ldh  [rSC], a
-	jp   _LABEL_2E92_
+	jp   serial_io__wait_interrupt__2E92
 
-_LABEL_2E84_:
+
+; Receive a byte over Serial IO and waits via interrupt
+;
+; Returns RX byte in A
+serial_io__receive_byte_in_A_with_int__2E84:
+    ; Put 0x00 in outgoing Serial RX
+    ; Clear all pending interrupts
 	ld   a, $00
 	ldh  [rSB], a
 	ldh  [rIF], a
-	ld   a, $08
+    ; Enable Serial Interrupt and wait for a transfer
+	ld   a, IEF_SERIAL ; $08
 	ldh  [rIE], a
-	ld   a, $80
+	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
 	ldh  [rSC], a
-_LABEL_2E92_:
-	ldh  a, [rIF]
-	and  $08
-	jr   z, _LABEL_2E92_
+
+    ; Wait for a serial interrupt
+    serial_io__wait_interrupt__2E92:
+    	ldh  a, [rIF]
+    	and  IEF_SERIAL ; $08
+    	jr   z, serial_io__wait_interrupt__2E92
+    ; Return resulting byte in A
 	ldh  a, [rSB]
 	ret
+
 
 ; Sets MBC1 SRAM bank:
 ; - Enable SRAM
@@ -8176,13 +8226,13 @@ _LABEL_3356_:
 _LABEL_3361_:
 	ld   a, c
 	ldh  [rSB], a
-	ld   a, $81
+	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
 	ldh  [rSC], a
 	call delay_2_94msec__334A
 	ldh  a, [rSB]
 	pop  bc
 	push af
-	ld   a, $00
+	ld   a, ( SERIAL_XFER_OFF ) ; $00
 	ldh  [rSC], a
 	pop  af
 	or   a
