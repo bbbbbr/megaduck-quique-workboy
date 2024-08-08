@@ -13,6 +13,16 @@ include "inc/hardware.inc"
 
 
 
+; MBC Register defines
+DEF rMBC1_RAM_ENABLE EQU $00FF
+DEF rMBC1_MODE_SEL   EQU $7FFF
+
+DEF MBC1_RAM_ON         EQU $0A
+DEF MBC1_MODE_RAMBANKED EQU $01
+
+; They seem to use both $4000 and $5FFF for ram bank switching
+DEF rRAMB_ALT           EQU $5FFF
+
 IF (DEF(DEBUG_USE_DUCK_MBC) && DEF(TARGET_MEGADUCK))
     DEF rMBC1_ROMBANK    EQU $0001
 ELSE
@@ -853,7 +863,7 @@ startup_init__0150:
 	xor  a
 	ldh  [rSCX], a
 	ldh  [rSCY], a
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	ld   a, [_DATA_3_ - 2]
 	ld   [_RAM_C10E_], a
 	call _LABEL_2F41_
@@ -878,7 +888,7 @@ startup_init__0150:
     ELSE
     	call _LABEL_2854_
     ENDC
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	ld   a, $FF
 	ld   [_RAM_C3B2_], a
 	ld   [_RAM_C3BC_], a
@@ -886,18 +896,18 @@ startup_init__0150:
 	ld   [_RAM_C3D0_], a
 	call _LABEL_380D_
 	halt
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
-	call _LABEL_AFD_
+	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_E42E_
 	ld   a, $01
 	ld   [_RAM_C10F_], a
@@ -911,14 +921,14 @@ startup_init__0150:
 	ld   [_RAM_C10F_], a
 _LABEL_200_:
 	ld   a, $03
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, _RAM_C700_
 	ld   de, _SRAM_6006_
 	call _LABEL_F0_
 	xor  a
 	ld   [_RAM_C5F3_], a
 	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, _SRAM_6_
 	ld   de, _RAM_C700_
 	call _LABEL_F0_
@@ -926,7 +936,7 @@ _LABEL_200_:
 	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C110_], a
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	xor  a
 	ld   [_RAM_C595_], a
 	ld   [_RAM_C19A_], a
@@ -1185,7 +1195,7 @@ _LABEL_3EF_:
 	call _LABEL_450_
 
 	ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   hl, _TILEDATA9000
 	ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
 	xor  a ; Copy 256 tiles
@@ -1194,7 +1204,7 @@ _LABEL_3EF_:
 _LABEL_41B_:
 	call _LABEL_424_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 _LABEL_424_:
@@ -1211,7 +1221,7 @@ _LABEL_424_:
 	call _LABEL_450_
 
     ld   a, BANK(gfx__tile_patterns_250_font_thermometer_etc__5000) ; $01
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   hl, _TILEDATA9000
 	ld   bc, gfx__tile_patterns_250_font_thermometer_etc__5000
 	xor  a ; Copy 256 tiles
@@ -1219,7 +1229,7 @@ _LABEL_424_:
 
 _LABEL_450_:
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, $8420
 	ld   de, _DATA_1CE92_
@@ -1229,7 +1239,7 @@ _LABEL_450_:
 
 _LABEL_463_:
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, $8420
 	ld   de, _DATA_1FD5A_
@@ -1246,7 +1256,7 @@ _LABEL_481_:
 	xor  a
 	ld   [_RAM_C116_], a
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, $8420
 	ld   de, _DATA_1FEB1_
@@ -1257,7 +1267,7 @@ _LABEL_481_:
 _LABEL_498_:
 	ld   a, $02
 	ld   [_RAM_C5F3_], a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   [_RAM_C23B_], a
@@ -1272,7 +1282,7 @@ _LABEL_498_:
 	ld   e, $70
 	call _LABEL_1CF6_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_E4D0_
 
 _LABEL_4C9_:
@@ -1806,7 +1816,7 @@ _LABEL_819_:
 	ld   a, $FE
 	ldh  [rOBP0], a
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_RAM_C139_]
 	ld   [_RAM_C152_], a
 	ld   a, [_RAM_C138_]
@@ -1838,14 +1848,14 @@ _LABEL_839_:
 	call gfx__turn_off_screen_2827
 
 	ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
 	ld   hl, _TILEDATA9000
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _DATA_9E17_
 	ld   hl, _TILEMAP0
 	ld   b, $12
@@ -1864,14 +1874,14 @@ _LABEL_882_:
 	dec  b
 	jr   nz, _LABEL_87F_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_C831_
 
 _LABEL_897_:
 	ld   a, $F2
 	ldh  [rOBP0], a
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   [_RAM_C23E_], a
 	call gfx__turn_off_screen_2827
 	call _LABEL_27DD_
@@ -1880,27 +1890,27 @@ _LABEL_897_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_C154_
 
 _LABEL_8BC_:
 	call _LABEL_8E3_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 _LABEL_8C5_:
 	ld   a, [$0000]
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $03
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   hl, $4E5C
 	ld   de, _SRAM_6100_
 	call _LABEL_17CAD_
 	ld   a, $03
-	jp   _LABEL_BB1_
+	jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
 _LABEL_8E3_:
 	ld   a, $D2
@@ -1914,7 +1924,7 @@ _LABEL_8E3_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_C047_
 
 ; Data from 906 to 913 (14 bytes)
@@ -2132,10 +2142,10 @@ _LABEL_A69_:
 	dec  d
 	ret  nz
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_AF93_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 _LABEL_A84_:
@@ -2190,38 +2200,50 @@ _LABEL_AC8_:
 	dec  d
 	ret  nz
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_AF32_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 _LABEL_AE3_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_AF32_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 ; 9th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_AF1_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_DDD9_
 
-_LABEL_AFD_:
-	ld   a, $0A
-	ld   [$00FF], a
+
+; Sets MBC1 to the following
+; - Enable SRAM
+; - Upper ROM Bank = 1
+; -      SRAM Bank = 0
+mbc_sram_ON_rombank_1_srambank_0__0AFD:
+    ; Writing 1 to ROM bank select
+    ; Select SRAM Bank switch mode and then
+    ; write 0 to the SRAM Bank select
+	ld   a, MBC1_RAM_ON          ; $0A
+	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+
 	ld   a, $01
-	ld   [rMBC1_ROMBANK], a
-	ld   a, $01
-	ld   [$7FFF], a
+	ld   [rMBC1_ROMBANK], a      ; [$3FFF]
+
+	ld   a, MBC1_MODE_RAMBANKED  ; $01
+	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+
 	xor  a
-	ld   [$5FFF], a
+	ld   [rRAMB_ALT], a          ; [$5FFF]
 	ret
+
 
 _LABEL_B11_:
 	ldh  [rSB], a
@@ -2236,22 +2258,22 @@ _LABEL_B11_:
 
 _LABEL_B21_:
 	ld   a, $03
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $01
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_7D28_
 _LABEL_B2E_:
 	push af
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	pop  af
 	ret
 
 _LABEL_B36_:
 	ld   a, $03
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_2A05_
 	jr   _LABEL_B2E_
 
@@ -2261,11 +2283,11 @@ _LABEL_B45_:
 	ld   bc, _DATA_15B4C_
 	ld   hl, _TILEDATA9000
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_2735_
 	ld   de, _DATA_A524_
 	ld   hl, (_TILEMAP0 + $60)
@@ -2275,7 +2297,7 @@ _LABEL_B45_:
 
 _LABEL_B6C_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_B160_
 	jr   _LABEL_B2E_
 
@@ -2287,29 +2309,39 @@ db $01, $0A, $63
 _LABEL_B99_:
 	call _LABEL_3EF_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 ; 12th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_BA2_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_3EF_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_E7EC_
 
-_LABEL_BB1_:
+
+; Sets MBC1 SRAM bank:
+; - Enable SRAM
+; - SRAM Bank = value in reg A
+mbc_sram_ON_set_srambank_to_A__0BB1:
+    ; Enable SRAM
+    ; Select SRAM Bank switch mode and then
+    ; write value in C to SRAM Bank select
 	push bc
 	ld   c, a
-	ld   a, $0A
-	ld   [$00FF], a
-	ld   a, $01
-	ld   [$7FFF], a
+	ld   a, MBC1_RAM_ON          ; $0A
+	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+
+	ld   a, MBC1_MODE_RAMBANKED  ; $01$01
+	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+
 	ld   a, c
-	ld   [$5FFF], a
+	ld   [rRAMB_ALT], a          ; [$5FFF]
 	pop  bc
 	ret
+    
 
 _LABEL_BC3_:
 	ld   [_RAM_C156_], a
@@ -2456,7 +2488,7 @@ _LABEL_C9A_:
 ; 3rd entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_CA0_:
 	ld   a, $02
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_4000_]
 	or   a
 	jr   z, _LABEL_CAD_
@@ -2464,7 +2496,7 @@ _LABEL_CA0_:
 _LABEL_CAD_:
 	ld   [_RAM_C10D_], a
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_26C_
 	xor  a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
@@ -2484,7 +2516,7 @@ _LABEL_CDA_:
 	ld   a, $F2
 	ldh  [rOBP0], a
 	ld   a, $01
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   [_RAM_C19A_], a
 	ld   a, [_SRAM_2001_]
 	or   a
@@ -2502,7 +2534,7 @@ _LABEL_CEE_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_CA9F_
 
 _LABEL_D11_:
@@ -2512,7 +2544,7 @@ _LABEL_D16_:
 	ld   a, [_RAM_C479_]
 	push af
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _RAM_C3E0_
 	ld   hl, _RAM_C3F9_
 	call _LABEL_AAA8_
@@ -2524,7 +2556,7 @@ _LABEL_D16_:
 	call _LABEL_BD22_
 	call _LABEL_AB74_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
 ; Data from D41 to D48 (8 bytes)
@@ -2533,10 +2565,10 @@ db $3E, $03, $EA, $FF, $3F, $C3, $3E, $59
 ; 11th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_D49_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_D714_
 
 _LABEL_D58_:
@@ -2871,7 +2903,7 @@ db $53, $50, $4F, $50, $41, $53, $50, $52, $55
 
 _LABEL_F68_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_1F9_]
 	cp   $05
 	jr   c, _LABEL_F77_
@@ -2887,7 +2919,7 @@ _LABEL_F77_:
 	ld   hl, _DATA_F4A_
 	add  hl, de
 	ldi  a, [hl]
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ldi  a, [hl]
 	ld   h, [hl]
 	ld   l, a
@@ -2929,7 +2961,7 @@ _LABEL_FA1_:
 	ld   hl, _DATA_F31_
 	add  hl, de
 	ldi  a, [hl]
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
@@ -2951,7 +2983,7 @@ _LABEL_FA1_:
     ; Search for start of displayed version text
     ; Load RAM Address to start search
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   a, [_RAM_CF16_]
 	ld   l, a
 	ld   a, [_RAM_CF17_]
@@ -3147,7 +3179,7 @@ _LABEL_10C3_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   a, [_RAM_C233_]
 	or   a
 	jr   z, _LABEL_10DF_
@@ -3195,7 +3227,7 @@ _LABEL_1133_:
 	cp   $04
 	jr   nz, _LABEL_1153_
 	ld   a, $02
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_4000_]
 	or   a
 	jr   nz, _LABEL_1174_
@@ -3204,7 +3236,7 @@ _LABEL_1133_:
 _LABEL_1153_:
 	cp   $01
 	jr   nz, _LABEL_1163_
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_1_]
 	or   a
 	jr   nz, _LABEL_1174_
@@ -3214,7 +3246,7 @@ _LABEL_1163_:
 	cp   $02
 	jr   nz, _LABEL_1174_
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_231_]
 	or   a
 	jp   z, _LABEL_DCC7_
@@ -3227,7 +3259,7 @@ _LABEL_1174_:
 	ld   bc, $2808
 	call _LABEL_27DD_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_DB40_
 	push af
 	push bc
@@ -3258,10 +3290,10 @@ _LABEL_11A5_:
 
 _LABEL_11B2_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_2722_
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	dec  a
 	ld   [_RAM_C10B_], a
 	call _LABEL_B765_
@@ -3309,18 +3341,18 @@ _LABEL_1210_:
 	ld   [_RAM_C234_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1DDCA_
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _DATA_178FC_
 	call _LABEL_3969_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, (_TILEMAP0 + $40)
@@ -3332,18 +3364,18 @@ _LABEL_1241_:
 	ld   [_RAM_C234_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1ED6A_
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _DATA_17A64_
 	call _LABEL_3969_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, (_TILEMAP0 + $40)
@@ -3857,7 +3889,7 @@ _LABEL_1572_:
 _LABEL_1598_:
 	call _LABEL_27DD_
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
@@ -3867,7 +3899,7 @@ _LABEL_1598_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DDC_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_D105_
 
 _LABEL_15BE_:
@@ -3898,7 +3930,7 @@ _LABEL_15E1_:
 	call _LABEL_206D_
 	push af
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	pop  af
 	cp   $01
 	jp   z, _LABEL_E7EF_
@@ -3906,7 +3938,7 @@ _LABEL_15E1_:
 
 _LABEL_160B_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $C8
 	ld   [_RAM_C399_], a
 	call _LABEL_27DD_
@@ -3932,7 +3964,7 @@ _LABEL_160B_:
 	cp   $03
 	jp   z, _LABEL_200_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   hl, _RAM_CFA6_
@@ -4051,7 +4083,7 @@ _LABEL_16F5_:
 	ld   l, a
 	ld   h, $40
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   e, [hl]
 	inc  l
 	ld   d, [hl]
@@ -4062,14 +4094,14 @@ _LABEL_16F5_:
 	push bc
 	push de
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_F790_
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	pop  de
 	pop  bc
 	pop  af
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   a, $00
 	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, $C7
@@ -4542,7 +4574,7 @@ _LABEL_1A6A_:
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_F790_
 	call _LABEL_F74D_
 	ld   a, $F2
@@ -4662,7 +4694,7 @@ _LABEL_1B47_:
 	call _LABEL_1CC6_
 _LABEL_1B6F_:
 	ld   a, [_RAM_C24A_]
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_1C3D_
 	or   a
 	jp   z, _LABEL_1C17_
@@ -4709,7 +4741,7 @@ _LABEL_1BC9_:
 	ld   hl, _RAM_C24E_
 	dec  [hl]
 	ld   a, [_RAM_C24A_]
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_19A9_
 	ld   a, $00
 	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
@@ -4863,7 +4895,7 @@ _LABEL_1CC2_:
 
 _LABEL_1CC6_:
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   a, [_RAM_C24B_]
 	dec  a
 	add  a
@@ -4879,7 +4911,7 @@ _LABEL_1CC6_:
 	ld   a, [hl]
 	ld   [_RAM_C24E_], a
 	ld   a, [_RAM_C24A_]
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   a, [_RAM_C5F5_]
 	or   a
 	call nz, _LABEL_1A4F_
@@ -5089,7 +5121,7 @@ _LABEL_1E6A_:
 	call _LABEL_424_
 	call _LABEL_2735_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_C4C3_
 
 _LABEL_1E7F_:
@@ -5439,7 +5471,7 @@ db $4E, $46, $43, $52, $50, $45, $55, $21
 ; 4th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_2209_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_231_]
 	or   a
 	jr   z, _LABEL_2215_
@@ -5460,7 +5492,7 @@ _LABEL_2218_:
 	ei
 	call _LABEL_3EF_
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_B75C_
 	ld   bc, $FFE4
 	ld   e, $70
@@ -6395,7 +6427,7 @@ _LABEL_27DD_:
 	ld   [_RAM_C282_], a
 	ld   hl, (_TILEDATA8000 + $10)
 	ld   a, $01
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _DATA_130B_
 	ld   b, $20
 _LABEL_27F2_:
@@ -6470,10 +6502,10 @@ gfx__turn_off_screen_2827:
 ; 10th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_2845_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_424_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_D459_
 
 _LABEL_2854_:
@@ -6945,7 +6977,7 @@ db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $0
 ; 7th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_2B3B_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__turn_off_screen_2827
 	ld   hl, (_TILEDATA8000 + $10)
 	ld   c, $08
@@ -6984,12 +7016,12 @@ _LABEL_2B5C_:
 	ld   a, $0B
 	call _LABEL_3918_
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_BE47_
 
 _LABEL_2B7D_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_RAM_C10A_]
 	or   a
 	ret  z
@@ -6997,7 +7029,7 @@ _LABEL_2B7D_:
 	or   a
 	ret  z
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call _LABEL_ADDA_
 	ld   a, [_RAM_C58C_]
 	or   a
@@ -7006,7 +7038,7 @@ _LABEL_2B7D_:
 	call _LABEL_2735_
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_ACA0_
 
 _LABEL_2BA9_:
@@ -7334,7 +7366,7 @@ _LABEL_2D56_:
 	ld   [_RAM_C137_], a
 	call _LABEL_EB1_
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, $A1F5
 	ld   de, _DATA_E42A_
 	ld   b, $04
@@ -7446,7 +7478,7 @@ _LABEL_2E2B_:
 	ret
 
 _LABEL_2E44_:
-	call _LABEL_2E9B_
+	call mbc_sram_ON_set_srambank_to_A__2E9B
 	ld   de, _SRAM_0_
 _LABEL_2E4A_:
 	call _LABEL_2E84_
@@ -7458,7 +7490,7 @@ _LABEL_2E4A_:
 	ret
 
 _LABEL_2E55_:
-	call _LABEL_2E9B_
+	call mbc_sram_ON_set_srambank_to_A__2E9B
 	ld   de, _SRAM_0_
 _LABEL_2E5B_:
 	ld   a, [de]
@@ -7506,15 +7538,28 @@ _LABEL_2E92_:
 	ldh  a, [rSB]
 	ret
 
-_LABEL_2E9B_:
+; Sets MBC1 SRAM bank:
+; - Enable SRAM
+; - SRAM Bank = value in reg A
+; - Trashes BC
+;
+; The same as "mbc_sram_ON_set_srambank_to_A__0BB1:"
+; except it trashes BC and uses $4000 instead of $5FFF
+mbc_sram_ON_set_srambank_to_A__2E9B:
+    ; Enable SRAM
+    ; Select SRAM Bank switch mode and then
+    ; write value in C to SRAM Bank select
 	ld   c, a
-	ld   a, $0A
-	ld   [$00FF], a
-	ld   a, $01
-	ld   [$7FFF], a
+	ld   a, MBC1_RAM_ON          ; $0A
+	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+
+	ld   a, MBC1_MODE_RAMBANKED  ; $01
+	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+
 	ld   a, c
-	ld   [$4000], a
+	ld   [rRAMB], a              ; [$4000]
 	ret
+
 
 ; Data from 2EAB to 2F40 (150 bytes)
 db $02, $02, $05, $00, $06, $00, $07, $00, $08, $00, $02, $02, $09, $00, $0A, $00
@@ -7531,7 +7576,7 @@ db $3A, $00, $3B, $00, $3C, $00
 _LABEL_2F41_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1D252_
@@ -7541,7 +7586,7 @@ _LABEL_2F41_:
 	call _LABEL_3969_
 	call _LABEL_F68_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ; Copies rows of text from RAM to hardware tile map
     ; Source is RAM because it copies there in order to patch the displayed version text
 	jp   gfx__title_screen_copy_text_D6D6_
@@ -7580,7 +7625,7 @@ _LABEL_2F8B_:
 ; 1st entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_2F8E_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	di
 	ld   a, $04
 	ldh  [rSTAT], a
@@ -7595,7 +7640,7 @@ _LABEL_2F8E_:
 	ld   a, $AA
 	ldh  [rOBP1], a
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 
 	ld   hl, _TILEDATA8000
 	ld   de, _DATA_EECC_
@@ -7605,7 +7650,7 @@ _LABEL_2F8E_:
 	ld   a, $04
 	call _LABEL_3918_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_F69E_
 
 ; Data from 2FCB to 2FE5 (27 bytes)
@@ -7716,7 +7761,7 @@ _LABEL_3070_:
 	inc  hl
 	ld   [hl], $30
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_AED1_
 
 _LABEL_308C_:
@@ -8151,7 +8196,7 @@ _LABEL_3388_:
 ; 2nd entry of Jump Table from 3A2 (indexed by _RAM_C111_)
 _LABEL_338A_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_2B_
 	ld   a, $02
@@ -8165,7 +8210,7 @@ _LABEL_338A_:
 	ldh  [rOBP0], a
 _LABEL_33A9_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_B9F0_
 
 ; Data from 33B1 to 33C8 (24 bytes)
@@ -8857,7 +8902,7 @@ _LABEL_3918_:
 	ld   b, [hl]
 	inc  hl
 	ld   a, [hl]
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	pop  af
 	push de
 	ld   hl, _TILEDATA9000
@@ -8881,7 +8926,7 @@ _LABEL_3959_:
 	call gfx__copy_tile_patterns__1437
 _LABEL_395D_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a
+	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	pop  de
 	call _LABEL_3969_
 	jp   gfx__turn_on_screen_bg_obj__2540
@@ -18512,16 +18557,16 @@ _LABEL_D79C_:
 	ld   [_SRAM_A04_], a
 	ld   [_RAM_C5CD_], a
 	inc  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	dec  a
 	ld   [_RAM_C10C_], a
 	ld   [_SRAM_2001_], a
 	ld   a, $02
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_RAM_C10D_], a
 	ld   [_SRAM_4000_], a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	inc  a
 	ld   [_SRAM_9EF_], a
 	ld   hl, _SRAM_1F5_
@@ -19031,7 +19076,7 @@ _LABEL_DCDE_:
 
 _LABEL_DCE7_:
 	ld   a, $02
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_2722_
 	ld   a, $01
@@ -19086,7 +19131,7 @@ _LABEL_DD54_:
 
 _LABEL_DD5A_:
 	ld   a, $01
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_2722_
 	ld   a, [_SRAM_2001_]
@@ -20047,7 +20092,7 @@ db $49, $47, $4F, $52
 
 _LABEL_E42E_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, $A1F5
 	ld   de, _DATA_E42A_
 	ld   b, $04
@@ -20066,7 +20111,7 @@ _LABEL_E444_:
 	or   a
 	jr   z, _LABEL_E45C_
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, _SRAM_1F5_
 	ld   de, _DATA_E42A_
 	ld   b, $04
@@ -20078,7 +20123,7 @@ _LABEL_E456_:
 	jr   nz, _LABEL_E456_
 _LABEL_E45C_:
 	xor  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_SRAM_231_], a
 	ld   [_RAM_C10B_], a
@@ -20086,30 +20131,30 @@ _LABEL_E45C_:
 	ld   [_SRAM_A04_], a
 	ld   [_RAM_C5CD_], a
 	inc  a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	dec  a
 	ld   [_RAM_C10C_], a
 	ld   [_SRAM_1_], a
 	ld   a, $02
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_RAM_C10D_], a
 	ld   [_SRAM_4000_], a
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	inc  a
 	ld   [_SRAM_9EF_], a
 	ld   a, [_RAM_C10A_]
 	or   a
 	ret  z
 	ld   a, $03
-	call _LABEL_BB1_
+	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_SRAM_602C_], a
 	ld   a, $47
 	ld   [_SRAM_602B_], a
 	call _LABEL_8BC_
 	xor  a
-	jp   _LABEL_BB1_
+	jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
 ; Data from E4A8 to E4CF (40 bytes)
 db $52, $46, $4D, $43, $45, $4E, $50, $51, $4E, $53, $41, $4C, $44, $56, $52, $45
