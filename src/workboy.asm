@@ -990,12 +990,14 @@ _LABEL_285_:
 	ld   [_RAM_C113_], a
 	ld   a, $0A
 	ld   [_RAM_C114_], a
-_LABEL_29A_:
+
+main_menu__loop_start__029A:
 	rst  $18	; Call VSYNC__RST_18
 	call gfx__clear_shadow_oam__275B
 	ld   a, [_RAM_C113_]
 	or   a
 	jr   z, _LABEL_2C2_
+
 	ld   a, [_RAM_C111_]
 	add  a
 	add  a
@@ -1017,6 +1019,7 @@ _LABEL_29A_:
 	ld   b, a
 	ld   e, $00
 	call _LABEL_1504_
+
 _LABEL_2C2_:
 	ld   a, [_RAM_C114_]
 	dec  a
@@ -1025,6 +1028,7 @@ _LABEL_2C2_:
 	xor  $01
 	ld   [_RAM_C113_], a
 	ld   a, $19
+
 _LABEL_2D2_:
 	ld   [_RAM_C114_], a
 	rst  $08	; _LABEL_8_
@@ -1035,12 +1039,12 @@ _LABEL_2D2_:
 	jr   z, _LABEL_2E7_
 	dec  a
 	ld   [_RAM_C115_], a
-	jr   _LABEL_29A_
+	jr   main_menu__loop_start__029A
 
 _LABEL_2E7_:
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
-	jr   z, _LABEL_29A_
+	jr   z, main_menu__loop_start__029A
 	bit  5, a
 	jr   z, _LABEL_30A_
 _LABEL_2F1_:
@@ -1055,7 +1059,7 @@ _LABEL_2FB_:
 	ld   [_RAM_C113_], a
 	ld   a, $14
 	ld   [_RAM_C115_], a
-	jr   _LABEL_29A_
+	jr   main_menu__loop_start__029A
 
 _LABEL_30A_:
 	bit  4, a
@@ -1081,7 +1085,7 @@ _LABEL_321_:
 	ld   [_RAM_C113_], a
 	ld   a, $14
 	ld   [_RAM_C115_], a
-	jp   _LABEL_29A_
+	jp   main_menu__loop_start__029A
 
 _LABEL_333_:
 	bit  6, a
@@ -1093,7 +1097,7 @@ _LABEL_337_:
 
 _LABEL_33D_:
 	bit  2, a
-	jp   z, _LABEL_29A_
+	jp   z, main_menu__loop_start__029A
 _LABEL_342_:
 	ld   a, [_RAM_C112_]
 	ld   c, a
@@ -1116,9 +1120,9 @@ _LABEL_34F_:
 	cp   $0D
 	jr   z, _LABEL_342_
 	or   a
-	jp   z, _LABEL_29A_
+	jp   z, main_menu__loop_start__029A
 	cp   $0A
-	jp   nc, _LABEL_29A_
+	jp   nc, main_menu__loop_start__029A
 	ld   hl, _DATA_399_ - 1
 	ld   d, $00
 	ld   e, a
@@ -2250,7 +2254,7 @@ _LABEL_B11_:
 	push af
 	ld   a, $81
 	ldh  [rSC], a
-	call _LABEL_334A_
+	call delay_2_94msec__334A
 	ld   a, $00
 	ldh  [rSC], a
 	pop  af
@@ -2341,7 +2345,7 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
 	ld   [rRAMB_ALT], a          ; [$5FFF]
 	pop  bc
 	ret
-    
+
 
 _LABEL_BC3_:
 	ld   [_RAM_C156_], a
@@ -2785,7 +2789,7 @@ _LABEL_E90_:
 	ld   a, [de]
 	inc  de
 	call _LABEL_B11_
-	call _LABEL_334A_
+	call delay_2_94msec__334A
 	dec  c
 	jr   nz, _LABEL_E90_
 _LABEL_E9B_:
@@ -6726,12 +6730,12 @@ _LABEL_29BC_:
 	ret
 
 _LABEL_29C3_:
-	call _LABEL_334A_
+	call delay_2_94msec__334A
 	ld   a, $81
 	ldh  [rSC], a
 	ld   a, $00
 	ldh  [rSB], a
-	call _LABEL_334A_
+	call delay_2_94msec__334A
 	ldh  a, [rSB]
 	push af
 	ld   a, $00
@@ -8145,14 +8149,17 @@ _LABEL_3327_:
 	ld   l, a
 	jp   hl
 
-_LABEL_334A_:
+
+; Delay approx: ~2.94 msec, ~27 scanlines
+; (1000 msec / 59.7275 GB FPS) * (12344 T-States delay / 70224 T-States per frame)
+delay_2_94msec__334A:
 	push bc
 	ld   bc, $03FF
-_LABEL_334E_:
-	dec  c
-	jr   nz, _LABEL_334E_
-	dec  b
-	jr   nz, _LABEL_334E_
+    .delay_loop__334E:
+    	dec  c
+    	jr   nz, .delay_loop__334E
+    	dec  b
+    	jr   nz, .delay_loop__334E
 	pop  bc
 	ret
 
@@ -8171,7 +8178,7 @@ _LABEL_3361_:
 	ldh  [rSB], a
 	ld   a, $81
 	ldh  [rSC], a
-	call _LABEL_334A_
+	call delay_2_94msec__334A
 	ldh  a, [rSB]
 	pop  bc
 	push af
