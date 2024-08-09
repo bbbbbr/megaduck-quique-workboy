@@ -35,8 +35,20 @@ ENDC
 
 DEF SERIAL_XFER_OFF EQU $00
 
+DEF GAMEPAD_B_DOWN    EQU 7
+DEF GAMEPAD_B_UP      EQU 6
+DEF GAMEPAD_B_LEFT    EQU 5
+DEF GAMEPAD_B_RIGHT   EQU 4
+DEF GAMEPAD_B_START   EQU 3
+DEF GAMEPAD_B_SELECT  EQU 2
+DEF GAMEPAD_B_B       EQU 1
+DEF GAMEPAD_B_A       EQU 0
 
 
+DEF KBD_WORKBOY_NONE  EQU  $FF
+
+
+DEF MAIN_MENU__GAMEPAD_POLLTIME_RESET  EQU  20 ; $14
 
 
 ; Queue-able VBL Commands
@@ -66,11 +78,11 @@ _RAM_C10D_: db
 _RAM_C10E_: db
 _RAM_C10F_: db
 _RAM_C110_: db
-_RAM_C111_: db
-_RAM_C112_: db
+main_menu__icon_cur_column__C111: db
+main_menu__icon_cur_row__C112: db
 _RAM_C113_: db
 _RAM_C114_: db
-_RAM_C115_: db
+main_menu__gamepad_polling_counter__C115: db
 _RAM_C116_: db
 _RAM_C117_: db
 _RAM_C118_: db
@@ -992,8 +1004,9 @@ _LABEL_285_:
 	jr   nz, _LABEL_285_
 	ld   a, $07
 	call _LABEL_3918_
+    ; Zero-init some vars
 	xor  a
-	ld   [_RAM_C115_], a
+	ld   [main_menu__gamepad_polling_counter__C115], a
 	ld   [_RAM_C113_], a
 	ld   a, $0A
 	ld   [_RAM_C114_], a
@@ -1001,11 +1014,17 @@ _LABEL_285_:
 main_menu__loop_start__029A:
 	rst  $18	; Call VSYNC__RST_18
 	call gfx__clear_shadow_oam__275B
+
+    ; Check to see if a cursor move update is Queued
 	ld   a, [_RAM_C113_]
 	or   a
 	jr   z, _LABEL_2C2_
 
-	ld   a, [_RAM_C111_]
+    ; Main Menu Icon Current Row range: 0 - 2
+    ;
+    ; ((ROW x 64) - (ROW x 8)) - 20 == (ROW x 56) - 20
+    ; So: 0 -> 20, 1 -> 36, 2 -> 92
+	ld   a, [main_menu__icon_cur_column__C111]
 	add  a
 	add  a
 	add  a
@@ -1014,160 +1033,200 @@ main_menu__loop_start__029A:
 	add  a
 	add  a
 	sub  c
-	add  $14
+	add  20 ; $14
 	ld   c, a
-	ld   a, [_RAM_C112_]
+    ; (Column x 32) + 28
+    ; So: 0 -> 28, 1 -> 60, 2 -> 92, 3 -> 124
+	ld   a, [main_menu__icon_cur_row__C112]
 	add  a
 	add  a
 	add  a
 	add  a
 	add  a
-	add  $1C
+	add  28 ; $1C
 	ld   b, a
 	ld   e, $00
+    ; B: (Column x 32) + 28
+    ; C: (Row    x 56) - 20
+    ; E: 0x00
 	call _LABEL_1504_
 
-_LABEL_2C2_:
-	ld   a, [_RAM_C114_]
-	dec  a
-	jr   nz, _LABEL_2D2_
-	ld   a, [_RAM_C113_]
-	xor  $01
-	ld   [_RAM_C113_], a
-	ld   a, $19
+    _LABEL_2C2_:
+    	ld   a, [_RAM_C114_]
+    	dec  a
+    	jr   nz, _LABEL_2D2_
+        ; 
+    	ld   a, [_RAM_C113_]
+    	xor  $01
+    	ld   [_RAM_C113_], a
+    	ld   a, $19
 
-_LABEL_2D2_:
-	ld   [_RAM_C114_], a
-	rst  $08	; _LABEL_8_
-	cp   $FF
-	jp   nz, _LABEL_34F_
-	ld   a, [_RAM_C115_]
-	or   a
-	jr   z, _LABEL_2E7_
-	dec  a
-	ld   [_RAM_C115_], a
-	jr   main_menu__loop_start__029A
+    _LABEL_2D2_:
+    	ld   [_RAM_C114_], a
+    	rst  $08	; _LABEL_8_
+    	cp   KBD_WORKBOY_NONE  ; $FF
+    	jp   nz, main_menu__keyboard_handle_result__034F_MAYBE
 
-_LABEL_2E7_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	or   a
-	jr   z, main_menu__loop_start__029A
-	bit  5, a
-	jr   z, _LABEL_30A_
-_LABEL_2F1_:
-	ld   a, [_RAM_C111_]
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_2FB_
-	ld   a, $02
-_LABEL_2FB_:
-	ld   [_RAM_C111_], a
-	ld   a, $01
-	ld   [_RAM_C113_], a
-	ld   a, $14
-	ld   [_RAM_C115_], a
-	jr   main_menu__loop_start__029A
+        ; Check whether it's time to poll the Gamepad for input
+    	ld   a, [main_menu__gamepad_polling_counter__C115]
+    	or   a
+    	jr   z, main_menu__gamepad_check__02E7
+        ; If not, decrement the counter and continue to main loop
+    	dec  a
+    	ld   [main_menu__gamepad_polling_counter__C115], a
+    	jr   main_menu__loop_start__029A
 
-_LABEL_30A_:
-	bit  4, a
-	jr   z, _LABEL_319_
-_LABEL_30E_:
-	ld   a, [_RAM_C111_]
-	inc  a
-	cp   $03
-	jr   nz, _LABEL_2FB_
-	xor  a
-	jr   _LABEL_2FB_
+    main_menu__gamepad_check__02E7:
+    	ld   a, [gamepad_buttons__RAM_C103]
+    	or   a
+    	jr   z, main_menu__loop_start__029A
 
-_LABEL_319_:
-	bit  7, a
-	jr   z, _LABEL_333_
-_LABEL_31D_:
-	ld   a, [_RAM_C112_]
-	inc  a
-_LABEL_321_:
-	and  $03
-	ld   [_RAM_C112_], a
-	ld   a, $01
-	ld   [_RAM_C113_], a
-	ld   a, $14
-	ld   [_RAM_C115_], a
-	jp   main_menu__loop_start__029A
+        ; Skip to next if not pressed
+    	bit  GAMEPAD_B_LEFT, a  ; 5
+    	jr   z, main_menu__gamepad_test_right__030A
 
-_LABEL_333_:
-	bit  6, a
-	jr   z, _LABEL_33D_
-_LABEL_337_:
-	ld   a, [_RAM_C112_]
-	dec  a
-	jr   _LABEL_321_
+        ; Triggered by Gamepad LEFT or Keyboard LEFT
+        main_menu__nav_col_left__02F1:
+            ; Move icon highlight cursor LEFT
+        	ld   a, [main_menu__icon_cur_column__C111]
+        	dec  a
+            ; Handle < 0 wraparound, reset to 0x02 (right-most column)
+        	cp   $FF
+        	jr   nz, mainmenu__nav_col_update__02FB__MAYBE
+        	ld   a, $02
 
-_LABEL_33D_:
-	bit  2, a
-	jp   z, main_menu__loop_start__029A
-_LABEL_342_:
-	ld   a, [_RAM_C112_]
-	ld   c, a
-	add  a
-	add  c
-	ld   c, a
-	ld   a, [_RAM_C111_]
-	add  c
-	jr   _LABEL_376_
+    mainmenu__nav_col_update__02FB__MAYBE:
+        ; Save updated column position
+    	ld   [main_menu__icon_cur_column__C111], a
+    	ld   a, $01
+    	ld   [_RAM_C113_], a  ; TODO: is this enqueuing an update? (it gets toggled every other frame on no activity though?)
+    	ld   a, MAIN_MENU__GAMEPAD_POLLTIME_RESET  ; $14
+    	ld   [main_menu__gamepad_polling_counter__C115], a
+    	jr   main_menu__loop_start__029A
 
-_LABEL_34F_:
-	cp   $0F
-	jr   z, _LABEL_337_
-	cp   $12
-	jr   z, _LABEL_31D_
-	cp   $10
-	jr   z, _LABEL_2F1_
-	cp   $11
-	jr   z, _LABEL_30E_
-	cp   $0D
-	jr   z, _LABEL_342_
-	or   a
-	jp   z, main_menu__loop_start__029A
-	cp   $0A
-	jp   nc, main_menu__loop_start__029A
-	ld   hl, _DATA_399_ - 1
-	ld   d, $00
-	ld   e, a
-	add  hl, de
-	ld   a, [hl]
-	jr   _LABEL_376_
+    main_menu__gamepad_test_right__030A:
+        ; Skip to next if not pressed
+    	bit  GAMEPAD_B_RIGHT, a  ; 4
+    	jr   z, main_menu__gamepad_test_down__0319
 
-_LABEL_376_:
-	push af
-	ld   b, $00
-_LABEL_379_:
-	cp   $03
-	jr   c, _LABEL_382_
-	sub  $03
-	inc  b
-	jr   _LABEL_379_
+        ; Triggered by Gamepad RIGHT or Keyboard RIGHT
+        main_menu__nav_col_right__030E:
+            ; Move icon highlight cursor RIGHT
+        	ld   a, [main_menu__icon_cur_column__C111]
+        	inc  a
+            ; Handle > 2 wraparound, reset to 0x00 (left-most column)
+        	cp   $03
+        	jr   nz, mainmenu__nav_col_update__02FB__MAYBE
+        	xor  a
+        	jr   mainmenu__nav_col_update__02FB__MAYBE
 
-_LABEL_382_:
-	ld   [_RAM_C111_], a
-	ld   a, b
-	ld   [_RAM_C112_], a
-	call gfx__clear_shadow_oam__275B
-	pop  af
-	add  a
-	ld   hl, _DATA_3A2_
-	ld   d, $00
-	ld   e, a
-	add  hl, de
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	jp   hl
+
+    main_menu__gamepad_test_down__0319:
+        ; Skip to next if not pressed
+    	bit  GAMEPAD_B_DOWN, a  ; 7
+    	jr   z, main_menu__gamepad_test_up__0333
+
+        ; Triggered by Gamepad DOWN or Keyboard DOWN
+        main_menu__nav_row_down_031D:
+        	ld   a, [main_menu__icon_cur_row__C112]
+        	inc  a
+
+    mainmenu__nav_row_update__0321:
+        ; Handle < 0 and > 3 wraparound, clamp to 0 - 3
+    	and  $03
+    	ld   [main_menu__icon_cur_row__C112], a
+    	ld   a, $01
+    	ld   [_RAM_C113_], a
+    	ld   a, MAIN_MENU__GAMEPAD_POLLTIME_RESET  ; $14
+    	ld   [main_menu__gamepad_polling_counter__C115], a
+    	jp   main_menu__loop_start__029A
+
+
+    main_menu__gamepad_test_up__0333:
+        ; Skip to next if not pressed
+    	bit  GAMEPAD_B_UP, a  ; 6
+    	jr   z, main_menu__gamepad_test_select__033D
+
+        ; Triggered by Gamepad UP or Keyboard UP
+        main_menu__nav_row_up__0337:
+        	ld   a, [main_menu__icon_cur_row__C112]
+        	dec  a
+        	jr   mainmenu__nav_row_update__0321
+
+
+    main_menu__gamepad_test_select__033D:
+        ; Restart main menu loop if not pressed
+    	bit  GAMEPAD_B_SELECT, a  ; 2
+    	jp   z, main_menu__loop_start__029A
+
+        ; Triggered by Gamepad SELECT or Keyboard ENTER
+        main_menu__nav_do_launch__0342:
+            ; Calculate linear index from menu row and column
+            ; TODO : then launch program (?)
+        	ld   a, [main_menu__icon_cur_row__C112]
+        	ld   c, a
+        	add  a
+        	add  c
+        	ld   c, a
+        	ld   a, [main_menu__icon_cur_column__C111]
+        	add  c
+            ; C has: (row x 3) + column
+        	jr   _LABEL_376_ ; TODO: Maybe this launches program?
+
+    main_menu__keyboard_handle_result__034F_MAYBE:
+    	cp   $0F
+    	jr   z, main_menu__nav_row_up__0337
+    	cp   $12
+    	jr   z, main_menu__nav_row_down_031D
+    	cp   $10
+    	jr   z, main_menu__nav_col_left__02F1
+    	cp   $11
+    	jr   z, main_menu__nav_col_right__030E
+    	cp   $0D
+    	jr   z, main_menu__nav_do_launch__0342
+    	or   a
+    	jp   z, main_menu__loop_start__029A
+    	cp   $0A
+    	jp   nc, main_menu__loop_start__029A
+
+    	ld   hl, _DATA_399_ - 1
+    	ld   d, $00
+    	ld   e, a
+    	add  hl, de
+    	ld   a, [hl]
+    	jr   _LABEL_376_
+
+    _LABEL_376_:
+    	push af
+    	ld   b, $00
+    _LABEL_379_:
+    	cp   $03
+    	jr   c, _LABEL_382_
+    	sub  $03
+    	inc  b
+    	jr   _LABEL_379_
+
+    _LABEL_382_:
+    	ld   [main_menu__icon_cur_column__C111], a
+    	ld   a, b
+    	ld   [main_menu__icon_cur_row__C112], a
+    	call gfx__clear_shadow_oam__275B
+    	pop  af
+    	add  a
+    	ld   hl, _DATA_3A2_
+    	ld   d, $00
+    	ld   e, a
+    	add  hl, de
+    	ldi  a, [hl]
+    	ld   h, [hl]
+    	ld   l, a
+    	jp   hl
 
 ; Data from 399 to 3A1 (9 bytes)
 _DATA_399_:
 db $00, $06, $09, $01, $04, $07, $02, $05, $0B
 
-; Jump Table from 3A2 to 3B9 (12 entries, indexed by _RAM_C111_)
+; Jump Table from 3A2 to 3B9 (12 entries, indexed by main_menu__icon_cur_column__C111)
 _DATA_3A2_:
 dw _LABEL_2F8E_, _LABEL_338A_, _LABEL_CA0_, _LABEL_2209_, _LABEL_819_, _LABEL_1572_, _LABEL_2B3B_, _LABEL_1598_
 dw _LABEL_AF1_, _LABEL_2845_, _LABEL_D49_, _LABEL_BA2_
@@ -1822,7 +1881,7 @@ _LABEL_80E_:
 	jr   nz, _LABEL_80E_
 	jp   vblank__cmd_default__25F7
 
-; 5th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 5th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_819_:
 	ld   a, $FE
 	ldh  [rOBP0], a
@@ -2225,7 +2284,7 @@ _LABEL_AE3_:
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
-; 9th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 9th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_AF1_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -2327,7 +2386,7 @@ _LABEL_B99_:
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
-; 12th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 12th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_BA2_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -2500,7 +2559,7 @@ _LABEL_C9A_:
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
 
-; 3rd entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 3rd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_CA0_:
 	ld   a, $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -2577,7 +2636,7 @@ _LABEL_D16_:
 ; Data from D41 to D48 (8 bytes)
 db $3E, $03, $EA, $FF, $3F, $C3, $3E, $59
 
-; 11th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 11th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_D49_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -3883,7 +3942,7 @@ _LABEL_1563_:
 	ld   [_RAM_C27D_], a
 	ret
 
-; 6th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 6th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_1572_:
 	call _LABEL_26C_
 	xor  a
@@ -3900,7 +3959,7 @@ _LABEL_1572_:
 	jp   z, _LABEL_160B_
 	jp   _LABEL_897_
 
-; 8th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 8th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_1598_:
 	call _LABEL_27DD_
 	xor  a
@@ -5483,7 +5542,7 @@ db $52, $4D, $43, $45, $4E, $50, $51, $69, $4E, $53, $4C, $44, $56, $52, $45, $6
 db $4E, $46, $45, $44, $53, $50, $51, $6F, $4E, $48, $42, $45, $50, $41, $53, $72
 db $4E, $46, $43, $52, $50, $45, $55, $21
 
-; 4th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 4th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_2209_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -6514,7 +6573,7 @@ gfx__turn_off_screen_2827:
 	ret
 
 
-; 10th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 10th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_2845_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -7010,7 +7069,7 @@ _DATA_2B1B_:
 db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00
 db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00
 
-; 7th entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 7th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_2B3B_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -7048,7 +7107,7 @@ _LABEL_2B5C_:
 	jr   nz, _LABEL_2B49_
 	ld   a, $20
 	ld   [_RAM_C355_], a
-	ld   [_RAM_C115_], a
+	ld   [main_menu__gamepad_polling_counter__C115], a
 	ld   a, $0B
 	call _LABEL_3918_
 	ld   a, $02
@@ -7676,7 +7735,7 @@ _LABEL_2F8B_:
 	pop  af
 	reti
 
-; 1st entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 1st entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_2F8E_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -8178,9 +8237,9 @@ _LABEL_331E_:
 	jr   _LABEL_331E_
 
 _LABEL_3327_:
-	ld   [_RAM_C111_], a
+	ld   [main_menu__icon_cur_column__C111], a
 	ld   a, b
-	ld   [_RAM_C112_], a
+	ld   [main_menu__icon_cur_row__C112], a
 	call gfx__clear_shadow_oam__275B
 	pop  af
 	cp   $09
@@ -8250,7 +8309,7 @@ _LABEL_3388_:
 	pop  af
 	ret
 
-; 2nd entry of Jump Table from 3A2 (indexed by _RAM_C111_)
+; 2nd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_338A_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
