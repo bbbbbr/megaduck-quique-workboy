@@ -45,7 +45,21 @@ DEF GAMEPAD_B_B       EQU 1
 DEF GAMEPAD_B_A       EQU 0
 
 
-DEF KBD_WORKBOY_NONE  EQU  $FF
+
+DEF WORKBOY_KEY_NONE  EQU  $FF
+
+; These keys are likely after some kind of Key scan code -> Translated system key
+; TODO: Maybe they need a different naming (check quique)
+DEF WORKBOY_KEY_RETURN        EQU  $0D ; Matches ms vkey
+
+DEF WORKBOY_KEY_ARROW_UP      EQU  $0F
+DEF WORKBOY_KEY_ARROW_LEFT    EQU  $10
+DEF WORKBOY_KEY_ARROW_RIGHT   EQU  $11
+DEF WORKBOY_KEY_ARROW_DOWN    EQU  $12
+
+
+; Commands sent to the Workboy peripheral over serial IO
+DEF WORKBOY_CMD_READKEY  EQU "O" ; $4F 
 
 
 DEF MAIN_MENU__GAMEPAD_POLLTIME_RESET  EQU  20 ; $14
@@ -732,8 +746,12 @@ db $25, $0C, $00, $2D
 _DATA_7_:
 db $25
 
-_LABEL_8_:
-	jp   _LABEL_3278_
+
+; Polls the keyboard for input
+; - Resulting key returned in A
+; - If no key or error will be WORKBOY_KEY_NONE (0xFF)
+SERIAL_POLL_KEYBOARD__RST_8:
+	jp   serial_io__poll_keyboard__3278
 
 ; Data from B to F (5 bytes)
 db $25, $06, $00, $D5, $25
@@ -1052,10 +1070,10 @@ main_menu__loop_start__029A:
 	call _LABEL_1504_
 
     _LABEL_2C2_:
+        ; TODO: Decrements C114 until 0, then: wraps it around to 0x19, and inverts C113 (which iirc usually set to 0 or 1)
     	ld   a, [_RAM_C114_]
     	dec  a
     	jr   nz, _LABEL_2D2_
-        ; 
     	ld   a, [_RAM_C113_]
     	xor  $01
     	ld   [_RAM_C113_], a
@@ -1063,9 +1081,9 @@ main_menu__loop_start__029A:
 
     _LABEL_2D2_:
     	ld   [_RAM_C114_], a
-    	rst  $08	; _LABEL_8_
-    	cp   KBD_WORKBOY_NONE  ; $FF
-    	jp   nz, main_menu__keyboard_handle_result__034F_MAYBE
+    	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
+    	cp   WORKBOY_KEY_NONE  ; $FF
+    	jp   nz, main_menu__keyboard_handle_result__034F
 
         ; Check whether it's time to poll the Gamepad for input
     	ld   a, [main_menu__gamepad_polling_counter__C115]
@@ -1173,19 +1191,25 @@ main_menu__loop_start__029A:
             ; C has: (row x 3) + column
         	jr   _LABEL_376_ ; TODO: Maybe this launches program?
 
-    main_menu__keyboard_handle_result__034F_MAYBE:
-    	cp   $0F
+    main_menu__keyboard_handle_result__034F:
+    	cp   WORKBOY_KEY_ARROW_UP  ; $0F
     	jr   z, main_menu__nav_row_up__0337
-    	cp   $12
+
+    	cp   WORKBOY_KEY_ARROW_DOWN  ; $12
     	jr   z, main_menu__nav_row_down_031D
-    	cp   $10
+
+    	cp   WORKBOY_KEY_ARROW_LEFT  ; $10
     	jr   z, main_menu__nav_col_left__02F1
-    	cp   $11
+
+    	cp   WORKBOY_KEY_ARROW_RIGHT  ; $11
     	jr   z, main_menu__nav_col_right__030E
-    	cp   $0D
+
+    	cp   WORKBOY_KEY_RETURN  ; $0D
     	jr   z, main_menu__nav_do_launch__0342
+
     	or   a
     	jp   z, main_menu__loop_start__029A
+
     	cp   $0A
     	jp   nc, main_menu__loop_start__029A
 
@@ -1379,7 +1403,7 @@ _LABEL_4C9_:
 _LABEL_4F4_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_4F4_
 	or   a
@@ -2838,14 +2862,14 @@ _LABEL_E65_:
 
 _LABEL_E6C_:
 	ld   a, $57
-	call _LABEL_3356_
+	call serial_io__send_command_wait_reply_byte__3356
 	or   a
 	ret  z
 	cp   $FF
 	ret  z
 _LABEL_E76_:
 	ld   a, $00
-	call _LABEL_3356_
+	call serial_io__send_command_wait_reply_byte__3356
 	or   a
 	jr   z, _LABEL_E76_
 	cp   $FF
@@ -2863,7 +2887,7 @@ _LABEL_E90_:
 	dec  c
 	jr   nz, _LABEL_E90_
 _LABEL_E9B_:
-	call _LABEL_3356_
+	call serial_io__send_command_wait_reply_byte__3356
 	or   a
 	jr   z, _LABEL_E9B_
 	cp   $FF
@@ -3570,7 +3594,7 @@ _LABEL_132B_:
 	add  hl, de
 _LABEL_1343_:
 	push hl
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	pop  hl
 	cp   $FF
 	jr   z, _LABEL_1343_
@@ -4103,7 +4127,7 @@ _LABEL_16B6_:
 	jr   _LABEL_16F5_
 
 _LABEL_16BF_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_1684_
 	or   a
@@ -4284,7 +4308,7 @@ _LABEL_17EA_:
 	jp   _LABEL_1963_
 
 _LABEL_17F4_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_17A4_
 	or   a
@@ -4529,7 +4553,7 @@ _LABEL_198F_:
 	jp   _LABEL_160B_
 
 _LABEL_199D_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_1982_
 	or   a
@@ -4688,7 +4712,7 @@ _LABEL_1A6A_:
 _LABEL_1AD9_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_1AD9_
 	or   a
@@ -4832,7 +4856,7 @@ _LABEL_1BC9_:
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_1BF6_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_1BF6_
 	or   a
@@ -4866,7 +4890,7 @@ _LABEL_1C17_:
 	rst  $10	; _LABEL_10_
 	call gfx__turn_on_screen_bg_obj__2540
 _LABEL_1C35_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_1C35_
 	jp   _LABEL_160B_
@@ -5387,7 +5411,7 @@ _LABEL_20EC_:
 	jr   _LABEL_2145_
 
 _LABEL_20F5_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jp   z, _LABEL_206D_
 	or   a
@@ -5580,7 +5604,7 @@ _LABEL_2244_:
 _LABEL_224C_:
 	ld   a, $01
 	ld   [_RAM_C280_], a
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_224C_
 	or   a
@@ -5912,7 +5936,7 @@ _LABEL_2435_:
 	ld   a, [hl]
 	ld   [_RAM_C281_], a
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_2435_
 	or   a
@@ -6595,7 +6619,7 @@ _LABEL_2854_:
 
 _LABEL_2866_:
 	ld   a, $52
-	call _LABEL_3356_
+	call serial_io__send_command_wait_reply_byte__3356
 	cp   $44
 	jr   nz, _LABEL_2854_
 	ld   a, $01
@@ -7481,7 +7505,7 @@ _LABEL_2D89_:
 	ld   hl, (_TILEMAP0 + $80)
 	rst  $28	; COPY_STRING_VRAM__RST_28
 _LABEL_2DA2_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	inc  a
 	jr   z, _LABEL_2DA2_
 	ret
@@ -8124,139 +8148,147 @@ _LABEL_326E_:
 	jr   nz, _LABEL_3251_
 	ret
 
-_LABEL_3278_:
+
+; Polls the keyboard for input
+; - Resulting key returned in A
+; - If no key or error will be WORKBOY_KEY_NONE (0xFF)
+serial_io__poll_keyboard__3278:
+    ; TODO: Check for something and skip serial keyboard poll request if set
 	ld   a, [_RAM_C3A9_]
 	or   a
 	call nz, _LABEL_3241_
-	ld   a, $4F
-	call _LABEL_3356_
-	cp   $FF
+    ; Load keyboard key request and send it
+	ld   a, WORKBOY_CMD_READKEY  ; $4F
+	call serial_io__send_command_wait_reply_byte__3356
+    ; Check returned Key value, return if blank/unset
+	cp   WORKBOY_KEY_NONE  ; $FF
 	ret  z
+    ; Also make sure it's not zero
 	or   a
-	jr   nz, _LABEL_328C_
-	dec  a
+	jr   nz, serial_io__maybe_process_returned_key__328C
+	dec  a ; Wraps 0 around to WORKBOY_KEY_NONE/$FF
 	ret
 
-_LABEL_328C_:
-	ld   hl, _DATA_30F3_
-	ld   c, $00
-	ld   b, a
-_LABEL_3292_:
-	ldi  a, [hl]
-	cp   b
-	jr   z, _LABEL_3299_
-	inc  c
-	jr   _LABEL_3292_
+    serial_io__maybe_process_returned_key__328C:
+    	ld   hl, _DATA_30F3_
+    	ld   c, $00
+    	ld   b, a
+    _LABEL_3292_:
+    	ldi  a, [hl]
+    	cp   b
+    	jr   z, _LABEL_3299_
+    	inc  c
+    	jr   _LABEL_3292_
 
-_LABEL_3299_:
-	ld   a, [_RAM_C3AC_]
-	ld   l, a
-	ld   a, [_RAM_C3AD_]
-	ld   h, a
-	ld   b, $00
-	add  hl, bc
-	ld   a, [hl]
-	ld   c, a
-	ld   a, [_RAM_C476_]
-	ld   [_RAM_C477_], a
-	ld   a, c
-	ld   [_RAM_C476_], a
-	or   a
-	ret  z
-	cp   $0A
-	ret  nc
-	push af
-	call _LABEL_380D_
-	pop  af
-	cp   $09
-	jr   nz, _LABEL_32C7_
-	push af
-	ld   a, [_RAM_C19A_]
-	or   a
-	jr   z, _LABEL_32C8_
-	pop  af
-	ret
+    _LABEL_3299_:
+    	ld   a, [_RAM_C3AC_]
+    	ld   l, a
+    	ld   a, [_RAM_C3AD_]
+    	ld   h, a
+    	ld   b, $00
+    	add  hl, bc
+    	ld   a, [hl]
+    	ld   c, a
+    	ld   a, [_RAM_C476_]
+    	ld   [_RAM_C477_], a
+    	ld   a, c
+    	ld   [_RAM_C476_], a
+    	or   a
+    	ret  z
+    	cp   $0A
+    	ret  nc
+    	push af
+    	call _LABEL_380D_
+    	pop  af
+    	cp   $09
+    	jr   nz, _LABEL_32C7_
+    	push af
+    	ld   a, [_RAM_C19A_]
+    	or   a
+    	jr   z, _LABEL_32C8_
+    	pop  af
+    	ret
 
-_LABEL_32C7_:
-	push af
-_LABEL_32C8_:
-	xor  a
-	ld   [_RAM_C19A_], a
-	ld   [_RAM_C23F_], a
-	ld   a, [_RAM_C10F_]
-	or   a
-	jr   z, _LABEL_32D7_
-	pop  af
-	ret
+    _LABEL_32C7_:
+    	push af
+    _LABEL_32C8_:
+    	xor  a
+    	ld   [_RAM_C19A_], a
+    	ld   [_RAM_C23F_], a
+    	ld   a, [_RAM_C10F_]
+    	or   a
+    	jr   z, _LABEL_32D7_
+    	pop  af
+    	ret
 
-_LABEL_32D7_:
-	ld   a, $01
-	ld   [_RAM_C110_], a
-	ld   a, [_RAM_C117_]
-	or   a
-	call nz, _LABEL_E67B_
-	pop  af
-	ld   c, a
-	xor  a
-	ld   [_RAM_C117_], a
-	ld   [_RAM_C260_], a
-	ld   [_RAM_C5F3_], a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	ld   hl, $FFFE
-	ld   sp, hl
-	ld   a, $1B
-	ldh  [rBGP], a
-	ld   [_RAM_C27D_], a
-	ld   a, $D2
-	ldh  [rOBP0], a
-	ld   a, c
-	ld   hl, _DATA_399_ - 1
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	jr   _LABEL_331B_
+    _LABEL_32D7_:
+    	ld   a, $01
+    	ld   [_RAM_C110_], a
+    	ld   a, [_RAM_C117_]
+    	or   a
+    	call nz, _LABEL_E67B_
+    	pop  af
+    	ld   c, a
+    	xor  a
+    	ld   [_RAM_C117_], a
+    	ld   [_RAM_C260_], a
+    	ld   [_RAM_C5F3_], a
+    	ld   [vblank__dispatch_select__RAM_C27C], a
+    	ld   [gfx__shadow_y_scroll__RAM_C102], a
+    	di
+    	ld   a, $04
+    	ldh  [rSTAT], a
+    	ld   a, $01
+    	ldh  [rIE], a
+    	ei
+    	ld   hl, $FFFE
+    	ld   sp, hl
+    	ld   a, $1B
+    	ldh  [rBGP], a
+    	ld   [_RAM_C27D_], a
+    	ld   a, $D2
+    	ldh  [rOBP0], a
+    	ld   a, c
+    	ld   hl, _DATA_399_ - 1
+    	add  l
+    	ld   l, a
+    	ld   a, h
+    	adc  $00
+    	ld   h, a
+    	ld   a, [hl]
+    	jr   _LABEL_331B_
 
-_LABEL_331B_:
-	push af
-	ld   b, $00
-_LABEL_331E_:
-	cp   $03
-	jr   c, _LABEL_3327_
-	sub  $03
-	inc  b
-	jr   _LABEL_331E_
+    _LABEL_331B_:
+    	push af
+    	ld   b, $00
+    _LABEL_331E_:
+    	cp   $03
+    	jr   c, _LABEL_3327_
+    	sub  $03
+    	inc  b
+    	jr   _LABEL_331E_
 
-_LABEL_3327_:
-	ld   [main_menu__icon_cur_column__C111], a
-	ld   a, b
-	ld   [main_menu__icon_cur_row__C112], a
-	call gfx__clear_shadow_oam__275B
-	pop  af
-	cp   $09
-	jp   z, _LABEL_3BA_
-	cp   $04
-	jp   z, _LABEL_15BE_
-	add  a
-	ld   hl, _DATA_3A2_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	jp   hl
+    _LABEL_3327_:
+    	ld   [main_menu__icon_cur_column__C111], a
+    	ld   a, b
+    	ld   [main_menu__icon_cur_row__C112], a
+    	call gfx__clear_shadow_oam__275B
+    	pop  af
+    	cp   $09
+    	jp   z, _LABEL_3BA_
+    	cp   $04
+    	jp   z, _LABEL_15BE_
+    	add  a
+    	ld   hl, _DATA_3A2_
+    	add  l
+    	ld   l, a
+    	ld   a, h
+    	adc  $00
+    	ld   h, a
+    	ldi  a, [hl]
+    	ld   h, [hl]
+    	ld   l, a
+    	jp   hl
 
 
 ; Delay approx: ~2.94 msec, ~27 scanlines
@@ -8272,42 +8304,57 @@ delay_2_94msec__334A:
 	pop  bc
 	ret
 
-_LABEL_3356_:
+
+; Polls the keyboard for input
+; - Resulting key returned in A
+; - If no key or error will be WORKBOY_KEY_NONE (0xFF) or null value 0x00
+serial_io__send_command_wait_reply_byte__3356:
 	push bc
 	ld   c, a
+    ; TODO: Check for something and skip serial keyboard poll request if NOT set
 	ld   a, [_RAM_C10A_]
 	or   a
-	jr   nz, _LABEL_3361_
+	jr   nz, .send_command_and_wait_reply__3361
 	dec  a
 	pop  bc
 	ret
 
-_LABEL_3361_:
-	ld   a, c
-	ldh  [rSB], a
-	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-	ldh  [rSC], a
-	call delay_2_94msec__334A
-	ldh  a, [rSB]
-	pop  bc
-	push af
-	ld   a, ( SERIAL_XFER_OFF ) ; $00
-	ldh  [rSC], a
-	pop  af
-	or   a
-	ret  z
-	cp   $FF
-	ret  z
-	push af
-	ld   a, [_RAM_C110_]
-	or   a
-	jr   z, _LABEL_3388_
-	ld   a, $24
-	ld   bc, $0211
-	call _LABEL_33FC_
-_LABEL_3388_:
-	pop  af
-	ret
+    ; C: Serial command byte to send is in C
+    .send_command_and_wait_reply__3361:
+        ; Send the serial command and wait for response
+    	ld   a, c
+    	ldh  [rSB], a
+    	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+    	ldh  [rSC], a
+    	call delay_2_94msec__334A
+        ; Load serial reply
+    	ldh  a, [rSB]
+    	pop  bc
+    	push af
+        ; Turn off serial IO
+    	ld   a, ( SERIAL_XFER_OFF ) ; $00
+    	ldh  [rSC], a
+
+        ; Check returned serial byte, return if zero
+        ; also return if blank/unset (0xFF)
+    	pop  af
+    	or   a
+    	ret  z
+    	cp   WORKBOY_KEY_NONE  ;  $FF
+    	ret  z
+
+    	push af
+    	ld   a, [_RAM_C110_]  ; TODO: What is this testing after a serial transfer? set to 4 on initial startup, then 1 on startup, and later 0 or 1 occasionally
+    	or   a
+    	jr   z, .return_serial_reply_byte_in_A__3388
+    	ld   a, $24
+    	ld   bc, $0211
+    	call _LABEL_33FC_
+
+    .return_serial_reply_byte_in_A__3388:
+    	pop  af
+    	ret
+
 
 ; 2nd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 _LABEL_338A_:
@@ -12731,7 +12778,7 @@ _LABEL_ACA8_:
 	ld   hl, $99E0
 	rst  $20	; _LABEL_20_
 _LABEL_ACE7_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_ACE7_
 	or   a
@@ -12769,7 +12816,7 @@ _LABEL_AD13_:
 	ld   hl, $9A21
 	rst  $20	; _LABEL_20_
 _LABEL_AD2B_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_AD2B_
 	or   a
@@ -13583,7 +13630,7 @@ _LABEL_B20C_:
 	ld   de, $002D
 	rst  $20	; _LABEL_20_
 _LABEL_B271_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_B271_
 	or   a
@@ -13649,7 +13696,7 @@ _LABEL_B2CD_:
 	ld   hl, $98C0
 	rst  $20	; _LABEL_20_
 _LABEL_B2F0_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_B2F0_
 	or   a
@@ -13684,7 +13731,7 @@ _LABEL_B320_:
 	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 _LABEL_B32A_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_B32A_
 	or   a
@@ -13704,7 +13751,7 @@ _LABEL_B32A_:
 	ld   hl, (_TILEMAP0 + $60)
 	rst  $20	; _LABEL_20_
 _LABEL_B34D_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_B34D_
 	or   a
@@ -14007,7 +14054,7 @@ _LABEL_B4F8_:
 _LABEL_B513_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_B513_
 	or   a
@@ -14747,7 +14794,7 @@ _LABEL_BA26_:
 	call _LABEL_1504_
 _LABEL_BA41_:
 	rst  $18	; Call VSYNC__RST_18
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	push af
 	ld   a, [_RAM_C10A_]
 	or   a
@@ -15306,7 +15353,7 @@ _LABEL_BE02_:
 	call _LABEL_1504_
 _LABEL_BE1D_:
 	rst  $18	; Call VSYNC__RST_18
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	push af
 	ld   a, [_RAM_C10A_]
 	or   a
@@ -15443,7 +15490,7 @@ _LABEL_BF06_:
 	ld   a, $02
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_BF46_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	or   a
 	jp   z, _LABEL_200_
 	cp   $0F
@@ -15630,7 +15677,7 @@ _LABEL_C0AD_:
 _LABEL_C0B4_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_C0B4_
 	cp   $12
@@ -15753,7 +15800,7 @@ _LABEL_C154_:
 _LABEL_C18C_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_C18C_
 	or   a
@@ -15985,7 +16032,7 @@ _LABEL_C30A_:
 	call _LABEL_9CE_
 	call _LABEL_92C_
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_C30A_
 	or   a
@@ -16021,7 +16068,7 @@ _LABEL_C348_:
 	ld   a, [_RAM_C280_]
 	cp   $04
 	call z, _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_C348_
 	or   a
@@ -16054,7 +16101,7 @@ _LABEL_C36A_:
 _LABEL_C391_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_C391_
 	or   a
@@ -16317,7 +16364,7 @@ _LABEL_C553_:
 	jr   _LABEL_C592_
 
 _LABEL_C55C_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_C521_
 	or   a
@@ -16633,7 +16680,7 @@ _LABEL_C8BE_:
 	ld   a, $03
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C8CC_:
-	call _LABEL_3278_
+	call serial_io__poll_keyboard__3278
 	or   a
 	jp   z, _LABEL_200_
 	cp   $FF
@@ -16861,7 +16908,7 @@ _LABEL_CAC0_:
 _LABEL_CAC3_:
 	call gfx__clear_shadow_oam__275B
 _LABEL_CAC6_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_CAC6_
 	or   a
@@ -17041,7 +17088,7 @@ _LABEL_CBFC_:
 	jr   nz, _LABEL_CBFC_
 	call _LABEL_E3A3_
 _LABEL_CC05_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_CC05_
 	or   a
@@ -17072,7 +17119,7 @@ _LABEL_CC24_:
 	ld   hl, $9A20
 	rst  $20	; _LABEL_20_
 _LABEL_CC39_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_CC39_
 _LABEL_CC3E_:
@@ -17169,7 +17216,7 @@ _LABEL_CCD9_:
 _LABEL_CCEF_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_CCEF_
 	or   a
@@ -17421,7 +17468,7 @@ _LABEL_CE9C_:
 _LABEL_CEAF_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_CEAF_
 	or   a
@@ -17592,7 +17639,7 @@ _LABEL_CFB6_:
 _LABEL_CFD1_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_CFD1_
 	or   a
@@ -17875,7 +17922,7 @@ _LABEL_D17C_:
 	jr   _LABEL_D1BB_
 
 _LABEL_D185_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_D14A_
 	or   a
@@ -17950,7 +17997,7 @@ _LABEL_D200_:
 _LABEL_D213_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_D213_
 	or   a
@@ -18106,7 +18153,7 @@ _LABEL_D315_:
 	ld   a, $17
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_D321_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_D321_
 	or   a
@@ -18391,7 +18438,7 @@ _LABEL_D4A6_:
 	ld   hl, $9A20
 	call _LABEL_D3BF_
 _LABEL_D522_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	inc  a
 	jr   z, _LABEL_D522_
 	ld   hl, _RAM_C283_
@@ -18466,7 +18513,7 @@ _LABEL_D5B1_:
 	jr   _LABEL_D5FE_
 
 _LABEL_D5BA_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_D57F_
 	or   a
@@ -18653,7 +18700,7 @@ _LABEL_D78B_:
 	ld   hl, $98E0
 	rst  $20	; _LABEL_20_
 _LABEL_D79C_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_D79C_
 	ld   hl, $1071
@@ -18721,7 +18768,7 @@ _LABEL_D7FD_:
 _LABEL_D820_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_D820_
 	or   a
@@ -19544,7 +19591,7 @@ _LABEL_DF7D_:
 	ld   hl, $0F59
 	add  hl, de
 	push hl
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	pop  hl
 	cp   $FF
 	jr   z, _LABEL_DF7D_
@@ -19964,7 +20011,7 @@ _LABEL_E289_:
 _LABEL_E29C_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_E29C_
 	or   a
@@ -20286,7 +20333,7 @@ _LABEL_E4DB_:
 	call _LABEL_26C_
 	ld   a, $01
 	ld   [_RAM_C280_], a
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_E4DB_
 	or   a
@@ -20345,7 +20392,7 @@ _LABEL_E532_:
 	ld   hl, $9A20
 	rst  $20	; _LABEL_20_
 _LABEL_E550_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_E550_
 	call _LABEL_654_
@@ -20366,7 +20413,7 @@ _LABEL_E55B_:
 	ld   hl, $9A20
 	rst  $20	; _LABEL_20_
 _LABEL_E57C_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_E57C_
 	or   a
@@ -20833,7 +20880,7 @@ _LABEL_E843_:
 _LABEL_E867_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_E867_
 	or   a
@@ -20971,7 +21018,7 @@ _LABEL_E95A_:
 	ld   bc, $0009
 	call _LABEL_BC3_
 _LABEL_E98E_:
-	call _LABEL_3278_
+	call serial_io__poll_keyboard__3278
 	cp   $FF
 	jr   z, _LABEL_E98E_
 	or   a
@@ -21057,7 +21104,7 @@ _LABEL_E9FF_:
 	ld   hl, (_TILEMAP0 + $21)
 	rst  $20	; _LABEL_20_
 _LABEL_EA17_:
-	call _LABEL_3278_
+	call serial_io__poll_keyboard__3278
 	cp   $FF
 	jr   z, _LABEL_EA17_
 	ret
@@ -21732,7 +21779,7 @@ _LABEL_F6A6_:
 	ld   a, [_RAM_C3B0_]
 	or   a
 	jp   nz, _LABEL_200_
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	or   a
 	jp   z, _LABEL_200_
 	cp   $FF
@@ -21884,7 +21931,7 @@ _LABEL_F7F5_:
 	jr   _LABEL_F836_
 
 _LABEL_F7FE_:
-	rst  $08	; _LABEL_8_
+	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
 	jr   z, _LABEL_F7C3_
 	or   a
