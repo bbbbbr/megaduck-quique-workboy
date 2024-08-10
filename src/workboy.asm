@@ -46,20 +46,50 @@ DEF GAMEPAD_B_A       EQU 0
 
 
 
-DEF WORKBOY_KEY_NONE  EQU  $FF
 
-; These keys are likely after some kind of Key scan code -> Translated system key
-; TODO: Maybe they need a different naming (check quique)
-DEF WORKBOY_KEY_RETURN        EQU  $0D ; Matches ms vkey
+DEF WORKBOY_SCAN_KEY_NONE  EQU  $FF
 
-DEF WORKBOY_KEY_ARROW_UP      EQU  $0F
-DEF WORKBOY_KEY_ARROW_LEFT    EQU  $10
-DEF WORKBOY_KEY_ARROW_RIGHT   EQU  $11
-DEF WORKBOY_KEY_ARROW_DOWN    EQU  $12
+; These key values are likely the translated from the raw keyboard scancode versions
+DEF WORKBOY_SYS_KEY_RETURN        EQU  $0D ; Matches ms vkey
+
+DEF WORKBOY_SYS_KEY_ARROW_UP      EQU  $0F
+DEF WORKBOY_SYS_KEY_ARROW_LEFT    EQU  $10
+DEF WORKBOY_SYS_KEY_ARROW_RIGHT   EQU  $11
+DEF WORKBOY_SYS_KEY_ARROW_DOWN    EQU  $12
+
+; Some of the App keys map to a launcher sub-menu that chooses between multiple different apps
+DEF WORKBOY_SYS_KEY_CLOCK         EQU  1
+DEF WORKBOY_SYS_KEY_THERMOMETER   EQU  2
+DEF WORKBOY_SYS_KEY_FINANCE       EQU  3
+DEF WORKBOY_SYS_KEY_CALCULATOR    EQU  4
+DEF WORKBOY_SYS_KEY_SCHEDULER     EQU  5
+DEF WORKBOY_SYS_KEY_CONVERSION    EQU  6
+DEF WORKBOY_SYS_KEY_DATABASE      EQU  7
+DEF WORKBOY_SYS_KEY_WORLD         EQU  8
+DEF WORKBOY_SYS_KEY_PHONE         EQU  9
+DEF WORKBOY_SYS_KEY_APPS_AFTER    EQU (WORKBOY_SYS_KEY_PHONE + 1)
+
+
+DEF  APP_0_CLOCK          EQU $00
+DEF  APP_1_CALCULATOR     EQU $01
+DEF  APP_2_DATABASE       EQU $02
+DEF  APP_3_APPOINTMENTS   EQU $03
+DEF  APP_4_CALENDAR       EQU $04
+DEF  APP_5_WORLD          EQU $05
+DEF  APP_6_THERMOMETER    EQU $06
+DEF  APP_7_CONVERSION     EQU $07
+DEF  APP_8_CHECKBOOK      EQU $08
+DEF  APP_9_CURRENCY       EQU $09
+DEF  APP_A_SYSCONTROL     EQU $0A
+DEF  APP_B_PHONE          EQU $0B
+
 
 
 ; Commands sent to the Workboy peripheral over serial IO
-DEF WORKBOY_CMD_READKEY  EQU "O" ; $4F 
+DEF WORKBOY_CMD_TODO_0       EQU 0   ; $00  ; TODO: Might be a poll for "Ready"
+DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; TODO: maybe this is more general, "just read something?"
+DEF WORKBOY_CMD_R_TODO       EQU "R" ; $52  ; TODO:
+DEF WORKBOY_CMD_W_TODO       EQU "W" ; $57  ; TODO: Is this Write mode?
 
 
 DEF MAIN_MENU__GAMEPAD_POLLTIME_RESET  EQU  20 ; $14
@@ -749,7 +779,7 @@ db $25
 
 ; Polls the keyboard for input
 ; - Resulting key returned in A
-; - If no key or error will be WORKBOY_KEY_NONE (0xFF)
+; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
 SERIAL_POLL_KEYBOARD__RST_8:
 	jp   serial_io__poll_keyboard__3278
 
@@ -1082,7 +1112,7 @@ main_menu__loop_start__029A:
     _LABEL_2D2_:
     	ld   [_RAM_C114_], a
     	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-    	cp   WORKBOY_KEY_NONE  ; $FF
+    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
     	jp   nz, main_menu__keyboard_handle_result__034F
 
         ; Check whether it's time to poll the Gamepad for input
@@ -1188,56 +1218,73 @@ main_menu__loop_start__029A:
         	ld   c, a
         	ld   a, [main_menu__icon_cur_column__C111]
         	add  c
-            ; C has: (row x 3) + column
-        	jr   _LABEL_376_ ; TODO: Maybe this launches program?
+            ; A has: (row x 3) + column
+        	jr   main_menu__launch_app__0376 ; TODO: Maybe this launches program?
 
     main_menu__keyboard_handle_result__034F:
-    	cp   WORKBOY_KEY_ARROW_UP  ; $0F
+    	cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
     	jr   z, main_menu__nav_row_up__0337
 
-    	cp   WORKBOY_KEY_ARROW_DOWN  ; $12
+    	cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
     	jr   z, main_menu__nav_row_down_031D
 
-    	cp   WORKBOY_KEY_ARROW_LEFT  ; $10
+    	cp   WORKBOY_SYS_KEY_ARROW_LEFT  ; $10
     	jr   z, main_menu__nav_col_left__02F1
 
-    	cp   WORKBOY_KEY_ARROW_RIGHT  ; $11
+    	cp   WORKBOY_SYS_KEY_ARROW_RIGHT  ; $11
     	jr   z, main_menu__nav_col_right__030E
 
-    	cp   WORKBOY_KEY_RETURN  ; $0D
+    	cp   WORKBOY_SYS_KEY_RETURN  ; $0D
     	jr   z, main_menu__nav_do_launch__0342
 
+        ; If zero, return to main menu loop
     	or   a
     	jp   z, main_menu__loop_start__029A
 
-    	cp   $0A
+        ; If in the range of the App Shortcuts (1 - 9). So: (N > 0) && (N < 10)
+    	cp   WORKBOY_SYS_KEY_APPS_AFTER  ; 10  ; $0A
     	jp   nc, main_menu__loop_start__029A
 
-    	ld   hl, _DATA_399_ - 1
+        ; Use the sys key to index into a lookup table which
+        ; maps the key to the app to launch
+    	ld   hl, main_menu__lookup_table__app_key_to_app_index__399_ - 1
     	ld   d, $00
     	ld   e, a
     	add  hl, de
     	ld   a, [hl]
-    	jr   _LABEL_376_
+    	jr   main_menu__launch_app__0376
 
-    _LABEL_376_:
+
+; Expects index of the app to launch in A (0 - 11)
+main_menu__launch_app__0376:
+        ; Save 0 - 11 indexed version of App Number
     	push af
     	ld   b, $00
-    _LABEL_379_:
-    	cp   $03
-    	jr   c, _LABEL_382_
-    	sub  $03
+    ; And... Re-Convert back to Column (A) and Row (B) indexing
+    .loop_convert_to_row_and_col__0379:
+        ; If Column (A) is < 3 then proceed with launching the app
+    	cp   3  ; $03
+    	jr   c, .done_converting_to_row_and_col__0382
+        ; Otherwise subtract 3 and increment the Row (B)
+    	sub  3  ; $03
     	inc  b
-    	jr   _LABEL_379_
+    	jr   .loop_convert_to_row_and_col__0379
 
-    _LABEL_382_:
+    ; Column (A) 0-2 and Row (B) 0-3
+    .done_converting_to_row_and_col__0382:
+        ; Save the current Row and Column indexes
     	ld   [main_menu__icon_cur_column__C111], a
     	ld   a, b
     	ld   [main_menu__icon_cur_row__C112], a
+
+        ; Clear all sprites
     	call gfx__clear_shadow_oam__275B
+
+        ; Restore 0 - 11 indexed version of App Number
     	pop  af
+        ; Use App number x 2 to index into a jump table for launching the apps
     	add  a
-    	ld   hl, _DATA_3A2_
+    	ld   hl, main_menu__app_launch_jump_table__03A2
     	ld   d, $00
     	ld   e, a
     	add  hl, de
@@ -1246,16 +1293,41 @@ main_menu__loop_start__029A:
     	ld   l, a
     	jp   hl
 
+
 ; Data from 399 to 3A1 (9 bytes)
-_DATA_399_:
-db $00, $06, $09, $01, $04, $07, $02, $05, $0B
+; Main menu is a 3 x 4 icon grid
+; This maps the keys to the correct icon location of (row x 3) + col
+main_menu__lookup_table__app_key_to_app_index__399_:
+db $00  ; WORKBOY_SYS_KEY_CLOCK        1  -1 = 0
+db $06  ; WORKBOY_SYS_KEY_THERMOMETER  2  -1 = 1
+db $09  ; WORKBOY_SYS_KEY_FINANCE      3  -1 = 2  ; Launches choice of CURRENCY / CHECKBOOK
+db $01  ; WORKBOY_SYS_KEY_CALCULATOR   4  -1 = 3
+db $04  ; WORKBOY_SYS_KEY_SCHEDULER    5  -1 = 4  ; launches menu to select APPOINTMENTS / PHONE BOOK
+db $07  ; WORKBOY_SYS_KEY_CONVERSION   6  -1 = 5
+db $02  ; WORKBOY_SYS_KEY_DATABASE     7  -1 = 6
+db $05  ; WORKBOY_SYS_KEY_WORLD        8  -1 = 7
+db $0B  ; WORKBOY_SYS_KEY_PHONE        9  -1 = 8
+
+
+
 
 ; Jump Table from 3A2 to 3B9 (12 entries, indexed by main_menu__icon_cur_column__C111)
-_DATA_3A2_:
-dw _LABEL_2F8E_, _LABEL_338A_, _LABEL_CA0_, _LABEL_2209_, _LABEL_819_, _LABEL_1572_, _LABEL_2B3B_, _LABEL_1598_
-dw _LABEL_AF1_, _LABEL_2845_, _LABEL_D49_, _LABEL_BA2_
+main_menu__app_launch_jump_table__03A2:
+dw app_clock__launch__2F8E        ; APP_0_CLOCK
+dw app_calculator__launch__338A   ; APP_1_CALCULATOR
+dw app_database__launch__0CA0     ; APP_2_DATABASE
+dw app_appointments__launch__2209 ; APP_3_APPOINTMENTS
+dw app_calendar__launch__0819     ; APP_4_CALENDAR
+dw app_world__launch__1572        ; APP_5_WORLD
+dw app_thermometer__launch__2B3B  ; APP_6_THERMOMETER
+dw app_conversion__launch__1598   ; APP_7_CONVERSION
+dw app_checkbook__launch__0AF1    ; APP_8_CHECKBOOK
+dw app_currency__launch__2845     ; APP_9_CURRENCY
+dw app_syscontrol__launch__0D49   ; APP_A_SYSCONTROL
+dw app_phone__launch__0BA2        ; APP_B_PHONE
 
-_LABEL_3BA_:
+
+app_submenu__money__03BA:
 	call _LABEL_424_
 	ld   de, _DATA_1E9B_
 	call _LABEL_3969_
@@ -1270,10 +1342,10 @@ _LABEL_3BA_:
 	call _LABEL_BC3_
 	ld   hl, _DATA_1D85_
 	call _LABEL_2003_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
-	jp   z, _LABEL_2845_
-	jp   _LABEL_AF1_
+	jp   z, app_currency__launch__2845
+	jp   app_checkbook__launch__0AF1
 
 _LABEL_3EF_:
 	ld   a, $65
@@ -1906,7 +1978,7 @@ _LABEL_80E_:
 	jp   vblank__cmd_default__25F7
 
 ; 5th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_819_:
+app_calendar__launch__0819:
 	ld   a, $FE
 	ldh  [rOBP0], a
 	xor  a
@@ -2104,6 +2176,11 @@ _LABEL_98B_:
 	ldi  [hl], a
 	ret
 
+; TODO: Maybe this is:
+; - lookup + display city/country location
+; - then show it on map and print name
+; - send it out to keyboard to save?
+; App->Control/Settings->Set Home-> Apply by pressing "S" keys ends up here
 _LABEL_991_:
 	ld   de, _RAM_C39B_
 	ld   hl, _RAM_C149_
@@ -2131,13 +2208,24 @@ _LABEL_991_:
 	ld   de, $0006
 	ld   hl, $99E3
 	rst  $28	; COPY_STRING_VRAM__RST_28
-_LABEL_9C3_:
-	call _LABEL_E6C_
-	or   a
-	jr   z, _LABEL_9C3_
-	cp   $FF
-	jr   z, _LABEL_9C3_
-	ret
+
+    ; Call stack to get here is:
+    ; --> calls 1. $60:$0e6c
+    ; 2. $60:$09c3 (via _LABEL_914_)
+    ; 3. $63:$40ff
+    ; 4. _LABEL_8BC_ ($00:$08bc)
+    ; 5. _LABEL_D714_+$05d ($03:$5771)
+    ; 6. _LABEL_200_+$067 ($00:$0267)
+    .loop_serial_command_until_valid_reply_byte__09C3:
+    	call serial_io__send_etc_todo_unknown_0E6C
+        ; Check returned serial byte, return if zero
+        ; also return if blank/unset (0xFF)
+    	or   a
+    	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
+    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
+    	ret
+
 
 _LABEL_9CE_:
 	ld   a, [_RAM_C139_]
@@ -2309,7 +2397,7 @@ _LABEL_AE3_:
 	ret
 
 ; 9th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_AF1_:
+app_checkbook__launch__0AF1:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $03
@@ -2411,7 +2499,7 @@ _LABEL_B99_:
 	ret
 
 ; 12th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_BA2_:
+app_phone__launch__0BA2:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_3EF_
@@ -2584,7 +2672,7 @@ _LABEL_C9A_:
 	ret
 
 ; 3rd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_CA0_:
+app_database__launch__0CA0:
 	ld   a, $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_4000_]
@@ -2605,7 +2693,7 @@ _LABEL_CAD_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1D5B_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
 	jp   z, _LABEL_498_
 	jp   _LABEL_CDA_
@@ -2661,7 +2749,7 @@ _LABEL_D16_:
 db $3E, $03, $EA, $FF, $3F, $C3, $3E, $59
 
 ; 11th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_D49_:
+app_syscontrol__launch__0D49:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
@@ -2781,7 +2869,7 @@ _LABEL_DE6_:
 	rst  $20	; _LABEL_20_
 	call _LABEL_E05_
 _LABEL_DF3_:
-	call _LABEL_E6C_
+	call serial_io__send_etc_todo_unknown_0E6C
 	or   a
 	jr   z, _LABEL_DF3_
 	cp   $FF
@@ -2860,43 +2948,60 @@ _LABEL_E65_:
 	add  c
 	ret
 
-_LABEL_E6C_:
-	ld   a, $57
+
+; So far have only seen this called when setting the "Home" city/country location
+; Main Menu -> S icon (middle of bottom row) -> Set Home -> Select country -> press "S" key to save
+serial_io__send_etc_todo_unknown_0E6C:
+	ld   a, WORKBOY_CMD_W_TODO ; $57
 	call serial_io__send_command_wait_reply_byte__3356
+    ; Check returned serial byte, return if zero
+    ; also return if blank/unset (0xFF)
 	or   a
 	ret  z
-	cp   $FF
+	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
 	ret  z
-_LABEL_E76_:
-	ld   a, $00
-	call serial_io__send_command_wait_reply_byte__3356
-	or   a
-	jr   z, _LABEL_E76_
-	cp   $FF
-	jr   z, _LABEL_E76_
+    ; Returned serial byte in A seems to get discarded here
+
+    ; Loops sending the 0x00 command unil reply is not WORKBOY_SCAN_KEY_NONE (0xFF) AND not null value (0x00)
+    ; TODO: Maybe it's polling for a "Ready" response
+    .loop_request_serial_until_valid_reply_byte__0E76:
+    	ld   a, WORKBOY_CMD_TODO_0  ; $00
+    	call serial_io__send_command_wait_reply_byte__3356
+    	or   a
+    	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+
+    ; The value written to 0xC2AE below is ignored and overwritten
+    ; shortly after the call below to 0x0EB1
+    ; The return value of A is also ignored?
 	ld   a, [_DATA_84_]
 	ld   [_RAM_C2AE_], a
 	call _LABEL_EB1_
+
+    ; Send 21 bytes starting at _RAM_C2A9_ out over Serial IO
 	ld   de, _RAM_C2A9_
-	ld   c, $15
-_LABEL_E90_:
-	ld   a, [de]
-	inc  de
-	call serial_io__send_byte_and_wait_3msec__0B11
-	call delay_2_94msec__334A
-	dec  c
-	jr   nz, _LABEL_E90_
-_LABEL_E9B_:
-	call serial_io__send_command_wait_reply_byte__3356
-	or   a
-	jr   z, _LABEL_E9B_
-	cp   $FF
-	jr   z, _LABEL_E9B_
-	call _LABEL_2916_
-	call _LABEL_2942_
-	call _LABEL_296E_
-	ld   a, $01
-	ret
+	ld   c, 21  ; $15
+    .send_bytes_loop__0E90:
+    	ld   a, [de]
+    	inc  de
+    	call serial_io__send_byte_and_wait_3msec__0B11
+    	call delay_2_94msec__334A
+    	dec  c
+    	jr   nz, .send_bytes_loop__0E90
+
+    ; Send the last byte from aboveWrite 21 bytes starting at _RAM_C2A9_ out over Serial IO
+    ._LABEL_E9B_:
+    	call serial_io__send_command_wait_reply_byte__3356
+    	or   a
+    	jr   z, ._LABEL_E9B_
+    	cp   $FF
+    	jr   z, ._LABEL_E9B_
+    	call _LABEL_2916_
+    	call _LABEL_2942_
+    	call _LABEL_296E_
+    	ld   a, $01
+    	ret
 
 _LABEL_EB1_:
 	ld   hl, _RAM_C2AE_
@@ -2936,44 +3041,46 @@ _LABEL_EB1_:
 	ld   c, a
 	ld   a, [_RAM_C139_]
 	ld   b, $00
-_LABEL_EFA_:
-	cp   $0A
-	jr   c, _LABEL_F03_
-	sub  $0A
-	inc  b
-	jr   _LABEL_EFA_
 
-_LABEL_F03_:
-	add  c
-	ld   c, a
-	ld   a, b
-	call _LABEL_F2C_
-	add  c
-	ldi  [hl], a
-	ld   a, [_RAM_C304_]
-	call _LABEL_F2C_
-	add  a
-	ld   c, a
-	ld   a, [_RAM_C138_]
-	ld   b, $00
-	cp   $0A
-	jr   c, _LABEL_F20_
-	sub  $0A
-	ld   b, $10
-_LABEL_F20_:
-	add  c
-	add  b
-	ldi  [hl], a
-	ld   a, [_RAM_C13A_]
-	and  $FC
-	ld   [_RAM_C2BD_], a
-	ret
+    ._LABEL_EFA_:
+    	cp   $0A
+    	jr   c, ._LABEL_F03_
+    	sub  $0A
+    	inc  b
+    	jr   ._LABEL_EFA_
 
-_LABEL_F2C_:
-	add  a
-	add  a
-	add  a
-	add  a
+    ._LABEL_F03_:
+    	add  c
+    	ld   c, a
+    	ld   a, b
+    	call _LABEL_F2C_
+    	add  c
+    	ldi  [hl], a
+    	ld   a, [_RAM_C304_]
+    	call _LABEL_F2C_
+    	add  a
+    	ld   c, a
+    	ld   a, [_RAM_C138_]
+    	ld   b, $00
+    	cp   $0A
+    	jr   c, ._LABEL_F20_
+    	sub  $0A
+    	ld   b, $10
+
+    ._LABEL_F20_:
+    	add  c
+    	add  b
+    	ldi  [hl], a
+    	ld   a, [_RAM_C13A_]
+    	and  $FC
+    	ld   [_RAM_C2BD_], a
+    	ret
+
+    _LABEL_F2C_:
+    	add  a
+    	add  a
+    	add  a
+    	add  a
 	ret
 
 ; Data from F31 to F31 (1 bytes)
@@ -3316,11 +3423,11 @@ _LABEL_10E2_:
 	ld   bc, $0F09
 	call _LABEL_BC3_
 _LABEL_1133_:
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $05
 	jp   z, _LABEL_2DA7_
 	cp   $03
-	jp   z, _LABEL_338A_
+	jp   z, app_calculator__launch__338A
 	push af
 	cp   $04
 	jr   nz, _LABEL_1153_
@@ -3967,7 +4074,7 @@ _LABEL_1563_:
 	ret
 
 ; 6th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_1572_:
+app_world__launch__1572:
 	call _LABEL_26C_
 	xor  a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
@@ -3978,13 +4085,13 @@ _LABEL_1572_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1D88_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
 	jp   z, _LABEL_160B_
 	jp   _LABEL_897_
 
 ; 8th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_1598_:
+app_conversion__launch__1598:
 	call _LABEL_27DD_
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -4000,7 +4107,9 @@ _LABEL_1598_:
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_D105_
 
-_LABEL_15BE_:
+
+; Lets the user choose between launching Appointments or Calendar apps
+app_submenu__scheduling__15BE:
 	xor  a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
@@ -4010,10 +4119,10 @@ _LABEL_15BE_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1E06_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
-	jp   z, _LABEL_2209_
-	jp   _LABEL_819_
+	jp   z, app_appointments__launch__2209
+	jp   app_calendar__launch__0819
 
 _LABEL_15E1_:
 	xor  a
@@ -4025,7 +4134,7 @@ _LABEL_15E1_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DB2_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	push af
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
@@ -4056,7 +4165,7 @@ _LABEL_160B_:
 	call _LABEL_3969_
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1E34_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
 	jp   z, _LABEL_1A6A_
 	cp   $03
@@ -5334,7 +5443,7 @@ _LABEL_2044_:
 	ld   [_RAM_C23F_], a
 	ret
 
-_LABEL_206D_:
+sys_run_submenu_result_in_A__206D:
 	rst  $18	; Call VSYNC__RST_18
 	ld   a, [_RAM_C25B_]
 	ld   c, a
@@ -5413,7 +5522,7 @@ _LABEL_20EC_:
 _LABEL_20F5_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
-	jp   z, _LABEL_206D_
+	jp   z, sys_run_submenu_result_in_A__206D
 	or   a
 	jp   z, _LABEL_200_
 	cp   $0D
@@ -5421,7 +5530,7 @@ _LABEL_20F5_:
 	cp   $0F
 	jr   z, _LABEL_213A_
 	cp   $12
-	jp   nz, _LABEL_206D_
+	jp   nz, sys_run_submenu_result_in_A__206D
 _LABEL_210C_:
 	ld   a, [_RAM_C256_]
 	ld   c, a
@@ -5450,7 +5559,7 @@ _LABEL_2118_:
 	add  a
 	add  $04
 	ld   [_RAM_C250_], a
-	jp   _LABEL_206D_
+	jp   sys_run_submenu_result_in_A__206D
 
 _LABEL_213A_:
 	ld   a, [_RAM_C257_]
@@ -5567,7 +5676,7 @@ db $4E, $46, $45, $44, $53, $50, $51, $6F, $4E, $48, $42, $45, $50, $41, $53, $7
 db $4E, $46, $43, $52, $50, $45, $55, $21
 
 ; 4th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_2209_:
+app_appointments__launch__2209:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [_SRAM_231_]
@@ -5948,7 +6057,7 @@ _LABEL_2435_:
 	ld   [_RAM_C260_], a
 	ld   hl, $FFFE
 	ld   sp, hl
-	jp   _LABEL_AF1_
+	jp   app_checkbook__launch__0AF1
 
 _LABEL_2468_:
 	or   a
@@ -6598,7 +6707,7 @@ gfx__turn_off_screen_2827:
 
 
 ; 10th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_2845_:
+app_currency__launch__2845:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_424_
@@ -6609,16 +6718,17 @@ _LABEL_2845_:
 _LABEL_2854_:
 	ld   a, [_RAM_C10A_]
 	cp   $02
-	jr   nz, _LABEL_2866_
+	jr   nz, serial_io__send_cmd_unknown_todo__2866
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
-	jr   z, _LABEL_2866_
+	jr   z, serial_io__send_cmd_unknown_todo__2866
 	xor  a
 	ld   [_RAM_C10A_], a
 	ret
 
-_LABEL_2866_:
-	ld   a, $52
+; TODO: Not sure what feature uses this
+serial_io__send_cmd_unknown_todo__2866:
+	ld   a, WORKBOY_CMD_R_TODO  ; $52
 	call serial_io__send_command_wait_reply_byte__3356
 	cp   $44
 	jr   nz, _LABEL_2854_
@@ -6626,13 +6736,13 @@ _LABEL_2866_:
 	ld   [_RAM_C10A_], a
 	ld   de, _RAM_C2AE_
 	ld   c, $15
-_LABEL_2879_:
-	ld   a, $00
-	call _LABEL_29E3_
-	ld   [de], a
-	inc  de
-	dec  c
-	jr   nz, _LABEL_2879_
+    .LABEL_2879:
+    	ld   a, $00
+    	call _LABEL_29E3_
+    	ld   [de], a
+    	inc  de
+    	dec  c
+    	jr   nz, .LABEL_2879
 	call _LABEL_2916_
 	call _LABEL_2942_
 	call _LABEL_296E_
@@ -6864,25 +6974,25 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 
 _LABEL_29E3_:
 	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	call _LABEL_29FC_
+	call _LABEL_29FC
 	sla  a
 	sla  a
 	sla  a
 	sla  a
 	push af
 	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	call _LABEL_29FC_
+	call _LABEL_29FC
 	ld   b, a
 	pop  af
 	or   b
 	ret
 
-_LABEL_29FC_:
-	sub  $30
-	cp   $11
-	jr   c, _LABEL_2A04_
-	sub  $07
-_LABEL_2A04_:
+    _LABEL_29FC:
+    	sub  $30
+    	cp   $11
+    	jr   c, .skip_if_LABEL_2A04
+    	sub  $07
+    .skip_if_LABEL_2A04:
 	ret
 
 _LABEL_2A05_:
@@ -7094,7 +7204,7 @@ db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $0
 db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00
 
 ; 7th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_2B3B_:
+app_thermometer__launch__2B3B:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__turn_off_screen_2827
@@ -7760,7 +7870,7 @@ _LABEL_2F8B_:
 	reti
 
 ; 1st entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_2F8E_:
+app_clock__launch__2F8E:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	di
@@ -8151,25 +8261,25 @@ _LABEL_326E_:
 
 ; Polls the keyboard for input
 ; - Resulting key returned in A
-; - If no key or error will be WORKBOY_KEY_NONE (0xFF)
+; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
 serial_io__poll_keyboard__3278:
     ; TODO: Check for something and skip serial keyboard poll request if set
 	ld   a, [_RAM_C3A9_]
 	or   a
 	call nz, _LABEL_3241_
     ; Load keyboard key request and send it
-	ld   a, WORKBOY_CMD_READKEY  ; $4F
+	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
 	call serial_io__send_command_wait_reply_byte__3356
     ; Check returned Key value, return if blank/unset
-	cp   WORKBOY_KEY_NONE  ; $FF
-	ret  z
     ; Also make sure it's not zero
+	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+	ret  z
 	or   a
-	jr   nz, serial_io__maybe_process_returned_key__328C
-	dec  a ; Wraps 0 around to WORKBOY_KEY_NONE/$FF
+	jr   nz, serial_io__translate_returned_scan_key__328C
+	dec  a ; Wraps 0 around to WORKBOY_SCAN_KEY_NONE/$FF
 	ret
 
-    serial_io__maybe_process_returned_key__328C:
+    serial_io__translate_returned_scan_key__328C:
     	ld   hl, _DATA_30F3_
     	ld   c, $00
     	ld   b, a
@@ -8249,7 +8359,7 @@ serial_io__poll_keyboard__3278:
     	ld   a, $D2
     	ldh  [rOBP0], a
     	ld   a, c
-    	ld   hl, _DATA_399_ - 1
+    	ld   hl, main_menu__lookup_table__app_key_to_app_index__399_ - 1   ; TODO: what's happening here... launching an app?
     	add  l
     	ld   l, a
     	ld   a, h
@@ -8275,11 +8385,11 @@ serial_io__poll_keyboard__3278:
     	call gfx__clear_shadow_oam__275B
     	pop  af
     	cp   $09
-    	jp   z, _LABEL_3BA_
+    	jp   z, app_submenu__money__03BA
     	cp   $04
-    	jp   z, _LABEL_15BE_
+    	jp   z, app_submenu__scheduling__15BE
     	add  a
-    	ld   hl, _DATA_3A2_
+    	ld   hl, main_menu__app_launch_jump_table__03A2
     	add  l
     	ld   l, a
     	ld   a, h
@@ -8293,6 +8403,8 @@ serial_io__poll_keyboard__3278:
 
 ; Delay approx: ~2.94 msec, ~27 scanlines
 ; (1000 msec / 59.7275 GB FPS) * (12344 T-States delay / 70224 T-States per frame)
+;
+; Preserves ALL except some flags
 delay_2_94msec__334A:
 	push bc
 	ld   bc, $03FF
@@ -8305,9 +8417,9 @@ delay_2_94msec__334A:
 	ret
 
 
-; Polls the keyboard for input
-; - Resulting key returned in A
-; - If no key or error will be WORKBOY_KEY_NONE (0xFF) or null value 0x00
+; Sends command in A over serial IO
+; - Resulting byte returned in A
+; - If no reply or error will be WORKBOY_SCAN_KEY_NONE (0xFF) or null value 0x00
 serial_io__send_command_wait_reply_byte__3356:
 	push bc
 	ld   c, a
@@ -8340,7 +8452,7 @@ serial_io__send_command_wait_reply_byte__3356:
     	pop  af
     	or   a
     	ret  z
-    	cp   WORKBOY_KEY_NONE  ;  $FF
+    	cp   WORKBOY_SCAN_KEY_NONE  ;  $FF
     	ret  z
 
     	push af
@@ -8357,7 +8469,7 @@ serial_io__send_command_wait_reply_byte__3356:
 
 
 ; 2nd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
-_LABEL_338A_:
+app_calculator__launch__338A:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
@@ -11983,17 +12095,19 @@ _LABEL_A888_:
 	dec  b
 	jr   nz, _LABEL_A888_
 	ld   b, $28
-_LABEL_A88E_:
-	push bc
-	call _LABEL_A91E_
-	call _LABEL_A932_
-	jr   nc, _LABEL_A89A_
-	call _LABEL_A944_
-_LABEL_A89A_:
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_A88E_
-	jp   _LABEL_A8A1_
+    .LABEL_A88E:
+    	push bc
+    	call _LABEL_A91E_
+    	call _LABEL_A932_
+    	jr   nc, .LABEL_A89A
+    	call _LABEL_A944_
+
+    .LABEL_A89A:
+    	pop  bc
+    	dec  b
+    	jr   nz, .LABEL_A88E
+
+    	jp   _LABEL_A8A1_
 
 _LABEL_A8A1_:
 	ld   hl, _RAM_C3F9_
@@ -12095,15 +12209,15 @@ _LABEL_A91E_:
 	ld   hl, _RAM_C44A_
 	ld   b, $20
 	or   a
-_LABEL_A924_:
-	ld   a, [hl]
-	adc  a
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A92E_
-	pop  af
-	jr   _LABEL_A924_
+    .LABEL_A924:
+    	ld   a, [hl]
+    	adc  a
+    	ldd  [hl], a
+    	push af
+    	dec  b
+    	jr   z, _LABEL_A92E_
+    	pop  af
+    	jr   .LABEL_A924
 
 _LABEL_A92E_:
 	pop  af
@@ -15186,24 +15300,20 @@ _LABEL_BD0F_:
 	pop  hl
 	jp   _LABEL_AAA8_
 
-; Jump Table from BD1A to BD1B (1 entries, indexed by unknown)
-_DATA_BD1A_:
-dw _LABEL_AA37_
+; Jump Table from BD1A to 21 (4 entries, indexed by A x 2 in _LABEL_BD22_ )
+jump_table__BD1A:
+dw _LABEL_AA37_  ; 0
+dw _LABEL_BD2E_  ; 1
+dw _LABEL_A69C_  ; 2
+dw _LABEL_A874_  ; 3  TODO: Eventually launches Thermometer App
 
-; Jump Table from BD1C to BD1D (1 entries, indexed by unknown)
-dw _LABEL_BD2E_
-
-; Jump Table from BD1E to BD1F (1 entries, indexed by unknown)
-dw _LABEL_A69C_
-
-; Jump Table from BD20 to BD21 (1 entries, indexed by unknown)
-dw _LABEL_A874_
-
+; Jump using pointers in table jump_table__BD1A
+; indexed by A x 2
 _LABEL_BD22_:
 	ld   h, $00
 	add  a
 	ld   l, a
-	ld   de, _DATA_BD1A_
+	ld   de, jump_table__BD1A
 	add  hl, de
 	ldi  a, [hl]
 	ld   h, [hl]
@@ -16398,7 +16508,7 @@ _LABEL_C58A_:
 _LABEL_C592_:
 	ld   a, [_RAM_C399_]
 	cp   $06
-	jp   z, _LABEL_2F8E_
+	jp   z, app_clock__launch__2F8E
 	cp   $36
 	jp   z, _LABEL_C7C2_
 	cp   $4E
@@ -16452,7 +16562,7 @@ _LABEL_C5F3_:
 	ld   hl, $99E1
 	rst  $20	; _LABEL_20_
 _LABEL_C601_:
-	call _LABEL_E6C_
+	call serial_io__send_etc_todo_unknown_0E6C
 	or   a
 	jr   z, _LABEL_C601_
 	cp   $FF
@@ -16741,7 +16851,7 @@ _LABEL_C91B_:
 	call _LABEL_BC3_
 	ld   hl, _DATA_1D85_
 	call _LABEL_2003_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
 	jp   z, _LABEL_C95D_
 	jp   _LABEL_C9A7_
@@ -17846,7 +17956,7 @@ _DATA_D0FF_:
 db $31, $2E, $31, $30, $32, $00
 
 _LABEL_D105_:
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
 	jr   z, _LABEL_D113_
 	ld   a, $0C
@@ -18164,7 +18274,7 @@ _LABEL_D321_:
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   a, $C8
 	ld   [_RAM_C399_], a
-	jp   _LABEL_1598_
+	jp   app_conversion__launch__1598
 
 _LABEL_D337_:
 	ld   hl, (_TILEMAP0 + $24)
@@ -18674,13 +18784,13 @@ _LABEL_D714_:
 	ld   a, [_RAM_C25C_]
 	add  $06
 	ld   [_RAM_C25C_], a
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $01
 	jr   z, _LABEL_D78B_
 	cp   $03
 	jr   z, _LABEL_D777_
 	call _LABEL_8BC_
-	jp   _LABEL_D49_
+	jp   app_syscontrol__launch__0D49
 
 _LABEL_D777_:
 	call _LABEL_2722_
@@ -18689,7 +18799,7 @@ _LABEL_D777_:
 	ld   a, $C8
 	ld   [_RAM_C399_], a
 	call _LABEL_F68_
-	jp   _LABEL_D49_
+	jp   app_syscontrol__launch__0D49
 
 _LABEL_D78B_:
 	call _LABEL_2722_
@@ -18711,7 +18821,7 @@ _LABEL_D79C_:
 	add  hl, de
 	pop  af
 	cp   [hl]
-	jp   nz, _LABEL_D49_
+	jp   nz, app_syscontrol__launch__0D49
 	xor  a
 	ld   [_SRAM_221_], a
 	ld   [_SRAM_1F9_], a
@@ -18741,7 +18851,7 @@ _LABEL_D7EA_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_D7EA_
-	jp   _LABEL_D49_
+	jp   app_syscontrol__launch__0D49
 
 ; Data from D7F3 to D7F9 (7 bytes)
 db $03, $05, $09, $0D, $02, $05, $09
@@ -19431,7 +19541,7 @@ _LABEL_DE41_:
 _LABEL_DE70_:
 	ld   hl, _DATA_D7FA_
 	call _LABEL_2003_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	cp   $02
 	jp   z, _LABEL_E026_
 	ld   a, [_SRAM_A04_]
@@ -19604,7 +19714,7 @@ _LABEL_DF7D_:
 	jr   z, _LABEL_DFB4_
 	inc  hl
 	cp   [hl]
-	jp   z, _LABEL_AF1_
+	jp   z, app_checkbook__launch__0AF1
 	jr   _LABEL_DF7D_
 
 _LABEL_DFA3_:
@@ -19720,7 +19830,7 @@ _LABEL_E063_:
 	call gfx__clear_shadow_oam__275B
 	ld   hl, _DATA_E1CC_
 	call _LABEL_2003_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	push af
 	cp   $01
 	jr   z, _LABEL_E0A0_
@@ -19849,7 +19959,7 @@ _LABEL_E16C_:
 	jr   nz, _LABEL_E16C_
 	ld   a, [_SRAM_A04_]
 	call _LABEL_E17B_
-	jp   _LABEL_AF1_
+	jp   app_checkbook__launch__0AF1
 
 _LABEL_E17B_:
 	push af
@@ -19970,7 +20080,7 @@ _LABEL_E1FD_:
 	ld   [_RAM_C260_], a
 	pop  af
 	inc  a
-	jp   z, _LABEL_AF1_
+	jp   z, app_checkbook__launch__0AF1
 	call _LABEL_B6C_
 	or   a
 	jr   nz, _LABEL_E1DA_
@@ -20860,7 +20970,7 @@ _LABEL_E830_:
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	call _LABEL_E843_
 	call _LABEL_E9FC_
-	jp   _LABEL_BA2_
+	jp   app_phone__launch__0BA2
 
 _LABEL_E843_:
 	xor  a
@@ -21869,7 +21979,7 @@ _LABEL_F74D_:
 	call _LABEL_BC3_
 	ld   hl, _DATA_1D85_
 	call _LABEL_2003_
-	call _LABEL_206D_
+	call sys_run_submenu_result_in_A__206D
 	dec  a
 	ld   [_RAM_C5F4_], a
 	ret
