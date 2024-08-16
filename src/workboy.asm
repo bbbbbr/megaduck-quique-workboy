@@ -91,8 +91,14 @@ DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; TODO: maybe this is more general, 
 DEF WORKBOY_CMD_R_TODO       EQU "R" ; $52  ; TODO:
 DEF WORKBOY_CMD_W_TODO       EQU "W" ; $57  ; TODO: Is this Write mode?
 
+DEF WORKBOY_REPLY_D_TODO     EQU "D"
 
 DEF MAIN_MENU__GAMEPAD_POLLTIME_RESET  EQU  20 ; $14
+
+
+DEF KYBD_STATUS__NOT_FOUND   EQU  0  ; Set if user presses a button during startup keyboard screen with no keyboard present
+DEF KYBD_STATUS__OK          EQU  1  ; Set when "R" CMD returns "D" reply
+DEF KYBD_STATUS__UNSET       EQU  2  ; Initial value on startup
 
 
 ; Queue-able VBL Commands
@@ -115,7 +121,7 @@ _RAM_C106_: db
 _RAM_C107_: db
 
 SECTION "wram_c10a", WRAM0[$C10A]
-_RAM_C10A_: db
+serial_io__keyboard_detected_status__RAM_C10A: db
 _RAM_C10B_: db
 _RAM_C10C_: db
 _RAM_C10D_: db
@@ -255,7 +261,7 @@ _RAM_C279_: db
 _RAM_C27A_: db
 _RAM_C27B_: db
 vblank__dispatch_select__RAM_C27C: db
-_RAM_C27D_: db
+gfx__rBGP_cache__RAM_C27D: db
 _RAM_C27E_: db
 _RAM_C27F_: db
 _RAM_C280_: db
@@ -769,7 +775,7 @@ _LABEL_0_:
 	jp   startup_init__0150
 
 ; Data from 3 to 6 (4 bytes)
-_DATA_3_:
+_DATA_0003_:
 db $25, $0C, $00, $2D
 
 ; Data from 7 to 7 (1 bytes)
@@ -902,36 +908,43 @@ startup_init__0150:
     	or   c
     	jr   nz, .startup__clear_wram_loop__015E
 
-	ld   a, $04
+    ; Init gfx & interrupt  registers
+	ld   a, STATF_LYCF  ; $04
 	ldh  [rSTAT], a
 	ld   [_RAM_C110_], a
+    ; Set up some BG and OBJ palettes
 	ld   a, $1B
 	ldh  [rBGP], a
-	ld   [_RAM_C27D_], a
+	ld   [gfx__rBGP_cache__RAM_C27D], a
 	ld   a, $D2
 	ldh  [rOBP0], a
 	ldh  [rOBP1], a
+    ;
 	ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
 	ldh  [rLCDC], a
-	ld   a, $01
+    ; Set up VBlank interrupt
+	ld   a, IEF_VBLANK  ; $01
 	ldh  [rIE], a
 	ldh  [_RAM_FF8C_], a
+    ;
 	call gfx__clear_shadow_oam__275B
+    ; Fill RAM at _RAM_C19C_ every 5 bytes for 30 times with 0xFF
 	ld   hl, _RAM_C19C_
-	ld   a, $1E
+	ld   a, 30  ; $1E
 	ld   de, $0005
-
-    .LABEL_018E:
+    .memset_loop__018E:
     	ld   [hl], $FF
     	add  hl, de
     	dec  a
-    	jr   nz, .LABEL_018E
+    	jr   nz, .memset_loop__018E
+    ; Turn on interrupts
 	ei
+    ; Reset scroll
 	xor  a
 	ldh  [rSCX], a
 	ldh  [rSCY], a
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	ld   a, [_DATA_3_ - 2]
+	ld   a, [_DATA_0003_ - 2]
 	ld   [_RAM_C10E_], a
 	call _LABEL_2F41_
 
@@ -946,14 +959,14 @@ startup_init__0150:
 
 	xor  a
 	ld   [_RAM_C10E_], a
-	ld   a, $02
-	ld   [_RAM_C10A_], a
+	ld   a, KYBD_STATUS__UNSET  ; $02
+	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
     IF (DEF(DEBUG_SKIP_WORKBOY_STARTUP_CHECK))
         nop
         nop
         nop
     ELSE
-    	call _LABEL_2854_
+    	call serial_io__startup_check__2854
     ENDC
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	ld   a, $FF
@@ -1023,10 +1036,13 @@ _LABEL_200_:
 	ld   sp, hl
 	ld   a, $1B
 	ldh  [rBGP], a
-	ld   [_RAM_C27D_], a
-	ld   a, [_RAM_C10A_]
-	or   a
-	jp   z, _LABEL_10C3_
+	ld   [gfx__rBGP_cache__RAM_C27D], a
+
+    ; If the keyboard is not connected then show the alternate menu
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; == KYBD_STATUS__NOT_FOUND
+	jp   z, alt_menu__show_when_no_keyboard_found__10C3
+
 	ld   a, $D2
 	ldh  [rOBP0], a
 	call _LABEL_277_
@@ -1328,9 +1344,9 @@ dw app_phone__launch__0BA2        ; APP_B_PHONE
 
 
 app_submenu__money__03BA:
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00E6
 	call _LABEL_1D2D_
@@ -1354,7 +1370,7 @@ _LABEL_3EF_:
 	ld   [_RAM_C199_], a
 	ld   a, $1B
 	ldh  [rBGP], a
-	ld   [_RAM_C27D_], a
+	ld   [gfx__rBGP_cache__RAM_C27D], a
 	call gfx__turn_off_screen_2827
 	ld   bc, $1008
 	call _LABEL_27DD_
@@ -1368,19 +1384,19 @@ _LABEL_3EF_:
 	jp   gfx__copy_tile_patterns__1437
 
 _LABEL_41B_:
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ret
 
-_LABEL_424_:
+gfx__copy_some_tile_patterns_todo__0424:
 	ld   a, $6A
 	ld   [_RAM_C198_], a
 	ld   a, $6B
 	ld   [_RAM_C199_], a
 	ld   a, $1B
 	ldh  [rBGP], a
-	ld   [_RAM_C27D_], a
+	ld   [gfx__rBGP_cache__RAM_C27D], a
 	call gfx__turn_off_screen_2827
 	ld   bc, $1008
 	call _LABEL_27DD_
@@ -2478,7 +2494,7 @@ _LABEL_B45_:
 	ld   de, _DATA_A524_
 	ld   hl, (_TILEMAP0 + $60)
 	ld   b, $0C
-	call _LABEL_396E_
+	call gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E
 	jr   _LABEL_B2E_
 
 _LABEL_B6C_:
@@ -2688,9 +2704,9 @@ _LABEL_CAD_:
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1D5B_
 	call sys_run_submenu_result_in_A__206D
@@ -3378,22 +3394,26 @@ _LABEL_10A3_:
 _DATA_10BD_:
 db $49, $54, $43, $4D, $52, $54
 
-_LABEL_10C3_:
-	call _LABEL_424_
+
+alt_menu__show_when_no_keyboard_found__10C3:
+	call gfx__copy_some_tile_patterns_todo__0424
+
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
+
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   a, [_RAM_C233_]
 	or   a
-	jr   z, _LABEL_10DF_
+	jr   z, ._LABEL_10DF_
 	ld   hl, _DATA_DB31_
-	jr   _LABEL_10E2_
+	jr   ._LABEL_10E2_
 
-_LABEL_10DF_:
+    ._LABEL_10DF_:
 	ld   hl, _DATA_DB37_
-_LABEL_10E2_:
+
+    ._LABEL_10E2_:
 	call _LABEL_2003_
 	ld   de, $00DA
 	call _LABEL_1D2D_
@@ -3417,12 +3437,13 @@ _LABEL_10E2_:
 	call _LABEL_BC3_
 	ld   a, [_RAM_C233_]
 	or   a
-	jr   z, _LABEL_1133_
-	ld   de, $00D7
-	call _LABEL_1D2D_
-	ld   bc, $0F09
-	call _LABEL_BC3_
-_LABEL_1133_:
+	jr   z, ._LABEL_1133_
+    	ld   de, $00D7
+    	call _LABEL_1D2D_
+    	ld   bc, $0F09
+    	call _LABEL_BC3_
+
+    ._LABEL_1133_:
 	call sys_run_submenu_result_in_A__206D
 	cp   $05
 	jp   z, _LABEL_2DA7_
@@ -3555,7 +3576,7 @@ _LABEL_1210_:
 	ld   a, $05
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _DATA_178FC_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call gfx__turn_on_screen_bg_obj__2540
@@ -3578,7 +3599,7 @@ _LABEL_1241_:
 	ld   a, $05
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	ld   de, _DATA_17A64_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	call gfx__turn_on_screen_bg_obj__2540
@@ -4067,10 +4088,10 @@ _LABEL_154D_:
 _LABEL_1563_:
 	ld   a, [_RAM_C24F_]
 	ld   c, a
-	ld   a, [_RAM_C27D_]
+	ld   a, [gfx__rBGP_cache__RAM_C27D]
 	ld   [_RAM_C24F_], a
 	ld   a, c
-	ld   [_RAM_C27D_], a
+	ld   [gfx__rBGP_cache__RAM_C27D], a
 	ret
 
 ; 6th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
@@ -4080,9 +4101,9 @@ app_world__launch__1572:
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1D88_
 	call sys_run_submenu_result_in_A__206D
@@ -4098,9 +4119,9 @@ app_conversion__launch__1598:
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DDC_
 	ld   a, $03
@@ -4114,9 +4135,9 @@ app_submenu__scheduling__15BE:
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1E06_
 	call sys_run_submenu_result_in_A__206D
@@ -4129,9 +4150,9 @@ _LABEL_15E1_:
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DB2_
 	call sys_run_submenu_result_in_A__206D
@@ -4160,9 +4181,9 @@ _LABEL_160B_:
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
 	ld   [_RAM_C240_], a
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1E34_
 	call sys_run_submenu_result_in_A__206D
@@ -4790,7 +4811,7 @@ _LABEL_1A6A_:
 	ld   a, $C8
 	ld   [_RAM_C399_], a
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0012
 	call _LABEL_1D2D_
@@ -5325,7 +5346,7 @@ _LABEL_1E6A_:
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	call gfx__clear_shadow_oam__275B
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	call _LABEL_2735_
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
@@ -6333,7 +6354,7 @@ vblank__handler__25CC:
 
     ; 1st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
     vblank__cmd_default__25F7:
-    	ld   a, [_RAM_C27D_]
+    	ld   a, [gfx__rBGP_cache__RAM_C27D]
     	ldh  [rBGP], a
     	ld   a, [_RAM_C399_]
     	ldh  [rLYC], a
@@ -6710,30 +6731,39 @@ gfx__turn_off_screen_2827:
 app_currency__launch__2845:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call _LABEL_424_
+	call gfx__copy_some_tile_patterns_todo__0424
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_D459_
 
-_LABEL_2854_:
-	ld   a, [_RAM_C10A_]
-	cp   $02
-	jr   nz, serial_io__send_cmd_unknown_todo__2866
+
+serial_io__startup_check__2854:
+    ; do {
+    ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET) && (gamepad_buttons__RAM_C103 != 0)) {
+    ;        serial_io__keyboard_detected_status__RAM_C10A = KYBD_STATUS__NOT_FOUND  ; 0x00
+    ;        return;
+    ;     }
+    ;     serial_io__send_command_wait_reply_byte__3356("R")
+    ; } while (serial_reply != 'D')
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	cp   KYBD_STATUS__UNSET  ; $02
+	jr   nz, .serial_io__send_cmd_R_todo__2866
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
-	jr   z, serial_io__send_cmd_unknown_todo__2866
-	xor  a
-	ld   [_RAM_C10A_], a
+	jr   z, .serial_io__send_cmd_R_todo__2866
+	xor  a  ; = KYBD_STATUS__NOT_FOUND
+	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 	ret
 
-; TODO: Not sure what feature uses this
-serial_io__send_cmd_unknown_todo__2866:
-	ld   a, WORKBOY_CMD_R_TODO  ; $52
-	call serial_io__send_command_wait_reply_byte__3356
-	cp   $44
-	jr   nz, _LABEL_2854_
-	ld   a, $01
-	ld   [_RAM_C10A_], a
+    .serial_io__send_cmd_R_todo__2866:
+    	ld   a, WORKBOY_CMD_R_TODO  ; $52
+    	call serial_io__send_command_wait_reply_byte__3356
+    	cp   WORKBOY_REPLY_D_TODO  ; $44
+        ; Loop again if Serial Reply wasn't "D"
+    	jr   nz, serial_io__startup_check__2854
+
+	ld   a, KYBD_STATUS__OK  ; $01
+	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 	ld   de, _RAM_C2AE_
 	ld   c, $15
     .LABEL_2879:
@@ -6743,74 +6773,74 @@ serial_io__send_cmd_unknown_todo__2866:
     	inc  de
     	dec  c
     	jr   nz, .LABEL_2879
-	call _LABEL_2916_
-	call _LABEL_2942_
-	call _LABEL_296E_
-	call _LABEL_2CED_
-_LABEL_288F_:
-	ld   a, [_RAM_C2B3_]
-	or   a
-	rl   a
-	rl   a
-	rl   a
-	and  $03
-	ld   c, a
-	ld   a, [_RAM_C2BD_]
-	add  c
-	ld   [_RAM_C13A_], a
-	ld   a, [_RAM_C2B3_]
-	and  $30
-	call _LABEL_2909_
-	add  a
-	ld   e, a
-	add  a
-	add  a
-	add  e
-	ld   e, a
-	ld   a, [_RAM_C2B3_]
-	and  $0F
-	add  e
-	ld   [_RAM_C139_], a
-	ld   a, [_RAM_C2B4_]
-	ld   e, a
-	and  $0F
-	bit  4, e
-	jr   z, _LABEL_28C6_
-	add  $0A
-_LABEL_28C6_:
-	ld   [_RAM_C138_], a
-	ld   a, [_RAM_C2B4_]
-	and  $E0
-	or   a
-	rr   a
-	call _LABEL_2909_
-	ld   [_RAM_C137_], a
-	ld   [_RAM_C304_], a
-	ld   a, [_RAM_C139_]
-	ld   e, a
-	ld   a, [_RAM_C137_]
-_LABEL_28E1_:
-	dec  e
-	jr   z, _LABEL_28ED_
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_28E1_
-	ld   a, $06
-	jr   _LABEL_28E1_
+    	call _LABEL_2916_
+    	call _LABEL_2942_
+    	call _LABEL_296E_
+    	call _LABEL_2CED_
+    _LABEL_288F_:
+    	ld   a, [_RAM_C2B3_]
+    	or   a
+    	rl   a
+    	rl   a
+    	rl   a
+    	and  $03
+    	ld   c, a
+    	ld   a, [_RAM_C2BD_]
+    	add  c
+    	ld   [_RAM_C13A_], a
+    	ld   a, [_RAM_C2B3_]
+    	and  $30
+    	call _LABEL_2909_
+    	add  a
+    	ld   e, a
+    	add  a
+    	add  a
+    	add  e
+    	ld   e, a
+    	ld   a, [_RAM_C2B3_]
+    	and  $0F
+    	add  e
+    	ld   [_RAM_C139_], a
+    	ld   a, [_RAM_C2B4_]
+    	ld   e, a
+    	and  $0F
+    	bit  4, e
+    	jr   z, _LABEL_28C6_
+    	add  $0A
+    _LABEL_28C6_:
+    	ld   [_RAM_C138_], a
+    	ld   a, [_RAM_C2B4_]
+    	and  $E0
+    	or   a
+    	rr   a
+    	call _LABEL_2909_
+    	ld   [_RAM_C137_], a
+    	ld   [_RAM_C304_], a
+    	ld   a, [_RAM_C139_]
+    	ld   e, a
+    	ld   a, [_RAM_C137_]
+    _LABEL_28E1_:
+    	dec  e
+    	jr   z, _LABEL_28ED_
+    	dec  a
+    	cp   $FF
+    	jr   nz, _LABEL_28E1_
+    	ld   a, $06
+    	jr   _LABEL_28E1_
 
-_LABEL_28ED_:
-	ld   [_RAM_C137_], a
-	ld   a, [_RAM_C139_]
-	or   a
-	jp   z, _LABEL_2D4E_
-	cp   $20
-	jp   nc, _LABEL_2D4E_
-	ld   a, [_RAM_C138_]
-	or   a
-	jp   z, _LABEL_2D4E_
-	cp   $0D
-	jp   nc, _LABEL_2D4E_
-	ret
+    _LABEL_28ED_:
+    	ld   [_RAM_C137_], a
+    	ld   a, [_RAM_C139_]
+    	or   a
+    	jp   z, _LABEL_2D4E_
+    	cp   $20
+    	jp   nc, _LABEL_2D4E_
+    	ld   a, [_RAM_C138_]
+    	or   a
+    	jp   z, _LABEL_2D4E_
+    	cp   $0D
+    	jp   nc, _LABEL_2D4E_
+    	ret
 
 _LABEL_2909_:
 	or   a
@@ -7251,9 +7281,11 @@ _LABEL_2B5C_:
 _LABEL_2B7D_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_RAM_C10A_]
-	or   a
+    ; Return if keyboard is not connected
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; == KYBD_STATUS__NOT_FOUND
 	ret  z
+
 	ld   a, [_SRAM_231_]
 	or   a
 	ret  z
@@ -7564,8 +7596,13 @@ _LABEL_2D13_:
 	ret
 
 ; Data from 2D29 to 2D47 (31 bytes)
-db $54, $69, $6D, $65, $2F, $44, $61, $74, $65, $20, $57, $72, $6F, $6E, $67, $00
-db $42, $61, $74, $74, $65, $72, $69, $65, $73, $20, $6C, $6F, $77, $3F, $00
+; Popup Message Strings
+msg__timedate_wrong__2d92:
+db "Time/Date Wrong", $0
+msg__batteries_low__2d39:
+db "Batteries low?", $0
+; db $54, $69, $6D, $65, $2F, $44, $61, $74, $65, $20, $57, $72, $6F, $6E, $67, $00
+; db $42, $61, $74, $74, $65, $72, $69, $65, $73, $20, $6C, $6F, $77, $3F, $00
 
 ; Data from 2D48 to 2D4D (6 bytes)
 _DATA_2D48_:
@@ -7608,12 +7645,15 @@ _LABEL_2D89_:
 	dec  b
 	jr   nz, _LABEL_2D89_
 	call _LABEL_2722_
-	ld   de, $2D29
+
+    ; Show a message about low batteries and time being wrong
+	ld   de, msg__timedate_wrong__2d92  ; $2D29
 	ld   hl, (_TILEMAP0 + $60)
 	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   de, $2D39
+	ld   de, msg__batteries_low__2d39 ; $2D39
 	ld   hl, (_TILEMAP0 + $80)
 	rst  $28	; COPY_STRING_VRAM__RST_28
+
 _LABEL_2DA2_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	inc  a
@@ -7655,7 +7695,7 @@ _LABEL_2DC8_:
 	jr   nz, _LABEL_2DEA_
 	ld   hl, $FFFE
 	ld   sp, hl
-	jp   _LABEL_10C3_
+	jp   alt_menu__show_when_no_keyboard_found__10C3
 
 _LABEL_2DEA_:
 	call _LABEL_2722_
@@ -7830,7 +7870,7 @@ _LABEL_2F41_:
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   de, _DATA_1DC62_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call _LABEL_F68_
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
@@ -7846,7 +7886,7 @@ _LABEL_2F64_:
 	ld   a, [_RAM_C399_]
 	cp   c
 	jr   z, _LABEL_2F7B_
-	ld   a, [_RAM_C27D_]
+	ld   a, [gfx__rBGP_cache__RAM_C27D]
 	ld   b, $07
 _LABEL_2F74_:
 	dec  b
@@ -8355,7 +8395,7 @@ serial_io__poll_keyboard__3278:
     	ld   sp, hl
     	ld   a, $1B
     	ldh  [rBGP], a
-    	ld   [_RAM_C27D_], a
+    	ld   [gfx__rBGP_cache__RAM_C27D], a
     	ld   a, $D2
     	ldh  [rOBP0], a
     	ld   a, c
@@ -8423,11 +8463,12 @@ delay_2_94msec__334A:
 serial_io__send_command_wait_reply_byte__3356:
 	push bc
 	ld   c, a
-    ; TODO: Check for something and skip serial keyboard poll request if NOT set
-	ld   a, [_RAM_C10A_]
-	or   a
+    ; If keyboard is connected send the poll request, otherwise skip sending and return
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; != KYBD_STATUS__NOT_FOUND
 	jr   nz, .send_command_and_wait_reply__3361
-	dec  a
+
+	dec  a  ; Likely returning: WORKBOY_SCAN_KEY_NONE (0xFF) due to keyboard not present
 	pop  bc
 	ret
 
@@ -8478,12 +8519,15 @@ app_calculator__launch__338A:
 	call _LABEL_3918_
 	ld   bc, $5830
 	call _LABEL_2044_
-	ld   a, [_RAM_C10A_]
-	or   a
-	jr   z, _LABEL_33A9_
-	ld   a, $FF
-	ldh  [rOBP0], a
-_LABEL_33A9_:
+
+    ; If keyboard is not connected, skip setting the OBJ/sprite palette
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; == KYBD_STATUS__NOT_FOUND
+	jr   z, .skip_setting_rOBP0__33A9
+    	ld   a, $FF
+    	ldh  [rOBP0], a
+
+    .skip_setting_rOBP0__33A9:
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	jp   _LABEL_B9F0_
@@ -9203,27 +9247,30 @@ _LABEL_395D_:
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	pop  de
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	jp   gfx__turn_on_screen_bg_obj__2540
 
-_LABEL_3969_:
+
+gfx__copy_tilemap_screen_from_DE__3969:
 	ld   hl, _TILEMAP0
-	ld   b, $12
-_LABEL_396E_:
+	ld   b, _TILEMAP_SCREEN_HEIGHT ; $12
+gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E:
 	push bc
-	ld   b, $14
-_LABEL_3971_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_3971_
-	ld   c, $0C
+	ld   b, _TILEMAP_SCREEN_WIDTH ; $14
+    .copy_tilemap_row_loop__3971:
+    	ld   a, [de]
+    	ldi  [hl], a
+    	inc  de
+    	dec  b
+    	jr   nz, .copy_tilemap_row_loop__3971
+    ; Skip to start of next tilemap Row
+	ld   c, (_TILEMAP_WIDTH - _TILEMAP_SCREEN_WIDTH) ; $0C (32 - 20)
 	add  hl, bc
 	pop  bc
 	dec  b
-	jr   nz, _LABEL_396E_
+	jr   nz, gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E
 	ret
+
 
 ; Data from 397F to 398D (15 bytes)
 db $DF, $FA, $B0, $C3, $B7, $28, $F9, $C9, $FA, $B0, $C3, $B7, $20, $FA, $C9
@@ -13569,9 +13616,11 @@ db $40, $80, $50, $80, $60, $80, $70, $80, $30, $90, $40, $90, $50, $90, $60, $9
 db $70, $90
 
 _LABEL_B145_:
-	ld   a, [_RAM_C10A_]
-	or   a
+    ; Return if keyboard is not connected
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; == KYBD_STATUS__NOT_FOUND
 	ret  z
+
 	ld   a, [_RAM_C595_]
 	or   a
 	ret  z
@@ -14896,9 +14945,11 @@ _LABEL_BA05_:
 _LABEL_BA26_:
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_B145_
-	ld   a, [_RAM_C10A_]
-	or   a
-	jr   nz, _LABEL_BA41_
+
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; != KYBD_STATUS__NOT_FOUND
+	jr   nz, .skip_something_if_keyboard_connected__BA41
+
 	ld   a, [_RAM_C258_]
 	ld   c, a
 	ld   a, [_RAM_C259_]
@@ -14906,13 +14957,16 @@ _LABEL_BA26_:
 	ld   a, [_RAM_C25A_]
 	ld   e, a
 	call _LABEL_1504_
-_LABEL_BA41_:
+
+    .skip_something_if_keyboard_connected__BA41:
 	rst  $18	; Call VSYNC__RST_18
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	push af
-	ld   a, [_RAM_C10A_]
-	or   a
+
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; != KYBD_STATUS__NOT_FOUND
 	jr   nz, _LABEL_BA56_
+
 	ld   a, [_RAM_C592_]
 	or   a
 	jr   z, _LABEL_BA56_
@@ -15451,9 +15505,11 @@ _LABEL_BDFB_:
 _LABEL_BE02_:
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_B145_
-	ld   a, [_RAM_C10A_]
-	or   a
-	jr   nz, _LABEL_BE1D_
+
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; != KYBD_STATUS__NOT_FOUND
+	jr   nz, .skip_something_if_keyboard_connected__BE1D
+
 	ld   a, [_RAM_C258_]
 	ld   c, a
 	ld   a, [_RAM_C259_]
@@ -15461,13 +15517,15 @@ _LABEL_BE02_:
 	ld   a, [_RAM_C25A_]
 	ld   e, a
 	call _LABEL_1504_
-_LABEL_BE1D_:
+
+    .skip_something_if_keyboard_connected__BE1D:
 	rst  $18	; Call VSYNC__RST_18
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	push af
-	ld   a, [_RAM_C10A_]
-	or   a
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; != KYBD_STATUS__NOT_FOUND
 	jr   nz, _LABEL_BE32_
+
 	ld   a, [_RAM_C592_]
 	or   a
 	jr   z, _LABEL_BE32_
@@ -18321,7 +18379,7 @@ _LABEL_D358_:
 
 _LABEL_D386_:
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $009D
 	call _LABEL_1D2D_
@@ -18468,7 +18526,7 @@ _LABEL_D459_:
 	call _LABEL_D386_
 	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $009E
 	call _LABEL_1D2D_
@@ -18758,7 +18816,7 @@ gfx__title_screen_copy_text_D6D6_:
 _LABEL_D714_:
 	call _LABEL_41B_
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00A0
 	call _LABEL_1D2D_
@@ -19477,7 +19535,7 @@ _LABEL_DDD9_:
 	jp   z, _LABEL_DE1C_
 	call _LABEL_41B_
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00A5
 	call _LABEL_1D2D_
@@ -19502,7 +19560,7 @@ _LABEL_DE14_:
 _LABEL_DE1C_:
 	call _LABEL_41B_
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, _RAM_C283_
 	ld   b, $14
@@ -19583,7 +19641,7 @@ _LABEL_DEB4_:
 _LABEL_DEBA_:
 	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, _RAM_D06C_
 	ld   e, [hl]
@@ -19786,7 +19844,7 @@ _LABEL_DFEE_:
 _LABEL_E026_:
 	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00AC
 	call _LABEL_1D2D_
@@ -20380,21 +20438,24 @@ _LABEL_E43A_:
 	ret
 
 _LABEL_E444_:
-	ld   a, [_RAM_C10A_]
-	or   a
-	jr   z, _LABEL_E45C_
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   hl, _SRAM_1F5_
-	ld   de, _DATA_E42A_
-	ld   b, $04
-_LABEL_E456_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_E456_
-_LABEL_E45C_:
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; == KYBD_STATUS__NOT_FOUND
+	jr   z, .skip_copy_to_sram_if_keyboard_not_connected__E45C
+
+        ; Copy 4 bytes of data from _DATA_E42A_ to SRAM Bank 0 _SRAM_1F5_
+    	xor  a
+    	call mbc_sram_ON_set_srambank_to_A__0BB1
+    	ld   hl, _SRAM_1F5_
+    	ld   de, _DATA_E42A_
+    	ld   b, $04
+        .copy_to_sram_loop__E456:
+        	ld   a, [de]
+        	inc  de
+        	ldi  [hl], a
+        	dec  b
+        	jr   nz, .copy_to_sram_loop__E456
+
+    .skip_copy_to_sram_if_keyboard_not_connected__E45C:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
@@ -20416,9 +20477,12 @@ _LABEL_E45C_:
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	inc  a
 	ld   [_SRAM_9EF_], a
-	ld   a, [_RAM_C10A_]
-	or   a
+
+    ; Return if keyboard not connected
+	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+	or   a  ; == KYBD_STATUS__NOT_FOUND
 	ret  z
+
 	ld   a, $03
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
@@ -20947,7 +21011,7 @@ _LABEL_E7EF_:
 	call gfx__turn_off_screen_2827
 	call _LABEL_B99_
 	ld   de, _DATA_F40C_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BA
 	call _LABEL_1D2D_
@@ -21121,7 +21185,7 @@ _LABEL_E95A_:
 	call gfx__turn_off_screen_2827
 	call _LABEL_B99_
 	ld   de, _DATA_F40C_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BC
 	call _LABEL_1D2D_
@@ -21963,7 +22027,7 @@ _LABEL_F74D_:
 	ld   [_RAM_C399_], a
 	call gfx__turn_off_screen_2827
 	ld   de, _DATA_1E9B_
-	call _LABEL_3969_
+	call gfx__copy_tilemap_screen_from_DE__3969
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00E1
 	call _LABEL_1D2D_
