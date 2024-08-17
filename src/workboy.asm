@@ -284,20 +284,20 @@ SECTION "wram_c2a9", WRAM0[$C2A9]
 _RAM_C2A9_: db
 
 SECTION "wram_c2ae", WRAM0[$C2AE]
-_RAM_C2AE_: db
+time__buffer_21_bytes__maybe__RAM_C2AE: db
 
 SECTION "wram_c2b0", WRAM0[$C2B0]
-_RAM_C2B0_: db
-_RAM_C2B1_: db
-_RAM_C2B2_: db
-_RAM_C2B3_: db
-_RAM_C2B4_: db
+time__seconds__maybe__RAM_C2B0: db
+time__minutes__maybe__RAM_C2B1: db
+time__hours__maybe__RAM_C2B2: db
+time__days__maybe__RAM_C2B3: db
+time__month__maybe__RAM_C2B4: db
 
 SECTION "wram_c2b6", WRAM0[$C2B6]
 _RAM_C2B6_: db
 
 SECTION "wram_c2bd", WRAM0[$C2BD]
-_RAM_C2BD_: db
+time__year__maybe__RAM_C2BD: db
 
 SECTION "wram_c304", WRAM0[$C304]
 _RAM_C304_: db
@@ -961,12 +961,18 @@ startup_init__0150:
 	ld   [_RAM_C10E_], a
 	ld   a, KYBD_STATUS__UNSET  ; $02
 	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+    ; Skips the keyboard startup check which sets
+    ; serial_io__keyboard_detected_status__RAM_C10A
+    ; to either KYBD_STATUS__OK or KYBD_STATUS__NOT_FOUND
+    ;
+    ; Instead it's left at KYBD_STATUS__UNSET which passes
+    ; most of the != 0 tests later in the code
     IF (DEF(DEBUG_SKIP_WORKBOY_STARTUP_CHECK))
         nop
         nop
         nop
     ELSE
-    	call serial_io__startup_check__2854
+    	call serial_io__startup_check_and_read_rtc__2854
     ENDC
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	ld   a, $FF
@@ -2233,7 +2239,7 @@ _LABEL_991_:
     ; 5. _LABEL_D714_+$05d ($03:$5771)
     ; 6. _LABEL_200_+$067 ($00:$0267)
     .loop_serial_command_until_valid_reply_byte__09C3:
-    	call serial_io__send_etc_todo_unknown_0E6C
+    	call serial_io__send_maybe_rtc_etc_todo__0E6C
         ; Check returned serial byte, return if zero
         ; also return if blank/unset (0xFF)
     	or   a
@@ -2885,7 +2891,7 @@ _LABEL_DE6_:
 	rst  $20	; _LABEL_20_
 	call _LABEL_E05_
 _LABEL_DF3_:
-	call serial_io__send_etc_todo_unknown_0E6C
+	call serial_io__send_maybe_rtc_etc_todo__0E6C
 	or   a
 	jr   z, _LABEL_DF3_
 	cp   $FF
@@ -2911,7 +2917,7 @@ _LABEL_E05_:
 	ldi  [hl], a
 	ld   a, [_RAM_C702_]
 	and  $03
-	call _LABEL_F2C_
+	call util__upshift_A_by_4__0F2C
 	add  a
 	add  a
 	ld   c, a
@@ -2928,12 +2934,12 @@ _LABEL_E38_:
 	add  c
 	ld   c, a
 	ld   a, b
-	call _LABEL_F2C_
+	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
 	ld   a, [_RAM_C304_]
 	inc  a
-	call _LABEL_F2C_
+	call util__upshift_A_by_4__0F2C
 	add  a
 	ld   c, a
 	ld   a, [_RAM_C701_]
@@ -2960,16 +2966,16 @@ _LABEL_E5C_:
 _LABEL_E65_:
 	ld   c, a
 	ld   a, b
-	call _LABEL_F2C_
+	call util__upshift_A_by_4__0F2C
 	add  c
 	ret
 
 
 ; So far have only seen this called when setting the "Home" city/country location
 ; Main Menu -> S icon (middle of bottom row) -> Set Home -> Select country -> press "S" key to save
-serial_io__send_etc_todo_unknown_0E6C:
+serial_io__send_maybe_rtc_etc_todo__0E6C:
 	ld   a, WORKBOY_CMD_W_TODO ; $57
-	call serial_io__send_command_wait_reply_byte__3356
+	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
     ; Check returned serial byte, return if zero
     ; also return if blank/unset (0xFF)
 	or   a
@@ -2982,7 +2988,7 @@ serial_io__send_etc_todo_unknown_0E6C:
     ; TODO: Maybe it's polling for a "Ready" response
     .loop_request_serial_until_valid_reply_byte__0E76:
     	ld   a, WORKBOY_CMD_TODO_0  ; $00
-    	call serial_io__send_command_wait_reply_byte__3356
+    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
     	or   a
     	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
     	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
@@ -2992,66 +2998,73 @@ serial_io__send_etc_todo_unknown_0E6C:
     ; shortly after the call below to 0x0EB1
     ; The return value of A is also ignored?
 	ld   a, [_DATA_84_]
-	ld   [_RAM_C2AE_], a
+	ld   [time__buffer_21_bytes__maybe__RAM_C2AE], a
 	call _LABEL_EB1_
 
+    ; Prepare to send 21 bytes of RTC data from a buffer
     ; Send 21 bytes starting at _RAM_C2A9_ out over Serial IO
 	ld   de, _RAM_C2A9_
 	ld   c, 21  ; $15
-    .send_bytes_loop__0E90:
+    .serial_send_loop__0E90:
     	ld   a, [de]
     	inc  de
     	call serial_io__send_byte_and_wait_3msec__0B11
     	call delay_2_94msec__334A
     	dec  c
-    	jr   nz, .send_bytes_loop__0E90
+    	jr   nz, .serial_send_loop__0E90
 
-    ; Send the last byte from aboveWrite 21 bytes starting at _RAM_C2A9_ out over Serial IO
-    ._LABEL_E9B_:
-    	call serial_io__send_command_wait_reply_byte__3356
+    ; Send the last byte from above 21 bytes transfer starting at _RAM_C2A9_ out over Serial IO
+    ; Loop until serial reply byte is != 0 and != 0xFF
+    .serial_send_wait_valid_reply_loop__0E9B:
+    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
     	or   a
-    	jr   z, ._LABEL_E9B_
+    	jr   z, .serial_send_wait_valid_reply_loop__0E9B
     	cp   $FF
-    	jr   z, ._LABEL_E9B_
-    	call _LABEL_2916_
-    	call _LABEL_2942_
-    	call _LABEL_296E_
-    	ld   a, $01
-    	ret
+    	jr   z, .serial_send_wait_valid_reply_loop__0E9B
+
+	call _LABEL_2916_
+	call _LABEL_2942_
+	call _LABEL_296E_
+	ld   a, $01
+	ret
 
 _LABEL_EB1_:
-	ld   hl, _RAM_C2AE_
+	ld   hl, time__buffer_21_bytes__maybe__RAM_C2AE
 	ld   [hl], $04
 	inc  hl
 	ld   [hl], $00
 	inc  hl
+
 	ld   a, [_RAM_C3A0_]
-	sub  $30
+	sub  $30  ; -= 48  ("0")
 	ld   c, a
 	ld   a, [_RAM_C39F_]
-	sub  $30
-	call _LABEL_F2C_
+	sub  $30  ; -= 48  ("0")
+	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
+
 	ld   a, [_RAM_C39E_]
-	sub  $30
+	sub  $30  ; -= 48  ("0")
 	ld   c, a
 	ld   a, [_RAM_C39D_]
-	sub  $30
-	call _LABEL_F2C_
+	sub  $30  ; -= 48  ("0")
+	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
+
 	ld   a, [_RAM_C39C_]
-	sub  $30
+	sub  $30  ; -= 48  ("0")
 	ld   c, a
 	ld   a, [_RAM_C39B_]
-	sub  $30
-	call _LABEL_F2C_
+	sub  $30  ; -= 48  ("0")
+	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
+
 	ld   a, [_RAM_C13A_]
 	and  $03
-	call _LABEL_F2C_
+	call util__upshift_A_by_4__0F2C
 	add  a
 	add  a
 	ld   c, a
@@ -3069,11 +3082,11 @@ _LABEL_EB1_:
     	add  c
     	ld   c, a
     	ld   a, b
-    	call _LABEL_F2C_
+    	call util__upshift_A_by_4__0F2C
     	add  c
     	ldi  [hl], a
     	ld   a, [_RAM_C304_]
-    	call _LABEL_F2C_
+    	call util__upshift_A_by_4__0F2C
     	add  a
     	ld   c, a
     	ld   a, [_RAM_C138_]
@@ -3089,14 +3102,14 @@ _LABEL_EB1_:
     	ldi  [hl], a
     	ld   a, [_RAM_C13A_]
     	and  $FC
-    	ld   [_RAM_C2BD_], a
+    	ld   [time__year__maybe__RAM_C2BD], a
     	ret
 
-    _LABEL_F2C_:
-    	add  a
-    	add  a
-    	add  a
-    	add  a
+    util__upshift_A_by_4__0F2C:
+    	add  a ; x 2
+    	add  a ; x 4
+    	add  a ; x 8
+    	add  a ; x 16
 	ret
 
 ; Data from F31 to F31 (1 bytes)
@@ -6737,58 +6750,65 @@ app_currency__launch__2845:
 	jp   _LABEL_D459_
 
 
-serial_io__startup_check__2854:
+serial_io__startup_check_and_read_rtc__2854:
     ; do {
     ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET) && (gamepad_buttons__RAM_C103 != 0)) {
     ;        serial_io__keyboard_detected_status__RAM_C10A = KYBD_STATUS__NOT_FOUND  ; 0x00
     ;        return;
     ;     }
-    ;     serial_io__send_command_wait_reply_byte__3356("R")
+    ;     serial_io__send_command_A_wait_reply_byte_result_in_A__3356("R")
     ; } while (serial_reply != 'D')
 	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
 	cp   KYBD_STATUS__UNSET  ; $02
 	jr   nz, .serial_io__send_cmd_R_todo__2866
+
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   z, .serial_io__send_cmd_R_todo__2866
+
 	xor  a  ; = KYBD_STATUS__NOT_FOUND
 	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 	ret
 
     .serial_io__send_cmd_R_todo__2866:
     	ld   a, WORKBOY_CMD_R_TODO  ; $52
-    	call serial_io__send_command_wait_reply_byte__3356
+    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
     	cp   WORKBOY_REPLY_D_TODO  ; $44
         ; Loop again if Serial Reply wasn't "D"
-    	jr   nz, serial_io__startup_check__2854
+    	jr   nz, serial_io__startup_check_and_read_rtc__2854
 
+    ; Keyboard detected, flag is as connected
 	ld   a, KYBD_STATUS__OK  ; $01
 	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
-	ld   de, _RAM_C2AE_
-	ld   c, $15
-    .LABEL_2879:
+
+    ; Prepare to receive 21 bytes of RTC data into RTC buffer
+    ; Rx bytes are in ascii hex, one nybble per character
+	ld   de, time__buffer_21_bytes__maybe__RAM_C2AE
+	ld   c, 21 ; $15  ; Read 21 Bytes from serial
+    .serial_read_loop__2879:
     	ld   a, $00
-    	call _LABEL_29E3_
+    	call serial_io__read_byte_conv_ascii_to_hex_ret_A__29E3
     	ld   [de], a
     	inc  de
     	dec  c
-    	jr   nz, .LABEL_2879
-    	call _LABEL_2916_
-    	call _LABEL_2942_
-    	call _LABEL_296E_
-    	call _LABEL_2CED_
+    	jr   nz, .serial_read_loop__2879
+
+	call _LABEL_2916_
+	call _LABEL_2942_
+	call _LABEL_296E_
+	call _LABEL_2CED_
     _LABEL_288F_:
-    	ld   a, [_RAM_C2B3_]
+    	ld   a, [time__days__maybe__RAM_C2B3]
     	or   a
     	rl   a
     	rl   a
     	rl   a
     	and  $03
     	ld   c, a
-    	ld   a, [_RAM_C2BD_]
+    	ld   a, [time__year__maybe__RAM_C2BD]
     	add  c
     	ld   [_RAM_C13A_], a
-    	ld   a, [_RAM_C2B3_]
+    	ld   a, [time__days__maybe__RAM_C2B3]
     	and  $30
     	call _LABEL_2909_
     	add  a
@@ -6797,11 +6817,11 @@ serial_io__startup_check__2854:
     	add  a
     	add  e
     	ld   e, a
-    	ld   a, [_RAM_C2B3_]
+    	ld   a, [time__days__maybe__RAM_C2B3]
     	and  $0F
     	add  e
     	ld   [_RAM_C139_], a
-    	ld   a, [_RAM_C2B4_]
+    	ld   a, [time__month__maybe__RAM_C2B4]
     	ld   e, a
     	and  $0F
     	bit  4, e
@@ -6809,7 +6829,7 @@ serial_io__startup_check__2854:
     	add  $0A
     _LABEL_28C6_:
     	ld   [_RAM_C138_], a
-    	ld   a, [_RAM_C2B4_]
+    	ld   a, [time__month__maybe__RAM_C2B4]
     	and  $E0
     	or   a
     	rr   a
@@ -6854,7 +6874,7 @@ _LABEL_2909_:
 	ret
 
 _LABEL_2916_:
-	ld   a, [_RAM_C2B0_]
+	ld   a, [time__seconds__maybe__RAM_C2B0]
 	and  $F0
 	call _LABEL_2909_
 	ld   b, a
@@ -6871,7 +6891,7 @@ _LABEL_292A_:
 	ld   a, b
 	add  $30
 	ld   [_RAM_C39F_], a
-	ld   a, [_RAM_C2B0_]
+	ld   a, [time__seconds__maybe__RAM_C2B0]
 	and  $0F
 	ld   b, a
 	add  c
@@ -6882,7 +6902,7 @@ _LABEL_292A_:
 	ret
 
 _LABEL_2942_:
-	ld   a, [_RAM_C2B1_]
+	ld   a, [time__minutes__maybe__RAM_C2B1]
 	and  $F0
 	call _LABEL_2909_
 	ld   b, a
@@ -6899,7 +6919,7 @@ _LABEL_2956_:
 	ld   a, b
 	add  $30
 	ld   [_RAM_C39D_], a
-	ld   a, [_RAM_C2B1_]
+	ld   a, [time__minutes__maybe__RAM_C2B1]
 	and  $0F
 	ld   b, a
 	add  c
@@ -6910,7 +6930,7 @@ _LABEL_2956_:
 	ret
 
 _LABEL_296E_:
-	ld   a, [_RAM_C2B2_]
+	ld   a, [time__hours__maybe__RAM_C2B2]
 	and  $30
 	call _LABEL_2909_
 	ld   b, a
@@ -6927,7 +6947,7 @@ _LABEL_2982_:
 	ld   a, b
 	add  $30
 	ld   [_RAM_C39B_], a
-	ld   a, [_RAM_C2B2_]
+	ld   a, [time__hours__maybe__RAM_C2B2]
 	and  $0F
 	ld   b, a
 	add  c
@@ -7002,28 +7022,40 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 	ret
 
 
-_LABEL_29E3_:
+; Read 2 bytes over serial to obtain a single ascii coded hex byte
+; High nybble first, then Low nybble
+;
+; Rx bytes are in ascii hex, one nybble per character
+serial_io__read_byte_conv_ascii_to_hex_ret_A__29E3:
+    ; Read First serial byte (high nybble) & shift into upper nybble
 	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	call _LABEL_29FC
+	call ascii_to_hex_in_A_ret_A__29FC
 	sla  a
 	sla  a
 	sla  a
 	sla  a
 	push af
+    ; Read Second serial byte (low nybble) & OR with previously upper nybble
 	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	call _LABEL_29FC
+	call ascii_to_hex_in_A_ret_A__29FC
 	ld   b, a
 	pop  af
 	or   b
 	ret
 
-    _LABEL_29FC:
-    	sub  $30
-    	cp   $11
-    	jr   c, .skip_if_LABEL_2A04
-    	sub  $07
-    .skip_if_LABEL_2A04:
-	ret
+ascii_to_hex_in_A_ret_A__29FC:
+    ; Convert from Ascii encoded Hex char to decimal
+    ; Value -= '0'
+    ; If (Value < ('A' - '0')) return
+    ; else Value -= ('A' - ':'_
+    ;
+	sub  $30 ; -= 48  ("0")
+	cp   $11 ;  < 17   ('A' - '0')
+	jr   c, .skip_if_less_than_hex_A__2A04
+	sub  $07 ; -= 7    ('A' - ':'_
+.skip_if_less_than_hex_A__2A04:
+ret
+
 
 _LABEL_2A05_:
 	xor  a
@@ -8309,7 +8341,7 @@ serial_io__poll_keyboard__3278:
 	call nz, _LABEL_3241_
     ; Load keyboard key request and send it
 	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
-	call serial_io__send_command_wait_reply_byte__3356
+	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
     ; Check returned Key value, return if blank/unset
     ; Also make sure it's not zero
 	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
@@ -8460,7 +8492,7 @@ delay_2_94msec__334A:
 ; Sends command in A over serial IO
 ; - Resulting byte returned in A
 ; - If no reply or error will be WORKBOY_SCAN_KEY_NONE (0xFF) or null value 0x00
-serial_io__send_command_wait_reply_byte__3356:
+serial_io__send_command_A_wait_reply_byte_result_in_A__3356:
 	push bc
 	ld   c, a
     ; If keyboard is connected send the poll request, otherwise skip sending and return
@@ -16620,7 +16652,7 @@ _LABEL_C5F3_:
 	ld   hl, $99E1
 	rst  $20	; _LABEL_20_
 _LABEL_C601_:
-	call serial_io__send_etc_todo_unknown_0E6C
+	call serial_io__send_maybe_rtc_etc_todo__0E6C
 	or   a
 	jr   z, _LABEL_C601_
 	cp   $FF
