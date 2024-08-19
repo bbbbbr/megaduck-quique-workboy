@@ -287,9 +287,9 @@ SECTION "wram_c2ae", WRAM0[$C2AE]
 time__buffer_21_bytes__maybe__RAM_C2AE: db
 
 SECTION "wram_c2b0", WRAM0[$C2B0]
-time__seconds__maybe__RAM_C2B0: db
-time__minutes__maybe__RAM_C2B1: db
-time__hours__maybe__RAM_C2B2: db
+time__seconds__BCD__RAM_C2B0: db
+time__minutes__BCD__RAM_C2B1: db
+time__hours__BCD__RAM_C2B2: db
 time__days__maybe__RAM_C2B3: db
 time__month__maybe__RAM_C2B4: db
 
@@ -331,16 +331,16 @@ SECTION "wram_c398", WRAM0[$C398]
 _RAM_C398_: db
 _RAM_C399_: db
 _RAM_C39A_: db
-_RAM_C39B_: db
-_RAM_C39C_: db
-_RAM_C39D_: db
-_RAM_C39E_: db
-_RAM_C39F_: db
-_RAM_C3A0_: db
-_RAM_C3A1_: db
-_RAM_C3A2_: db
-_RAM_C3A3_: db
-_RAM_C3A4_: db
+time__hours__high_digit_ascii__RAM_C39B: db
+time__hours__low_digit_ascii__RAM_C39C: db
+time__minutes__high_digit_ascii__RAM_C39D: db
+time__minutes__low_digit_ascii__RAM_C39E: db
+time__seconds__high_digit_ascii__RAM_C39F: db
+time__seconds__low_digit_ascii__RAM_C3A0: db
+time__seconds__decimal__RAM_C3A1: db
+time__minutes__decimal__RAM_C3A2: db
+time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3: db
+time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4: db
 _RAM_C3A5_: db
 _RAM_C3A6_: db
 _RAM_C3A7_: db
@@ -2204,7 +2204,7 @@ _LABEL_98B_:
 ; - send it out to keyboard to save?
 ; App->Control/Settings->Set Home-> Apply by pressing "S" keys ends up here
 _LABEL_991_:
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   hl, _RAM_C149_
 	ldi  a, [hl]
 	ld   [de], a
@@ -2265,7 +2265,7 @@ _LABEL_9ED_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_9ED_
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   hl, _RAM_C149_
 	ld   b, $03
 _LABEL_9F9_:
@@ -3022,9 +3022,9 @@ serial_io__send_maybe_rtc_etc_todo__0E6C:
     	cp   $FF
     	jr   z, .serial_send_wait_valid_reply_loop__0E9B
 
-	call _LABEL_2916_
-	call _LABEL_2942_
-	call _LABEL_296E_
+	call time__convert_from_BCD__seconds__2916
+	call time__convert_from_BCD__minutes__2942
+	call time__convert_from_BCD_and_something_TODO__hours__296E
 	ld   a, $01
 	ret
 
@@ -3035,28 +3035,28 @@ _LABEL_EB1_:
 	ld   [hl], $00
 	inc  hl
 
-	ld   a, [_RAM_C3A0_]
+	ld   a, [time__seconds__low_digit_ascii__RAM_C3A0]
 	sub  $30  ; -= 48  ("0")
 	ld   c, a
-	ld   a, [_RAM_C39F_]
+	ld   a, [time__seconds__high_digit_ascii__RAM_C39F]
 	sub  $30  ; -= 48  ("0")
 	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
 
-	ld   a, [_RAM_C39E_]
+	ld   a, [time__minutes__low_digit_ascii__RAM_C39E]
 	sub  $30  ; -= 48  ("0")
 	ld   c, a
-	ld   a, [_RAM_C39D_]
+	ld   a, [time__minutes__high_digit_ascii__RAM_C39D]
 	sub  $30  ; -= 48  ("0")
 	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
 
-	ld   a, [_RAM_C39C_]
+	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
 	sub  $30  ; -= 48  ("0")
 	ld   c, a
-	ld   a, [_RAM_C39B_]
+	ld   a, [time__hours__high_digit_ascii__RAM_C39B]
 	sub  $30  ; -= 48  ("0")
 	call util__upshift_A_by_4__0F2C
 	add  c
@@ -4002,7 +4002,7 @@ gfx__interleave_copy_tile_patterns__144C:
 _DATA_1478_:
 dw _DATA_14F0_
 
-; Pointer Table from 147A to 1499 (16 entries, indexed by _RAM_C3A2_)
+; Pointer Table from 147A to 1499 (16 entries, indexed by time__minutes__decimal__RAM_C3A2)
 dw _DATA_EA8C_, _DATA_EAAE_, _DATA_EAD0_, _DATA_EAF2_, _DATA_EB14_, _DATA_EB36_, _DATA_EB58_, _DATA_EB7A_
 dw _DATA_EB9C_, _DATA_EBBE_, _DATA_EBE0_, _DATA_EC02_, _DATA_EC24_, _DATA_EC46_, _DATA_EC68_, _DATA_EC8A_
 
@@ -6752,9 +6752,11 @@ app_currency__launch__2845:
 
 serial_io__startup_check_and_read_rtc__2854:
     ; do {
-    ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET) && (gamepad_buttons__RAM_C103 != 0)) {
-    ;        serial_io__keyboard_detected_status__RAM_C10A = KYBD_STATUS__NOT_FOUND  ; 0x00
-    ;        return;
+    ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET) 
+    ;          && (gamepad_buttons__RAM_C103 != 0)) {
+    ;
+    ;          serial_io__keyboard_detected_status__RAM_C10A = KYBD_STATUS__NOT_FOUND  ; 0x00
+    ;          return;
     ;     }
     ;     serial_io__send_command_A_wait_reply_byte_result_in_A__3356("R")
     ; } while (serial_reply != 'D')
@@ -6793,10 +6795,11 @@ serial_io__startup_check_and_read_rtc__2854:
     	dec  c
     	jr   nz, .serial_read_loop__2879
 
-	call _LABEL_2916_
-	call _LABEL_2942_
-	call _LABEL_296E_
+	call time__convert_from_BCD__seconds__2916
+	call time__convert_from_BCD__minutes__2942
+	call time__convert_from_BCD_and_something_TODO__hours__296E
 	call _LABEL_2CED_
+
     _LABEL_288F_:
     	ld   a, [time__days__maybe__RAM_C2B3]
     	or   a
@@ -6808,9 +6811,10 @@ serial_io__startup_check_and_read_rtc__2854:
     	ld   a, [time__year__maybe__RAM_C2BD]
     	add  c
     	ld   [_RAM_C13A_], a
+
     	ld   a, [time__days__maybe__RAM_C2B3]
     	and  $30
-    	call _LABEL_2909_
+    	call util__rr_downshift_A_by_4__2909
     	add  a
     	ld   e, a
     	add  a
@@ -6821,6 +6825,7 @@ serial_io__startup_check_and_read_rtc__2854:
     	and  $0F
     	add  e
     	ld   [_RAM_C139_], a
+
     	ld   a, [time__month__maybe__RAM_C2B4]
     	ld   e, a
     	and  $0F
@@ -6829,11 +6834,12 @@ serial_io__startup_check_and_read_rtc__2854:
     	add  $0A
     _LABEL_28C6_:
     	ld   [_RAM_C138_], a
+
     	ld   a, [time__month__maybe__RAM_C2B4]
     	and  $E0
     	or   a
     	rr   a
-    	call _LABEL_2909_
+    	call util__rr_downshift_A_by_4__2909
     	ld   [_RAM_C137_], a
     	ld   [_RAM_C304_], a
     	ld   a, [_RAM_C139_]
@@ -6862,7 +6868,8 @@ serial_io__startup_check_and_read_rtc__2854:
     	jp   nc, _LABEL_2D4E_
     	ret
 
-_LABEL_2909_:
+
+util__rr_downshift_A_by_4__2909:
 	or   a
 	rr   a
 	or   a
@@ -6873,116 +6880,180 @@ _LABEL_2909_:
 	rr   a
 	ret
 
-_LABEL_2916_:
-	ld   a, [time__seconds__maybe__RAM_C2B0]
+
+; Converts stored seconds in BCD format to Decimal and Ascii (saved to RAM)
+time__convert_from_BCD__seconds__2916:
+	ld   a, [time__seconds__BCD__RAM_C2B0]
+    ; Extract High BCD digit from seconds
 	and  $F0
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	ld   b, a
 	ld   e, a
 	or   a
-	jr   z, _LABEL_292A_
+    ; If (Seconds_BCD >> 4) == 0
+	jr   z, .seconds_high_BCD_digit_skip_multiply__292A
 	ld   a, $00
-_LABEL_2925_:
-	add  $0A
+    ; (Seconds_BCD >> 4) * 10
+    .multiply_A_by_ten_loop__2925:
+	add  10  ; $0A
 	dec  e
-	jr   nz, _LABEL_2925_
-_LABEL_292A_:
-	ld   c, a
+	jr   nz, .multiply_A_by_ten_loop__2925
+
+    .seconds_high_BCD_digit_skip_multiply__292A:
+	ld   c, a  ; C now has (Seconds_BCD >> 4) * 10
 	ld   a, b
-	add  $30
-	ld   [_RAM_C39F_], a
-	ld   a, [time__seconds__maybe__RAM_C2B0]
+    ; Convert High BCD Digit to ASCII
+    ; (Seconds_BCD >> 4) + 48
+	add  "0" ; 48  ; $30
+	ld   [time__seconds__high_digit_ascii__RAM_C39F], a
+
+    ; Extract Low BCD digit from seconds
+	ld   a, [time__seconds__BCD__RAM_C2B0]
+    ; (Seconds_BCD &= 0x0F)
 	and  $0F
 	ld   b, a
+    ; Seconds BCD converted to decimal
+    ; (Seconds_BCD &= 0x0F) + ((Seconds_BCD >> 4) * 10)
 	add  c
-	ld   [_RAM_C3A1_], a
+	ld   [time__seconds__decimal__RAM_C3A1], a
+
+    ; Convert Low BCD Digit to ASCII
 	ld   a, b
-	add  $30
-	ld   [_RAM_C3A0_], a
+	add  "0" ; 48  ; $30
+	ld   [time__seconds__low_digit_ascii__RAM_C3A0], a
 	ret
 
-_LABEL_2942_:
-	ld   a, [time__minutes__maybe__RAM_C2B1]
+
+; Converts stored minutes in BCD format to Decimal and Ascii (saved to RAM)
+time__convert_from_BCD__minutes__2942:
+	ld   a, [time__minutes__BCD__RAM_C2B1]
+    ; Extract High BCD digit from minutes
 	and  $F0
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	ld   b, a
 	ld   e, a
 	or   a
-	jr   z, _LABEL_2956_
+    ; If (Minutes_BCD >> 4) == 0
+	jr   z, .minutes_high_BCD_digit_skip_multiply__2956
 	ld   a, $00
-_LABEL_2951_:
-	add  $0A
+    ; (Minutes_BCD >> 4) * 10
+    .multiply_A_by_ten_loop__2951:
+	add  10  ; $0A
 	dec  e
-	jr   nz, _LABEL_2951_
-_LABEL_2956_:
-	ld   c, a
+	jr   nz, .multiply_A_by_ten_loop__2951
+
+    .minutes_high_BCD_digit_skip_multiply__2956:
+	ld   c, a  ; C now has (Minutes_BCD >> 4) * 10
 	ld   a, b
-	add  $30
-	ld   [_RAM_C39D_], a
-	ld   a, [time__minutes__maybe__RAM_C2B1]
+    ; Convert High BCD Digit to ASCII
+    ; (Minutes_BCD >> 4) + 48
+	add  "0" ; 48  ; $30
+	ld   [time__minutes__high_digit_ascii__RAM_C39D], a
+
+    ; Extract Low BCD digit from minutes
+	ld   a, [time__minutes__BCD__RAM_C2B1]
+    ; (Minutes_BCD &= 0x0F)
 	and  $0F
 	ld   b, a
+    ; minutes BCD converted to decimal
+    ; (Minutes_BCD &= 0x0F) + ((minutes_BCD >> 4) * 10)
 	add  c
-	ld   [_RAM_C3A2_], a
+	ld   [time__minutes__decimal__RAM_C3A2], a
+
+    ; Convert Low BCD Digit to ASCII
 	ld   a, b
-	add  $30
-	ld   [_RAM_C39E_], a
+	add  "0" ; 48  ; $30
+	ld   [time__minutes__low_digit_ascii__RAM_C39E], a
 	ret
 
-_LABEL_296E_:
-	ld   a, [time__hours__maybe__RAM_C2B2]
+
+; Converts stored hours in BCD format to Decimal and Ascii (saved to RAM)
+time__convert_from_BCD_and_something_TODO__hours__296E:
+	ld   a, [time__hours__BCD__RAM_C2B2]
+    ; Extract High BCD digit from hours
 	and  $30
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	ld   b, a
 	ld   e, a
 	or   a
-	jr   z, _LABEL_2982_
+    ; If (Hours_BCD >> 4) == 0
+	jr   z, .hours_high_BCD_digit_skip_multiply__2982
 	ld   a, $00
-_LABEL_297D_:
+    ; (Hours_BCD >> 4) * 10
+    .multiply_A_by_ten_loop__297D:
 	add  $0A
 	dec  e
-	jr   nz, _LABEL_297D_
-_LABEL_2982_:
-	ld   c, a
+	jr   nz, .multiply_A_by_ten_loop__297D
+
+    .hours_high_BCD_digit_skip_multiply__2982:
+	ld   c, a  ; C now has (Hours_BCD >> 4) * 10
 	ld   a, b
-	add  $30
-	ld   [_RAM_C39B_], a
-	ld   a, [time__hours__maybe__RAM_C2B2]
+    ; Convert High BCD Digit to ASCII
+    ; (Hours_BCD >> 4) + 48
+    add  "0" ; 48  ; $30
+	ld   [time__hours__high_digit_ascii__RAM_C39B], a
+
+    ; Extract Low BCD digit from hours
+	ld   a, [time__hours__BCD__RAM_C2B2]
 	and  $0F
+    ; (Hours_BCD &= 0x0F)
 	ld   b, a
-	add  c
+    ; Hours BCD converted to decimal x 5 (TODO: why x 5 ?)
+    ; ((Hours_BCD &= 0x0F) + ((Hours_BCD >> 4) * 10)) * 5
+    add  c
+    ; *= 5
 	ld   c, a
 	add  a
 	add  a
 	add  c
-	ld   [_RAM_C3A4_], a
+	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+
+    ; Convert Low BCD Digit to ASCII
 	ld   a, b
-	add  $30
-	ld   [_RAM_C39C_], a
-	ld   a, [_RAM_C3A2_]
+	add  "0" ; 48  ; $30
+	ld   [time__hours__low_digit_ascii__RAM_C39C], a
+
+
+; TODO: What is this
+;
+; -- divides hour up into 5 chunks of 12 min
+;    -- except it decrements on the same timescale as minutes
+;    -- Also stores hours x 5, and wraps that at 60 (which is 12 x 5)
+;
+; N = (Hours * 5) + trunc(Minutes / 12)
+; If (N >= 60) N -= 60 -> Save
+;
+; If (12 - (Minutes % 12)) -> Save
+;
+    ; C = trunc(Minutes / 12)
+    ; A = Minutes % 12
+	ld   a, [time__minutes__decimal__RAM_C3A2]
 	ld   c, $00
-_LABEL_29A2_:
-	cp   $0C
-	jr   c, _LABEL_29AB_
-	sub  $0C
-	inc  c
-	jr   _LABEL_29A2_
+    ._LABEL_29A2_:
+    	cp   12  ; $0C
+    	jr   c, .minute_less_than_12__29AB
+    	sub  12  ; $0C
+    	inc  c
+    	jr   ._LABEL_29A2_
 
-_LABEL_29AB_:
-	ld   b, a
-	ld   a, [_RAM_C3A4_]
-	add  c
-	ld   [_RAM_C3A4_], a
-	cp   $3C
-	jr   c, _LABEL_29BC_
-	sub  $3C
-	ld   [_RAM_C3A4_], a
-_LABEL_29BC_:
-	ld   a, $0C
+    .minute_less_than_12__29AB:
+	ld   b, a ; (Minutes % 12)
+
+	ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
+	add  c  ; (Hours * 5) + trunc(Minutes / 12)
+	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+    ; If ( >= 60) then -= 60
+	cp   60  ; $3C
+	jr   c, .hours_less_than_60__29BC
+	sub  60  ; $3C
+	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+
+    .hours_less_than_60__29BC:
+    ; 12 - (Minutes % 12)
+	ld   a, 12  ; $0C
 	sub  b
-	ld   [_RAM_C3A3_], a
+	ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
 	ret
-
 
 
 ; Sends out 0x00 and waits for non-0x00 and non-0xFF response
@@ -7594,24 +7665,24 @@ db $25, $21, $A0, $98, $11, $5C, $C3, $06, $03, $C5, $06, $14, $1A, $13, $22, $0
 db $20, $FA, $0E, $0C, $09, $C1, $05, $20, $F0, $C3, $F7, $25
 
 _LABEL_2CED_:
-	ld   a, [_RAM_C39B_]
+	ld   a, [time__hours__high_digit_ascii__RAM_C39B]
 	cp   $30
 	jr   c, _LABEL_2D4E_
 	cp   $33
 	jr   nc, _LABEL_2D4E_
 	cp   $32
 	jr   nz, _LABEL_2D03_
-	ld   a, [_RAM_C39C_]
+	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
 	cp   $35
 	jr   nc, _LABEL_2D4E_
 _LABEL_2D03_:
-	ld   a, [_RAM_C39C_]
+	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
 	cp   $30
 	jr   c, _LABEL_2D4E_
 	cp   $3A
 	jr   nc, _LABEL_2D4E_
 	ld   b, $02
-	ld   hl, _RAM_C39D_
+	ld   hl, time__minutes__high_digit_ascii__RAM_C39D
 _LABEL_2D13_:
 	ldi  a, [hl]
 	cp   $30
@@ -7642,7 +7713,7 @@ db $31, $32, $30, $30, $30, $30
 
 _LABEL_2D4E_:
 	ld   hl, _DATA_2D48_
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $06
 _LABEL_2D56_:
 	ldi  a, [hl]
@@ -7650,11 +7721,11 @@ _LABEL_2D56_:
 	inc  de
 	dec  b
 	jr   nz, _LABEL_2D56_
-	ld   a, $0C
-	ld   [_RAM_C3A4_], a
+	ld   a, 12  ; $0C
+	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
 	xor  a
-	ld   [_RAM_C3A2_], a
-	ld   [_RAM_C3A1_], a
+	ld   [time__minutes__decimal__RAM_C3A2], a
+	ld   [time__seconds__decimal__RAM_C3A1], a
 	ld   a, $5C
 	ld   [_RAM_C13A_], a
 	ld   a, $01
@@ -7992,42 +8063,56 @@ _LABEL_2FF7_:
 	ld   a, $3C
 	ld   [_RAM_C3A5_], a
 	call _LABEL_303F_
-	ld   a, [_RAM_C3A1_]
+    ; Seconds++
+	ld   a, [time__seconds__decimal__RAM_C3A1]
 	inc  a
-	cp   $3C
-	jr   nz, _LABEL_303B_
-	ld   a, $01
-	ld   [_RAM_C3A9_], a
-	ld   a, [_RAM_C3A2_]
-	inc  a
-	cp   $3C
-	jr   nz, _LABEL_301D_
-	xor  a
-_LABEL_301D_:
-	ld   [_RAM_C3A2_], a
-	ld   a, [_RAM_C3A3_]
-	dec  a
-	ld   [_RAM_C3A3_], a
-	jr   nz, _LABEL_303A_
-	ld   a, $0C
-	ld   [_RAM_C3A3_], a
-	ld   a, [_RAM_C3A4_]
-	inc  a
-	cp   $3C
-	jr   nz, _LABEL_3037_
-	xor  a
-_LABEL_3037_:
-	ld   [_RAM_C3A4_], a
-_LABEL_303A_:
-	xor  a
-_LABEL_303B_:
-	ld   [_RAM_C3A1_], a
+	cp   60  ; $3C
+	jr   nz, .seconds_no_60_rollover__303B
+        ; Seconds == 60
+    	ld   a, $01
+    	ld   [_RAM_C3A9_], a  ; TODO: Flag seconds rollover something...
+
+        ; Minutes++
+    	ld   a, [time__minutes__decimal__RAM_C3A2]
+    	inc  a
+    	cp   60  ; $3C
+    	jr   nz, .minutes_no_rollover__301D
+        	xor  a
+
+        .minutes_no_rollover__301D:
+    	ld   [time__minutes__decimal__RAM_C3A2], a
+
+        ; TODO
+        ; X--
+    	ld   a, [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3]
+    	dec  a
+    	ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
+    	jr   nz, .not_zero_skip_some_rollover_todo__303A_
+            ; if (X == 0) {
+            ;    X = 12
+            ;    Y++
+            ;    if (Y == 60) Y = 0
+        	ld   a, 12  ; $0C
+        	ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
+        	ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
+        	inc  a
+        	cp   60  ; $3C
+        	jr   nz, .not_zero_skip_another_rollover_todo__3037_
+        	xor  a
+            .not_zero_skip_another_rollover_todo__3037_:
+            	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+
+        .not_zero_skip_some_rollover_todo__303A_:
+    	xor  a
+
+    .seconds_no_60_rollover__303B:
+	ld   [time__seconds__decimal__RAM_C3A1], a
 	ret
 
 _LABEL_303F_:
 	ld   a, $01
 	ld   [_RAM_C3A7_], a
-	ld   hl, _RAM_C3A0_
+	ld   hl, time__seconds__low_digit_ascii__RAM_C3A0
 	ld   a, [hl]
 	inc  a
 	cp   $3A
@@ -8106,7 +8191,7 @@ _LABEL_309B_:
 	jp   vblank__cmd_default__25F7
 
 _LABEL_30A1_:
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   hl, $99E6
 	ld   b, $03
 _LABEL_30A9_:
@@ -8197,7 +8282,7 @@ _LABEL_319C_:
 	jr   _LABEL_319C_
 
 _LABEL_31A8_:
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $04
 _LABEL_31AD_:
 	ld   a, [de]
@@ -8302,7 +8387,7 @@ _LABEL_3251_:
 	push bc
 	push hl
 	ld   b, $04
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 _LABEL_3258_:
 	ld   a, [de]
 	inc  de
@@ -12958,7 +13043,7 @@ _LABEL_ACA8_:
 	ld   de, _SRAM_238_
 	add  hl, de
 	ld   a, [hl]
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	or   a
 	jr   nz, _LABEL_AD13_
 	ld   de, $2150
@@ -13154,7 +13239,7 @@ _LABEL_ADE4_:
 	jr   nz, _LABEL_AE22_
 	inc  hl
 	ld   a, [hl]
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	or   a
 	jr   z, _LABEL_AE6C_
 	push af
@@ -13573,7 +13658,7 @@ _LABEL_B08F_:
 	ld   hl, _DATA_B0FA_
 	ld   a, [_RAM_C259_]
 	sub  $52
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	ld   e, a
 	add  a
 	add  a
@@ -13582,7 +13667,7 @@ _LABEL_B08F_:
 	ld   d, $00
 	ld   a, [_RAM_C258_]
 	sub  $28
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	add  e
 	ld   e, a
 	add  hl, de
@@ -14549,7 +14634,7 @@ _LABEL_B6EE_:
 	dec  b
 	jr   nz, _LABEL_B6EE_
 	ld   a, [_RAM_C705_]
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	or   a
 	jr   nz, _LABEL_B706_
 	ld   de, $0049
@@ -16612,7 +16697,7 @@ _LABEL_C5AD_:
 	ld   de, $002E
 	rst  $20	; _LABEL_20_
 	ld   hl, _RAM_C261_
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $06
 _LABEL_C5BC_:
 	ld   a, [de]
@@ -16633,7 +16718,7 @@ _LABEL_C5BC_:
 	or   a
 	jr   nz, _LABEL_C5AD_
 	ld   hl, _RAM_C261_
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $06
 _LABEL_C5E7_:
 	ldi  a, [hl]
@@ -16729,7 +16814,7 @@ _LABEL_C7CA_:
 	ld   de, $0068
 	rst  $20	; _LABEL_20_
 	ld   hl, _RAM_C261_
-	ld   de, _RAM_C39B_
+	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $06
 _LABEL_C7D9_:
 	ld   a, [de]
@@ -18399,11 +18484,11 @@ _LABEL_D358_:
 	call _LABEL_D56A_
 	ld   a, [_RAM_C5CC_]
 	sub  $1E
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	ld   [_RAM_C5CA_], a
 	ld   a, [_RAM_C399_]
 	sub  $1E
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	ld   [_RAM_C5CB_], a
 	ld   a, $C8
 	ld   [_RAM_C399_], a
@@ -19309,7 +19394,7 @@ _LABEL_DC0E_:
 	cp   $0B
 	jr   nc, _LABEL_DC50_
 	ld   a, c
-	call _LABEL_2909_
+	call util__rr_downshift_A_by_4__2909
 	add  a
 	ld   hl, _DATA_D5FF_
 	add  l
@@ -21392,63 +21477,63 @@ _LABEL_EA84_:
 _LABEL_EA8B_:
 	ret
 
-; 1st entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 1st entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EA8C to EAAD (34 bytes)
 _DATA_EA8C_:
 db $04, $04, $01, $00, $00, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00, $00
 db $00, $00, $01
 ds 15, $00
 
-; 2nd entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 2nd entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EAAE to EACF (34 bytes)
 _DATA_EAAE_:
 db $04, $04, $02, $00, $00, $00, $00, $00, $00, $00, $03, $00, $00, $00, $00, $00
 db $00, $00, $04
 ds 15, $00
 
-; 3rd entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 3rd entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EAD0 to EAF1 (34 bytes)
 _DATA_EAD0_:
 db $04, $04, $05, $00, $00, $00, $00, $00, $00, $00, $06, $00, $00, $00, $00, $00
 db $00, $00, $07
 ds 15, $00
 
-; 4th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 4th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EAF2 to EB13 (34 bytes)
 _DATA_EAF2_:
 db $04, $04, $08, $00, $09, $00, $00, $00, $00, $00, $0A, $00, $00, $00, $00, $00
 db $00, $00, $0B
 ds 15, $00
 
-; 5th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 5th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EB14 to EB35 (34 bytes)
 _DATA_EB14_:
 db $04, $04, $0C, $00, $0D, $00, $00, $00, $00, $00, $0E, $00, $00, $00, $00, $00
 db $00, $00, $0F
 ds 15, $00
 
-; 6th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 6th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EB36 to EB57 (34 bytes)
 _DATA_EB36_:
 db $04, $04, $00, $00, $10, $00, $00, $00, $00, $00, $11, $00, $12, $00, $00, $00
 db $00, $00, $13
 ds 15, $00
 
-; 7th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 7th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EB58 to EB79 (34 bytes)
 _DATA_EB58_:
 db $04, $04, $00, $00, $14, $00, $00, $00, $00, $00, $15, $00, $16, $00, $00, $00
 db $00, $00, $17
 ds 15, $00
 
-; 8th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 8th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EB7A to EB9B (34 bytes)
 _DATA_EB7A_:
 db $04, $04, $00, $00, $18, $00, $19, $00, $00, $00, $1A, $00, $1B, $00, $00, $00
 db $00, $00, $1C
 ds 15, $00
 
-; 9th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 9th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EB9C to EBBD (34 bytes)
 _DATA_EB9C_:
 db $04, $04
@@ -21456,7 +21541,7 @@ ds 10, $00
 db $1D, $00, $1E, $00, $00, $00, $1F, $00, $18, $C0, $00, $00, $00, $00, $1A, $C0
 db $00, $00, $00, $00, $00, $00
 
-; 10th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 10th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EBBE to EBDF (34 bytes)
 _DATA_EBBE_:
 db $04, $04
@@ -21464,7 +21549,7 @@ ds 10, $00
 db $20, $00, $21, $00, $00, $00, $22, $00, $23, $00, $00, $00, $00, $00, $1A, $C0
 db $00, $00, $00, $00, $00, $00
 
-; 11th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 11th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EBE0 to EC01 (34 bytes)
 _DATA_EBE0_:
 db $04, $04
@@ -21472,7 +21557,7 @@ ds 10, $00
 db $24, $00, $25, $00, $00, $00, $26, $00, $27, $00, $00, $00, $00, $00, $1A, $C0
 db $00, $00, $00, $00, $00, $00
 
-; 12th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 12th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EC02 to EC23 (34 bytes)
 _DATA_EC02_:
 db $04, $04
@@ -21480,28 +21565,28 @@ ds 12, $00
 db $28, $00, $00, $00, $29, $00, $2A, $00, $2B, $00, $00, $00, $2C, $00, $00, $00
 db $00, $00, $00, $00
 
-; 13th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 13th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EC24 to EC45 (34 bytes)
 _DATA_EC24_:
 db $04, $04
 ds 16, $00
 db $2D, $00, $2E, $00, $2F, $00, $00, $00, $2C, $00, $00, $00, $00, $00, $00, $00
 
-; 14th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 14th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EC46 to EC67 (34 bytes)
 _DATA_EC46_:
 db $04, $04
 ds 16, $00
 db $30, $00, $31, $00, $32, $00, $00, $00, $33, $00, $00, $00, $00, $00, $00, $00
 
-; 15th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 15th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EC68 to EC89 (34 bytes)
 _DATA_EC68_:
 db $04, $04
 ds 16, $00
 db $34, $00, $35, $00, $36, $00, $00, $00, $37, $00, $00, $00, $00, $00, $00, $00
 
-; 16th entry of Pointer Table from 147A (indexed by _RAM_C3A2_)
+; 16th entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EC8A to EECB (578 bytes)
 _DATA_EC8A_:
 db $04, $04
@@ -22001,13 +22086,13 @@ db $9C, $C3, $18, $AF
 _LABEL_F6F7_:
 	xor  a
 	ld   [_RAM_C23E_], a
-	ld   a, [_RAM_C3A4_]
+	ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
 	call _LABEL_30B8_
-	ld   a, [_RAM_C3A2_]
+	ld   a, [time__minutes__decimal__RAM_C3A2]
 	call _LABEL_F712_
 	ld   a, $10
 	ld   [_RAM_C23E_], a
-	ld   a, [_RAM_C3A1_]
+	ld   a, [time__seconds__decimal__RAM_C3A1]
 	jp   _LABEL_F712_
 
 _LABEL_F712_:
