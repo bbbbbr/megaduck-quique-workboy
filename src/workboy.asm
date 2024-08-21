@@ -1464,7 +1464,7 @@ _LABEL_498_:
 	ld   a, $01
 	ld   [_RAM_C117_], a
 	call _LABEL_3EF_
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	call _LABEL_64E_
 	ld   bc, $FFE4
 	ld   e, $70
@@ -2733,7 +2733,7 @@ _LABEL_CDA_:
 _LABEL_CEE_:
 	ld   [_RAM_C10C_], a
 	call _LABEL_3EF_
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	call _LABEL_62C_
 	ld   bc, $FFE4
 	ld   e, $70
@@ -3530,7 +3530,7 @@ _LABEL_11A5_:
 _LABEL_11B2_:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	ld   a, $02
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
 	dec  a
@@ -6531,18 +6531,20 @@ _LABEL_271B_:
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   vblank__cmd_default__25F7
 
-_LABEL_2722_:
+
+gfx__clear_tilemap_0__2722:
 	call gfx__turn_off_screen_2827
 	ld   hl, _TILEMAP0
 	ld   bc, $0400
-_LABEL_272B_:
-	xor  a
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_272B_
+    .clear_loop__272B:
+    	xor  a
+    	ldi  [hl], a
+    	dec  bc
+    	ld   a, b
+    	or   c
+    	jr   nz,   .clear_loop__272B
 	jp   gfx__turn_on_screen_bg_obj__2540
+
 
 _LABEL_2735_:
 	ld   hl, _TILEMAP0
@@ -6798,7 +6800,7 @@ serial_io__startup_check_and_read_rtc__2854:
 	call time__convert_from_BCD__seconds__2916
 	call time__convert_from_BCD__minutes__2942
 	call time__convert_from_BCD_and_something_TODO__hours__296E
-	call _LABEL_2CED_
+	call time__validate_RTC_data__2CED
 
     _LABEL_288F_:
     	ld   a, [time__days__maybe__RAM_C2B3]
@@ -6858,14 +6860,14 @@ serial_io__startup_check_and_read_rtc__2854:
     	ld   [_RAM_C137_], a
     	ld   a, [_RAM_C139_]
     	or   a
-    	jp   z, _LABEL_2D4E_
+    	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $20
-    	jp   nc, _LABEL_2D4E_
+    	jp   nc, time__handle_reset_invalid_RTC_data__2D4E
     	ld   a, [_RAM_C138_]
     	or   a
-    	jp   z, _LABEL_2D4E_
+    	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $0D
-    	jp   nc, _LABEL_2D4E_
+    	jp   nc, time__handle_reset_invalid_RTC_data__2D4E
     	ret
 
 
@@ -7664,39 +7666,67 @@ db $14, $2A, $12, $13, $05, $20, $FA, $0E, $0C, $09, $C1, $05, $20, $F0, $C3, $F
 db $25, $21, $A0, $98, $11, $5C, $C3, $06, $03, $C5, $06, $14, $1A, $13, $22, $05
 db $20, $FA, $0E, $0C, $09, $C1, $05, $20, $F0, $C3, $F7, $25
 
-_LABEL_2CED_:
-	ld   a, [time__hours__high_digit_ascii__RAM_C39B]
-	cp   $30
-	jr   c, _LABEL_2D4E_
-	cp   $33
-	jr   nc, _LABEL_2D4E_
-	cp   $32
-	jr   nz, _LABEL_2D03_
+
+time__validate_RTC_data__2CED:
+    ; Validate HOUR digits first
+    ;
+    ld   a, [time__hours__high_digit_ascii__RAM_C39B]
+    ; If (ascii hours High digit < "0") then invalid
+	cp   "0"  ; $30
+	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+    ; If (ascii hours High digit >= "3") then invalid
+	cp   "3"  ; $33
+	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+    ; If (ascii hours High digit != "2")
+	cp   "2"  ; $32
+	jr   nz, .hour_high_is_one__2D03
+
+        ; High digit is 2, so max value for low is 5 instead of 9
+    	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
+        ; Must be 24 hour format if low hour digit can be up to "4"
+        ; If (ascii hours Low digit >= "5")
+    	cp   "5"  ; $35
+    	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+
+    .hour_high_is_one__2D03:
 	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
-	cp   $35
-	jr   nc, _LABEL_2D4E_
-_LABEL_2D03_:
-	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
-	cp   $30
-	jr   c, _LABEL_2D4E_
-	cp   $3A
-	jr   nc, _LABEL_2D4E_
+    ; If (ascii hours Low digit < "0") then invalid
+	cp   "0"  ; $30
+	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+    ; If (ascii hours Low digit > "9") then invalid
+	cp   ("9" + 1)  ; $3A  (char after "9")
+	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+
+    ; Then validate MINUTE and SECONDS digits
+    ;
 	ld   b, $02
 	ld   hl, time__minutes__high_digit_ascii__RAM_C39D
-_LABEL_2D13_:
-	ldi  a, [hl]
-	cp   $30
-	jr   c, _LABEL_2D4E_
-	cp   $36
-	jr   nc, _LABEL_2D4E_
-	ldi  a, [hl]
-	cp   $30
-	jr   c, _LABEL_2D4E_
-	cp   $3A
-	jr   nc, _LABEL_2D4E_
-	dec  b
-	jr   nz, _LABEL_2D13_
+    ; First  pass does: Minutes High (time__minutes__high_digit_ascii__RAM_C39D)
+    ;                 : Minutes Low  (time__minutes__low_digit_ascii__RAM_C39E)
+    ; Second pass does: Seconds High (time__seconds__high_digit_ascii__RAM_C39F)
+    ;                 : Seconds Low  (time__seconds__low_digit_ascii__RAM_C3A0)
+    .minutes_then_seconds_validate_loop__2D13_:
+        ; High Digit
+    	ldi  a, [hl]
+        ; If (ascii High digit < "0") then invalid
+    	cp   "0"  ; $30
+    	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+        ; If (ascii High digit >= "6") then invalid
+    	cp   "6"  ; $36
+    	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+
+        ; Low Digits
+    	ldi  a, [hl]
+        ; If (ascii Low digit < "0") then invalid
+    	cp   "0"  ; $30
+    	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+        ; If (ascii Low digit > "9")
+        cp   ("9" + 1)  ; $3A  (char after "9")
+    	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+    	dec  b
+    	jr   nz, .minutes_then_seconds_validate_loop__2D13_
 	ret
+
 
 ; Data from 2D29 to 2D47 (31 bytes)
 ; Popup Message Strings
@@ -7708,24 +7738,33 @@ db "Batteries low?", $0
 ; db $42, $61, $74, $74, $65, $72, $69, $65, $73, $20, $6C, $6F, $77, $3F, $00
 
 ; Data from 2D48 to 2D4D (6 bytes)
-_DATA_2D48_:
-db $31, $32, $30, $30, $30, $30
+time__data_reset_hours_min_sec_to_1200__2D48:
+;     HOURS     MINUTES   SECONDS
+db    "1", "2", "0", "0", "0", "0"
+; db $31, $32, $30, $30, $30, $30
 
-_LABEL_2D4E_:
-	ld   hl, _DATA_2D48_
+
+time__handle_reset_invalid_RTC_data__2D4E:
+    ; Reset Time to 12:00:00
+	ld   hl, time__data_reset_hours_min_sec_to_1200__2D48
 	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   b, $06
-_LABEL_2D56_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_2D56_
+	ld   b, $06 ; Copy length: Hours(2), Min(2), Sec(2)
+    .rtc_time_copy_loop__2D56:
+    	ldi  a, [hl]
+    	ld   [de], a
+    	inc  de
+    	dec  b
+    	jr   nz, .rtc_time_copy_loop__2D56
+
+    ; 12 for alternate hours format
 	ld   a, 12  ; $0C
 	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+    ; Zero out Minutes & Seconds
 	xor  a
 	ld   [time__minutes__decimal__RAM_C3A2], a
 	ld   [time__seconds__decimal__RAM_C3A1], a
+
+    ; TODO: Not yet sure what these are
 	ld   a, $5C
 	ld   [_RAM_C13A_], a
 	ld   a, $01
@@ -7734,41 +7773,47 @@ _LABEL_2D56_:
 	ld   a, $03
 	ld   [_RAM_C137_], a
 	call _LABEL_EB1_
+
+    ; TODO: Validating 4 bytes of something in SRAM
+    ;
+    ; Set MBC SRAM Bank to 0
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, $A1F5
 	ld   de, _DATA_E42A_
 	ld   b, $04
-_LABEL_2D89_:
-	ld   a, [de]
-	inc  de
-	cp   [hl]
-	ret  z
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_2D89_
-	call _LABEL_2722_
+    .loop__2D89:
+    	ld   a, [de]
+    	inc  de
+    	cp   [hl]
+    	ret  z
+    	inc  hl
+    	dec  b
+    	jr   nz, .loop__2D89
 
     ; Show a message about low batteries and time being wrong
+	call gfx__clear_tilemap_0__2722
 	ld   de, msg__timedate_wrong__2d92  ; $2D29
 	ld   hl, (_TILEMAP0 + $60)
 	rst  $28	; COPY_STRING_VRAM__RST_28
+
 	ld   de, msg__batteries_low__2d39 ; $2D39
 	ld   hl, (_TILEMAP0 + $80)
 	rst  $28	; COPY_STRING_VRAM__RST_28
 
-_LABEL_2DA2_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	inc  a
-	jr   z, _LABEL_2DA2_
+    .keyboard__wait_for_keypress__2DA2:
+    	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
+    	inc  a
+    	jr   z, .keyboard__wait_for_keypress__2DA2
 	ret
+
 
 _LABEL_2DA7_:
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   nz, _LABEL_2DA7_
 	call _LABEL_380D_
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	ld   hl, $0148
 	call _LABEL_1076_
 	push de
@@ -7801,7 +7846,7 @@ _LABEL_2DC8_:
 	jp   alt_menu__show_when_no_keyboard_found__10C3
 
 _LABEL_2DEA_:
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	di
 _LABEL_2DEE_:
 	call serial_io__receive_byte_in_A_with_int__2E84
@@ -16743,7 +16788,7 @@ _LABEL_C601_:
 	cp   $FF
 	jr   z, _LABEL_C601_
 	call gfx__turn_off_screen_2827
-	jp   _LABEL_2722_
+	jp   gfx__clear_tilemap_0__2722
 
 _LABEL_C611_:
 	ld   b, $0A
@@ -18676,7 +18721,7 @@ _LABEL_D48C_:
 	call _LABEL_D358_
 	call gfx__clear_shadow_oam__275B
 _LABEL_D4A6_:
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	call _LABEL_D3E9_
 	ld   a, $03
 	ld   [_RAM_C479_], a
@@ -18968,7 +19013,7 @@ _LABEL_D714_:
 	jp   app_syscontrol__launch__0D49
 
 _LABEL_D777_:
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	call _LABEL_F790_
 	ld   [_SRAM_1F9_], a
 	ld   a, $C8
@@ -18977,7 +19022,7 @@ _LABEL_D777_:
 	jp   app_syscontrol__launch__0D49
 
 _LABEL_D78B_:
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	ld   de, $00A4
 	ld   hl, $98A0
 	rst  $20	; _LABEL_20_
@@ -19505,7 +19550,7 @@ _LABEL_DCC4_:
 	ret
 
 _LABEL_DCC7_:
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	ld   de, $00AA
 	ld   hl, $98E4
 	rst  $20	; _LABEL_20_
@@ -19526,7 +19571,7 @@ _LABEL_DCE7_:
 	ld   a, $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	ld   a, $01
 	ld   [_RAM_C10D_], a
 	call _LABEL_680_
@@ -19581,7 +19626,7 @@ _LABEL_DD5A_:
 	ld   a, $01
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
-	call _LABEL_2722_
+	call gfx__clear_tilemap_0__2722
 	ld   a, [_SRAM_2001_]
 	or   a
 	jp   z, _LABEL_DCC7_
