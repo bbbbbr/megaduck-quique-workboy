@@ -3,11 +3,30 @@
 ; so that the QuiQue ROM will run the Main Menu on a GB
 ; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
 
-; Temp workaround while MBC1 isn't supported in Sameduck
+; Temp workaround while MBC1 isn't supported in SameDuck
 def DEBUG_USE_DUCK_MBC = 1
 
 ; Temp workaround for lack of duck MBC SRAM
-def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
+;
+; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
+if def (TARGET_MEGADUCK)
+    def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
+endc
+
+; Turn on to replace Workboy hardware interface code with
+; MegaDuck Laptop support (only for megaduck targets
+;
+; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
+if def (TARGET_MEGADUCK)
+;  def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
+endc
+
+; Notes:
+; When these two options are used together there is an as-yet unresolved SRAM
+; init issue that results in garbled screen output and probably a crash.
+; - BUILD_USE_DUCK_LAPTOP_HARDWARE
+; - DEBUG_USE_DUCK_MBC_NO_SRAM
+;
 
 include "inc/hardware.inc"
 
@@ -284,7 +303,7 @@ SECTION "wram_c2a9", WRAM0[$C2A9]
 _RAM_C2A9_: db
 
 SECTION "wram_c2ae", WRAM0[$C2AE]
-time__buffer_21_bytes__maybe__RAM_C2AE: db
+serial__rtc_transfer_buffer_21_bytes__RAM_C2AE: db
 
 SECTION "wram_c2b0", WRAM0[$C2B0]
 time__seconds__BCD__RAM_C2B0: db
@@ -787,7 +806,14 @@ db $25
 ; - Resulting key returned in A
 ; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
 SERIAL_POLL_KEYBOARD__RST_8:
+if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
 	jp   serial_io__poll_keyboard__3278
+ELSE
+    ; TODO: call megaduck laptop keyboard polling instead
+    ld a, WORKBOY_SCAN_KEY_NONE
+    ret
+ENDC
+    SECTION "reset_vectors__rst_8_done_000B", ROM0[$000B]
 
 ; Data from B to F (5 bytes)
 db $25, $06, $00, $D5, $25
@@ -882,9 +908,15 @@ db $00, $00, $00, $00 ; Manufacturer Code / End of Title
 db $00      ; CGB Flag: Game does not support CGB functions.
 db $00, $00 ; New Licensee Code
 db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
-db $03      ; Cartridge Type: MBC1+RAM+BATTERY
-db $02      ; ROM Size: 128 KByte 	8 banks
-db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
+if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
+    db $03      ; Cartridge Type: MBC1+RAM+BATTERY
+    db $02      ; ROM Size: 128 KByte 	8 banks
+    db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
+ELSE
+    db $01      ; Cartridge Type: MBC1 (no SRAM)
+    db $02      ; ROM Size: 128 KByte   8 banks
+    db $00      ; No SRAM
+ENDC
 db $01      ; Destination Code: Non-Japanese
 db $48      ; Old Licensee Code
 db $00      ; Mask ROM Version number
@@ -951,11 +983,18 @@ startup_init__0150:
     ; Maybe startup delay for the keyboard accessory hardware
     ; Calls vsync() 75 times in a row, ~1250 msec
     ;
+if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
 	ld   b, 75 ; Wait ~75 frames $4B
     .startup_wait_loop__01A8:
     	rst  $18	; Call VSYNC__RST_18
     	dec  b
     	jr   nz, .startup_wait_loop__01A8
+ELSE
+    jr megaduck__startup__skip_power_up_delay_resume_01AC
+
+    megaduck__startup__skip_power_up_delay_resume_01AC:
+ENDC
+SECTION "startup__skip_power_up_delay_resume_01AC", ROM0[$01AC]
 
 	xor  a
 	ld   [_RAM_C10E_], a
@@ -980,7 +1019,7 @@ startup_init__0150:
 	ld   [_RAM_C3BC_], a
 	ld   [_RAM_C3C6_], a
 	ld   [_RAM_C3D0_], a
-	call _LABEL_380D_
+	call audio__todo__380D
 	halt
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
@@ -994,7 +1033,8 @@ startup_init__0150:
 	halt
 	ld   a, $03
 	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
-	call _LABEL_E42E_
+    ; TODO: Needs SRAM support if it's going to run on the MegaDuck, or move SRAM data to WRAM
+    call savedata__maybe_some_sram_init__E42E
 	ld   a, $01
 	ld   [_RAM_C10F_], a
 	ld   a, [_RAM_C304_]
@@ -1018,7 +1058,7 @@ _LABEL_200_:
 	ld   hl, _SRAM_6_
 	ld   de, _RAM_C700_
 	call _LABEL_F0_
-	call _LABEL_380D_
+	call audio__todo__380D
 	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C110_], a
@@ -2998,7 +3038,7 @@ serial_io__send_maybe_rtc_etc_todo__0E6C:
     ; shortly after the call below to 0x0EB1
     ; The return value of A is also ignored?
 	ld   a, [_DATA_84_]
-	ld   [time__buffer_21_bytes__maybe__RAM_C2AE], a
+	ld   [serial__rtc_transfer_buffer_21_bytes__RAM_C2AE], a
 	call _LABEL_EB1_
 
     ; Prepare to send 21 bytes of RTC data from a buffer
@@ -3029,7 +3069,7 @@ serial_io__send_maybe_rtc_etc_todo__0E6C:
 	ret
 
 _LABEL_EB1_:
-	ld   hl, time__buffer_21_bytes__maybe__RAM_C2AE
+	ld   hl, serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
 	ld   [hl], $04
 	inc  hl
 	ld   [hl], $00
@@ -3180,7 +3220,7 @@ _LABEL_FA1_:
 	jr   nz, _LABEL_F92_
     ; The Duck MBC emulation doesn't support SRAM at the moment
     ; so force the read to return "0" (expected result in normal ROM)
-    IF (DEF(DEBUG_USE_DUCK_MBC_NO_SRAM) && DEF(TARGET_MEGADUCK))
+    IF DEF(DEBUG_USE_DUCK_MBC_NO_SRAM) ; && DEF(TARGET_MEGADUCK))
         nop
         ld   a, 0
     ELSE
@@ -6387,7 +6427,7 @@ vblank__handler__25CC:
     	call _LABEL_1E88_
     	ld   a, [_RAM_C3DE_]
     	cp   $0D
-    	call nc, _LABEL_380D_
+    	call nc, audio__todo__380D
     	jr   _LABEL_2659_
 
     _LABEL_2628_:
@@ -6752,9 +6792,47 @@ app_currency__launch__2845:
 	jp   _LABEL_D459_
 
 
+; * Checks to see if they keyboard peripheral is attached to Serial IO
+; * If it is present then it requests 21 bytes of RTC data and stores
+;   the response at serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
+; * Incoming data is formatted as hex bytes composed of two ascii
+;   characters (0-F) which are condensed to a single byte bcd value
+; * The RTC data is then converted from BCD and some validation is performed
+;
+; Example RTC reply data *AFTER* ASCII -> BCD unpacking to RAM
+;
+; Buffer index[N]
+; [0] 4 (4 header)
+; [2] 18 (sec)
+; [3] 5 (min)
+; [4] 3 (hour)
+; [5] 19 (day)
+; [6] 8 (month)
+; [F] 7c (year - 1900)
+;
+;             S  M  H  D  M                          Y - 1900
+;             e  i  r  a  o                          r
+;             c  n  .  y  n                          .
+;             |  |  |  |  |                          |
+; C2AE: D4 00 18 05 03 19 08 00 00 00 00 00 00 00 00 7C
+; C2BE: 00 00 00 00 00
+;
+; And gets converted to something like this in ascii and decimal:
+;
+;          H     M     S     S  M  T (Some min & hours stuff trailing here)
+;          r     i     e     e  i  O
+;          .     n     c     c  n  D
+;          |--|  |--|  |--|  |  |  O
+; ASCII:   0  3  0  5  1  8  |  |  |
+; Decimal:                  18  5  ?  ?  ?  ?  ?
+; C39B:   30 33 30 35 31 38 12 05 00 0F 9C 9C 00
+;
+; Addr    9B 9C 9D 9E 9F A0 A1 A2 A3 A4 A5 A6 A7
+;
 serial_io__startup_check_and_read_rtc__2854:
+if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
     ; do {
-    ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET) 
+    ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET)
     ;          && (gamepad_buttons__RAM_C103 != 0)) {
     ;
     ;          serial_io__keyboard_detected_status__RAM_C10A = KYBD_STATUS__NOT_FOUND  ; 0x00
@@ -6787,15 +6865,56 @@ serial_io__startup_check_and_read_rtc__2854:
 
     ; Prepare to receive 21 bytes of RTC data into RTC buffer
     ; Rx bytes are in ascii hex, one nybble per character
-	ld   de, time__buffer_21_bytes__maybe__RAM_C2AE
+	ld   de, serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
 	ld   c, 21 ; $15  ; Read 21 Bytes from serial
     .serial_read_loop__2879:
     	ld   a, $00
-    	call serial_io__read_byte_conv_ascii_to_hex_ret_A__29E3
+    	call serial_io__read_2_bytes_conv_ascii_to_hex_ret_A__29E3
     	ld   [de], a
     	inc  de
     	dec  c
     	jr   nz, .serial_read_loop__2879
+
+ELSE ; if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+
+    ; Switch bank...
+    ; call megaduck__startup__check_keybaord_and_read_rtc_data
+
+    ; Set keyboard status to OK
+    ld   a, KYBD_STATUS__OK
+    ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+
+    ; Fake some RTC Data
+    ld   hl, serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
+    ld   [hl], $D4
+    inc  hl
+    ld   [hl], $00
+    inc  hl
+    ld   [hl], $18
+    inc  hl
+    ld   [hl], $05
+    inc  hl
+    ld   [hl], $03
+    inc  hl
+    ld   [hl], $19
+    inc  hl
+    ld   [hl], $08
+    inc  hl
+    xor  a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl+], a
+    ld   [hl], $7C
+    jr   megaduck__startup__resume_workboy_postprocess_rtc_data__2883
+
+    SECTION "megaduck__startup__resume_workboy_postprocess_rtc_data__2883", ROM0[$2883]
+    megaduck__startup__resume_workboy_postprocess_rtc_data__2883:
+ENDC
 
 	call time__convert_from_BCD__seconds__2916
 	call time__convert_from_BCD__minutes__2942
@@ -7099,7 +7218,7 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 ; High nybble first, then Low nybble
 ;
 ; Rx bytes are in ascii hex, one nybble per character
-serial_io__read_byte_conv_ascii_to_hex_ret_A__29E3:
+serial_io__read_2_bytes_conv_ascii_to_hex_ret_A__29E3:
     ; Read First serial byte (high nybble) & shift into upper nybble
 	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
 	call ascii_to_hex_in_A_ret_A__29FC
@@ -7812,7 +7931,7 @@ _LABEL_2DA7_:
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
 	jr   nz, _LABEL_2DA7_
-	call _LABEL_380D_
+	call audio__todo__380D
 	call gfx__clear_tilemap_0__2722
 	ld   hl, $0148
 	call _LABEL_1076_
@@ -8510,7 +8629,7 @@ serial_io__poll_keyboard__3278:
     	cp   $0A
     	ret  nc
     	push af
-    	call _LABEL_380D_
+    	call audio__todo__380D
     	pop  af
     	cp   $09
     	jr   nz, _LABEL_32C7_
@@ -9225,7 +9344,7 @@ _LABEL_374E_:
 _LABEL_376C_:
 	ld   [_RAM_C3DE_], a
 	push af
-	call _LABEL_380D_
+	call audio__todo__380D
 	xor  a
 	ld   [_RAM_C3DC_], a
 	ld   a, $03
@@ -9260,7 +9379,7 @@ _LABEL_379C_:
 _LABEL_37AA_:
 	ldi  a, [hl]
 	cp   $FF
-	jp   z, _LABEL_380D_
+	jp   z, audio__todo__380D
 	cp   $F0
 	jr   c, _LABEL_37B8_
 	and  $0F
@@ -9292,7 +9411,7 @@ _LABEL_37D4_:
 _LABEL_37E2_:
 	ldi  a, [hl]
 	cp   $FF
-	jp   z, _LABEL_380D_
+	jp   z, audio__todo__380D
 	cp   $F0
 	jr   c, _LABEL_37F0_
 	and  $0F
@@ -9316,7 +9435,7 @@ _LABEL_37F0_:
 _LABEL_380C_:
 	ret
 
-_LABEL_380D_:
+audio__todo__380D:
 	ld   a, $FF
 	ld   [_RAM_C3DE_], a
 	ldh  a, [rAUDTERM]
@@ -20583,7 +20702,7 @@ _LABEL_E3DF_:
 _DATA_E42A_:
 db $49, $47, $4F, $52
 
-_LABEL_E42E_:
+savedata__maybe_some_sram_init__E42E:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   hl, $A1F5
@@ -20651,7 +20770,16 @@ _LABEL_E444_:
 	ld   [_SRAM_602C_], a
 	ld   a, $47
 	ld   [_SRAM_602B_], a
-	call _LABEL_8BC_
+    ; Skip over empty SRAM map choose location popup
+    ; TODO: FIXME: This isn't enough, results in garbled screen output and a crash maybe
+    ;       Probably SRAM usage needs to get relocated to WRAM for all this
+    if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
+	   call _LABEL_8BC_
+    ELSE
+        nop
+        nop
+        nop
+    ENDC
 	xor  a
 	jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
