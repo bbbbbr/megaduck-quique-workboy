@@ -3,22 +3,31 @@
 ; so that the QuiQue ROM will run the Main Menu on a GB
 ; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
 
-; Temp workaround while MBC1 isn't supported in SameDuck
-def DEBUG_USE_DUCK_MBC = 1
+; Temp workaround while MBC1 isn't supported in OG SameDuck (supported in forked Sameduck)
+if def (TARGET_MEGADUCK)
+;    def DEBUG_USE_DUCK_MBC_MD2 = 1
+endc
 
 ; Temp workaround for lack of duck MBC SRAM
 ;
 ; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
 if def (TARGET_MEGADUCK)
-    def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
+;    def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
 endc
 
+; Alternative workaround for lack of duck MBC SRAM
+;
+; TODO: this will require relocating things such as the "database" storage
+;
+; ; TODO   def DEBUG_USE_WRAM_FOR_SRAM = 1
+
+
 ; Turn on to replace Workboy hardware interface code with
-; MegaDuck Laptop support (only for megaduck targets
+; MegaDuck Laptop support (only for megaduck targets)
 ;
 ; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
 if def (TARGET_MEGADUCK)
-;  def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
+  def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
 endc
 
 ; Notes:
@@ -31,6 +40,10 @@ endc
 include "inc/hardware.inc"
 
 
+
+DEF MBC_DUCK_SYSROM  EQU $E0
+DEF MBC_DUCK_MD1     EQU $E1
+DEF MBC_DUCK_MD2     EQU $E2
 
 ; MBC Register defines
 DEF rMBC1_RAM_ENABLE     EQU $00FF
@@ -46,7 +59,7 @@ DEF MBC1_MODE_RAMBANKED EQU $01
 ; $4000 used once instead of $5FFF for SRAM bank switching
 DEF rRAMB_ALT           EQU $5FFF
 
-IF (DEF(DEBUG_USE_DUCK_MBC) && DEF(TARGET_MEGADUCK))
+IF (DEF(DEBUG_USE_DUCK_MBC_MD2) && DEF(TARGET_MEGADUCK))
     DEF rMBC1_ROMBANK    EQU $0001
 ELSE
     DEF rMBC1_ROMBANK    EQU $3FFF
@@ -663,6 +676,7 @@ _RAM_FF8C_: db
 SECTION "hram_ffe1", HRAM[$FFE1]
 _RAM_FFE1_: db
 
+
 SECTION "sram_a000", SRAM[$A000]
 _SRAM_0_: db
 _SRAM_1_: db
@@ -726,7 +740,7 @@ SECTION "sram_dfff", SRAM[$BFFF], BANK[1]
 _SRAM_3FFF_: db
 
 SECTION "sram_e000", SRAM[$A000], BANK[2]
-_SRAM_4000_: db
+maybe_database_init_flag__SRAM_A000_BANK_2_: db
 
 SECTION "sram_e002", SRAM[$A002], BANK[2]
 _SRAM_4002_: db
@@ -750,6 +764,7 @@ _SRAM_602C_: db
 
 SECTION "sram_10100", SRAM[$A100], BANK[3]
 _SRAM_6100_: db
+
 
 ; ; Ports
 ; rP1 EQU $00
@@ -909,11 +924,19 @@ db $00      ; CGB Flag: Game does not support CGB functions.
 db $00, $00 ; New Licensee Code
 db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
 if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
-    db $03      ; Cartridge Type: MBC1+RAM+BATTERY
+    if DEF(DEBUG_USE_DUCK_MBC_MD2)
+        db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
+    ELSE
+        db $03      ; Cartridge Type: MBC1+RAM+BATTERY
+    ENDC
     db $02      ; ROM Size: 128 KByte 	8 banks
     db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
 ELSE
-    db $01      ; Cartridge Type: MBC1 (no SRAM)
+    if DEF(DEBUG_USE_DUCK_MBC_MD2)
+        db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
+    ELSE
+        db $01      ; Cartridge Type: MBC1 (no SRAM)
+    ENDC
     db $02      ; ROM Size: 128 KByte   8 banks
     db $00      ; No SRAM
 ENDC
@@ -2735,9 +2758,10 @@ _LABEL_C9A_:
 
 ; 3rd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_database__launch__0CA0:
-	ld   a, $02
+    ; Maybe check database in SRAM for init?
+	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	or   a
 	jr   z, _LABEL_CAD_
 	ld   a, $01
@@ -3505,9 +3529,9 @@ alt_menu__show_when_no_keyboard_found__10C3:
 	push af
 	cp   $04
 	jr   nz, _LABEL_1153_
-	ld   a, $02
+	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	or   a
 	jr   nz, _LABEL_1174_
 	jp   _LABEL_DCC7_
@@ -16678,7 +16702,7 @@ _LABEL_C472_:
 	inc  [hl]
 	ld   a, [hl]
 	ld   c, a
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	inc  a
 	cp   c
 	jr   z, _LABEL_C4BD_
@@ -19173,11 +19197,13 @@ _LABEL_D79C_:
 	dec  a
 	ld   [_RAM_C10C_], a
 	ld   [_SRAM_2001_], a
-	ld   a, $02
+
+	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_RAM_C10D_], a
-	ld   [_SRAM_4000_], a
+	ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
+    ; a = 0 for SRAM  bank 0
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	inc  a
 	ld   [_SRAM_9EF_], a
@@ -20739,24 +20765,29 @@ _LABEL_E444_:
     .skip_copy_to_sram_if_keyboard_not_connected__E45C:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
+
 	xor  a
 	ld   [_SRAM_231_], a
 	ld   [_RAM_C10B_], a
 	ld   [_SRAM_221_], a
 	ld   [_SRAM_A04_], a
 	ld   [_RAM_C5CD_], a
-	inc  a
+
+	inc  a ;  $01
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	dec  a
+	dec  a ;  $00
 	ld   [_RAM_C10C_], a
 	ld   [_SRAM_1_], a
-	ld   a, $02
+
+    ; Maybe Initializing / zeroing the database init flag
+	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	xor  a
 	ld   [_RAM_C10D_], a
-	ld   [_SRAM_4000_], a
+	ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
+    ; a = 0 for SRAM Bank 0
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	inc  a
+	inc  a ;  1
 	ld   [_SRAM_9EF_], a
 
     ; Return if keyboard not connected
@@ -20819,7 +20850,7 @@ _LABEL_E4F1_:
 	pop  af
 	cp   [hl]
 	jr   nz, _LABEL_E514_
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	or   a
 	jr   z, _LABEL_E4DB_
 	call _LABEL_4C9_
@@ -20904,7 +20935,7 @@ _LABEL_E59E_:
 	cp   [hl]
 	jr   nz, _LABEL_E5DB_
 	ld   hl, _SRAM_4002_
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	or   a
 	jr   z, _LABEL_E5C2_
 	ld   b, a
@@ -20925,10 +20956,10 @@ _LABEL_E5AC_:
 	jp   nc, _LABEL_E4DB_
 _LABEL_E5C2_:
 	call _LABEL_E67B_
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	inc  a
 	jp   z, _LABEL_E4DB_
-	ld   [_SRAM_4000_], a
+	ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
 	ld   [_RAM_C10D_], a
 	call _LABEL_E661_
 	call _LABEL_D7FD_
@@ -20938,7 +20969,7 @@ _LABEL_E5DB_:
 	inc  hl
 	cp   [hl]
 	jr   nz, _LABEL_E5FB_
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	or   a
 	jp   z, _LABEL_E4DB_
 	call _LABEL_132B_
@@ -20965,7 +20996,7 @@ _LABEL_E60C_:
 	inc  hl
 	cp   [hl]
 	jr   nz, _LABEL_E62D_
-	ld   a, [_SRAM_4000_]
+	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
 	ld   c, a
 	ld   a, [_RAM_C10D_]
 	cp   c

@@ -73,14 +73,14 @@ DEF _TILEMAP_SCREEN_HEIGHT EQU 18
 
 ; *** MBC5 Equates ***
 
-DEF rRAMG        EQU $0000 ; $0000->$1fff
+DEF rRAMG        EQU $0000 ; $0000->$1fff : Cart SRAM Enable
 if def(TARGET_MEGADUCK)
-DEF rROMB0       EQU $0001 ; $0001->$0001
+DEF rROMB0       EQU $0001 ; $0001->$0001 : MD2 / MBC 0xE2
 else
-DEF rROMB0       EQU $2000 ; $2000->$2fff
+DEF rROMB0       EQU $2000 ; $2000->$2fff : Cart ROM Bank
 endc
-DEF rROMB1       EQU $3000 ; $3000->$3fff - If more than 256 ROM banks are present.
-DEF rRAMB        EQU $4000 ; $4000->$5fff - Bit 3 enables rumble (if present)
+DEF rROMB1       EQU $3000 ; $3000->$3fff : If more than 256 ROM banks are present
+DEF rRAMB        EQU $4000 ; $4000->$5fff : Cart SRAM Bank, Bit 3 enables rumble (if present)
 
 
 ;***************************************************************************
