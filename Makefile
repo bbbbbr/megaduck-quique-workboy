@@ -77,8 +77,8 @@ bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
 
 
-usage:
-	romusage $(DIRDUCK)/$(ROMNAME_BASE).map -g
+romusage:
+	romusage $(DIRDUCK)/$(ROMNAME_BASE).map -g -sRp
 
 # Needs stock inside gadgets firmware to work, can use flashgbx ui to swap it out if needed
 # Make sure 32K cart is specified
