@@ -1560,8 +1560,9 @@ _LABEL_4C9_:
 _LABEL_4F4_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
+    ; Read keyboard
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
+	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
 	jr   z, _LABEL_4F4_
 	or   a
 	jr   nz, _LABEL_509_
@@ -6900,6 +6901,7 @@ if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
     	jr   nz, .serial_read_loop__2879
 
 ELSE ; if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Addr: $2854
 
     ; Switch bank...
     ; call megaduck__startup__check_keybaord_and_read_rtc_data
@@ -8612,9 +8614,11 @@ serial_io__poll_keyboard__3278:
 	ld   a, [_RAM_C3A9_]
 	or   a
 	call nz, _LABEL_3241_
+
     ; Load keyboard key request and send it
 	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
 	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+
     ; Check returned Key value, return if blank/unset
     ; Also make sure it's not zero
 	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
@@ -10544,6 +10548,9 @@ db $F9, $FF, $E9, $D5, $02, $89, $76, $E0, $8B, $46, $E6, $0B, $46, $E4, $75, $0
 db $C7, $46, $F0, $01, $00, $80, $7E
 
 SECTION "rom2", ROMX, BANK[$2]
+; Start of data looks like maybe English UI translation info
+; - Maybe ~$4E90 there is Spanish UI translation info
+;
 ; Data from 8000 to 861D (1566 bytes)
 db $41, $64, $64, $72, $65, $73, $73, $20, $4E, $75, $6D, $62, $65, $72, $3A, $20
 db $20, $20, $20, $20, $00, $41, $70, $70, $6F, $69, $6E, $74, $6D, $65, $6E, $74
@@ -16068,6 +16075,8 @@ db $D1, $D2, $D1, $E0, $D1, $D2, $89, $46, $F8, $89, $56, $FA, $8B, $46, $08, $8
 db $56, $0A, $24, $FC, $89, $46, $F4, $89, $56, $F6, $0B, $FF, $74, $6E, $2B, $C0
 db $50, $52, $FF, $76, $F4, $FF, $36, $00, $00, $9A, $00, $00, $00, $00, $83, $C4
 db $08, $8B, $46, $F8, $8B
+
+
 
 SECTION "rom3", ROMX, BANK[$3]
 ; Pointer Table from C000 to C001 (1 entries, indexed by unknown)
@@ -22599,7 +22608,12 @@ db $2B, $A3, $12, $82, $97, $27, $40, $05, $05, $85, $8D, $06, $83, $18, $80, $9
 db $87, $41, $87, $1C, $84, $39, $87, $BF, $0F, $50, $41, $41, $02, $83, $06, $82
 db $77, $0F, $50, $80, $B0, $80
 
+
+
 SECTION "rom4", ROMX, BANK[$4]
+; Start of data looks like maybe Italian UI translation info
+; Then strings in various languages, etc
+;
 ; Data from 10000 to 13FFF (16384 bytes)
 db $4E, $72, $2E, $20, $64, $27, $69, $6E, $64, $69, $72, $69, $7A, $7A, $6F, $3A
 db $20, $20, $20, $20, $00, $4E, $72, $2E, $20, $61, $73, $73, $65, $67, $6E, $61
@@ -23626,9 +23640,16 @@ db $55, $52, $46, $00, $54, $41, $56, $4F, $4C, $41, $20, $44, $41, $20, $53, $5
 db $52, $46, $00, $01, $53, $18, $54, $18, $53, $18, $51, $18, $4F, $30, $56, $18
 db $58, $18, $56, $0C, $56, $0C, $54, $0C, $54, $0C, $5B, $18, $4F, $18, $4F, $0C
 db $4F, $0C, $51, $18, $56, $18, $53, $18, $54, $30, $FF, $01
-ds 81, $00
+
+; SECTION "rom4_begin_unused_7FAF", ROMX[$7FAF], BANK[$4]
+; ds 81, $00
+
+
 
 SECTION "rom5", ROMX, BANK[$5]
+; Start of data looks like maybe German UI translation info
+; Then currency conversion strings in various languages, etc
+;
 ; Data from 14000 to 15B4B (6988 bytes)
 db $41, $64, $72, $65, $73, $73, $65, $20, $4E, $75, $6D, $6D, $65, $72, $3A, $20
 db $20, $20, $20, $20, $00, $54, $65, $72, $6D, $69, $6E, $20, $4E, $75, $6D, $6D
@@ -24915,9 +24936,15 @@ db $50, $64, $73, $82, $91, $A6, $AB, $BE, $D1, $DF, $F3, $FA, $03, $16, $29, $3
 db $4C, $5C, $71, $85, $98, $AC, $BF, $C7, $D0, $D9, $E2, $EA, $F4, $FE, $08, $12
 db $1C, $26, $30, $3A, $44, $4E, $58, $62, $7A, $8F, $A4, $B9, $CE, $E3, $F8, $0C
 db $20, $34, $48, $5C, $70, $84, $98, $AC, $C1, $D6, $EA, $FE, $12, $24, $39, $4D
-ds 149, $00
+
+; SECTION "rom5_begin_unused_7F6B", ROMX[$7F6B], BANK[$5]
+; ds 149, $00
+
+
 
 SECTION "rom6", ROMX, BANK[$6]
+; Data looks like tons of strings in various languages, maybe dictionary translation?
+;
 ; Data from 18000 to 1BFFF (16384 bytes)
 db $00, $43, $4F, $4E, $43, $45, $52, $54, $00, $4B, $4F, $4E, $5A, $45, $52, $54
 db $00, $43, $4F, $4E, $43, $45, $52, $54, $00, $43, $4F, $4E, $43, $49, $45, $52
@@ -25942,9 +25969,15 @@ db $41, $52, $4B, $4C, $49, $4E, $47, $00, $4D, $4F, $55, $53, $53, $49, $45, $5
 db $45, $4E, $44, $00, $4D, $4F, $55, $53, $53, $45, $55, $58, $00, $45, $53, $50
 db $55, $4D, $4F, $53, $4F, $00, $46, $52, $49, $5A, $5A, $41, $4E, $54, $45, $00
 db $01
-ds 31, $00
+; SECTION "rom6_begin_unused_7FE1", ROMX[$7FE1], BANK[$6]
+; ds 31, $00
+
+
 
 SECTION "rom7", ROMX, BANK[$7]
+; Start of data looks like maybe French UI translation info
+; Then measurement unit conversion strings in various languages, etc
+;
 ; Data from 1C000 to 1CE91 (3730 bytes)
 db $4E, $6F, $20, $64, $27, $61, $64, $72, $65, $73, $73, $65, $20, $20, $3A, $20
 db $20, $20, $20, $20, $00, $4E, $6F, $20, $64, $65, $20, $72, $65, $75, $6E, $69
@@ -27051,5 +27084,7 @@ db $81, $90, $A4, $A9, $BB, $CD, $E1, $F5, $FA, $03, $15, $28, $3C, $4F, $62, $7
 db $8B, $9E, $B2, $C5, $CC, $D3, $DB, $E3, $EC, $F6, $00, $0A, $14, $1E, $28, $32
 db $3C, $46, $50, $5A, $64, $7C, $91, $A6, $BB, $D0, $E5, $FA, $0E, $22, $36, $4A
 db $5E, $72, $86, $9A, $AE, $C3, $D8, $EC, $00, $14, $29, $39, $4D
-ds 42, $00
+
+; SECTION "rom7_begin_unused_7FD6", ROMX[$7FD6], BANK[$7]
+; ds 42, $00
 
