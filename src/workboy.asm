@@ -79,7 +79,8 @@ DEF GAMEPAD_B_A       EQU 0
 
 
 
-DEF WORKBOY_SCAN_KEY_NONE  EQU  $FF
+DEF WORKBOY_SCAN_KEY_NONE   EQU  $FF
+DEF WORKBOY_SCAN_KEY_EMPTY  EQU  $00
 
 ; These key values are likely the translated from the raw keyboard scancode versions
 DEF WORKBOY_SYS_KEY_RETURN        EQU  $0D ; Matches ms vkey
@@ -821,14 +822,8 @@ db $25
 ; - Resulting key returned in A
 ; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
 SERIAL_POLL_KEYBOARD__RST_8:
-if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
 	jp   serial_io__poll_keyboard__3278
-ELSE
-    ; TODO: call megaduck laptop keyboard polling instead
-    ld a, WORKBOY_SCAN_KEY_NONE
-    ret
-ENDC
-    SECTION "reset_vectors__rst_8_done_000B", ROM0[$000B]
+; SECTION "reset_vectors__rst_8_done_000B", ROM0[$000B]
 
 ; Data from B to F (5 bytes)
 db $25, $06, $00, $D5, $25
@@ -1006,18 +1001,19 @@ startup_init__0150:
     ; Maybe startup delay for the keyboard accessory hardware
     ; Calls vsync() 75 times in a row, ~1250 msec
     ;
-if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
-	ld   b, 75 ; Wait ~75 frames $4B
-    .startup_wait_loop__01A8:
-    	rst  $18	; Call VSYNC__RST_18
-    	dec  b
-    	jr   nz, .startup_wait_loop__01A8
-ELSE
-    jr megaduck__startup__skip_power_up_delay_resume_01AC
+    if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
+    	ld   b, 75 ; Wait ~75 frames $4B
+        .startup_wait_loop__01A8:
+        	rst  $18	; Call VSYNC__RST_18
+        	dec  b
+        	jr   nz, .startup_wait_loop__01A8
+    ELSE
+        ; Skip startup delay for MegaDuck laptop
+        jr megaduck__startup__skip_power_up_delay_resume_01AC
 
-    megaduck__startup__skip_power_up_delay_resume_01AC:
-ENDC
-SECTION "startup__skip_power_up_delay_resume_01AC", ROM0[$01AC]
+        megaduck__startup__skip_power_up_delay_resume_01AC:
+    ENDC
+    SECTION "startup__skip_power_up_delay_resume_01AC", ROM0[$01AC]
 
 	xor  a
 	ld   [_RAM_C10E_], a
@@ -1068,6 +1064,7 @@ SECTION "startup__skip_power_up_delay_resume_01AC", ROM0[$01AC]
 	call _LABEL_D58_
 	xor  a
 	ld   [_RAM_C10F_], a
+
 _LABEL_200_:
 	ld   a, $03
 	call mbc_sram_ON_set_srambank_to_A__0BB1
@@ -7233,9 +7230,9 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 	ld   [rMBC1_RAM_ENABLE_ALT], a  ; $0002
 	pop  af
     ; Loop until a non-0x00 and non-0xFF serial response
-	cp   $00  ; TODO: Maybe GB_WORKBOY_EMPTY? 0x00?
+	cp   WORKBOY_SCAN_KEY_EMPTY  ; $00
 	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	cp   $FF  ; TODO: Maybe GB_WORKBOY_NONE 0xFF
+	cp   WORKBOY_SCAN_KEY_NONE   ; $FF
 	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
 	ret
 
@@ -8615,20 +8612,28 @@ serial_io__poll_keyboard__3278:
 	or   a
 	call nz, _LABEL_3241_
 
+if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
     ; Load keyboard key request and send it
 	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
 	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+ELSE
+    ; TODO: Do a banked call to read megaduck laptop keyboard polling
+    ld a, WORKBOY_SCAN_KEY_NONE
+    nop
+    nop
+    nop
+ENDC
 
     ; Check returned Key value, return if blank/unset
     ; Also make sure it's not zero
 	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
 	ret  z
 	or   a
-	jr   nz, serial_io__translate_returned_scan_key__328C
+	jr   nz, .serial_io__translate_returned_scan_key__328C
 	dec  a ; Wraps 0 around to WORKBOY_SCAN_KEY_NONE/$FF
 	ret
 
-    serial_io__translate_returned_scan_key__328C:
+    .serial_io__translate_returned_scan_key__328C:
     	ld   hl, _DATA_30F3_
     	ld   c, $00
     	ld   b, a
@@ -17164,8 +17169,8 @@ _LABEL_C8BE_:
 _LABEL_C8CC_:
 	call serial_io__poll_keyboard__3278
 	or   a
-	jp   z, _LABEL_200_
-	cp   $FF
+	jp   z, _LABEL_200_  ; Why does it jump back to init here when keyboard poll returns 0x00?
+	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
 	jr   z, _LABEL_C8CC_
 	cp   $0F
 	jr   z, _LABEL_C8FD_
@@ -21523,7 +21528,7 @@ _LABEL_E95A_:
 	call _LABEL_BC3_
 _LABEL_E98E_:
 	call serial_io__poll_keyboard__3278
-	cp   $FF
+	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
 	jr   z, _LABEL_E98E_
 	or   a
 	jp   z, _LABEL_200_
