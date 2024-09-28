@@ -80,7 +80,7 @@ DEF GAMEPAD_B_A       EQU 0
 
 
 DEF WORKBOY_SCAN_KEY_NONE   EQU  $FF
-DEF WORKBOY_SCAN_KEY_EMPTY  EQU  $00
+DEF WORKBOY_SCAN_KEY_EMPTY_MAYBE  EQU  $00
 
 ; These key values are likely the translated from the raw keyboard scancode versions
 DEF WORKBOY_SYS_KEY_RETURN        EQU  $0D ; Matches ms vkey
@@ -135,6 +135,7 @@ DEF KYBD_STATUS__UNSET       EQU  2  ; Initial value on startup
 
 
 ; Queue-able VBL Commands
+; See: vblank__dispatch_table__2557
 DEF VBL_CMD__DEFAULT__0x00 EQU $00
 DEF VBL_CMD__COPY_TEXT__0x0F EQU $0f
 
@@ -187,9 +188,9 @@ gfx__dest_addr_hi__RAM_C134_maybe: db
 gfx__src_addr_lo__RAM_C135_maybe: db
 gfx__src_addr_hi__RAM_C136_maybe: db
 _RAM_C137_: db
-_RAM_C138_: db
-_RAM_C139_: db
-_RAM_C13A_: db
+date__month__high_digit_decimal__maybe__RAM_C138: db
+date__days__low_digit_decimal__maybe__RAM_C139: db
+date__days__high_digit_decimal__maybe__RAM_C13A: db
 _RAM_C13B_: db
 _RAM_C13C_: db
 _RAM_C13D_: db
@@ -314,26 +315,26 @@ SECTION "wram_c29f", WRAM0[$C29F]
 _RAM_C29F_: db
 
 SECTION "wram_c2a9", WRAM0[$C2A9]
-_RAM_C2A9_: db
+serial__transfer_buffer_21_bytes__RAM_C2A9: db
 
-SECTION "wram_c2ae", WRAM0[$C2AE]
-serial__rtc_transfer_buffer_21_bytes__RAM_C2AE: db
+    SECTION "wram_c2ae", WRAM0[$C2AE]
+    serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE: db
 
-SECTION "wram_c2b0", WRAM0[$C2B0]
-time__seconds__BCD__RAM_C2B0: db
-time__minutes__BCD__RAM_C2B1: db
-time__hours__BCD__RAM_C2B2: db
-time__days__maybe__RAM_C2B3: db
-time__month__maybe__RAM_C2B4: db
+        SECTION "wram_c2b0", WRAM0[$C2B0]
+        time__seconds__BCD__RAM_C2B0: db
+        time__minutes__BCD__RAM_C2B1: db
+        time__hours__BCD__RAM_C2B2:   db
+        time__days__maybe__RAM_C2B3:  db
+        time__month__maybe__RAM_C2B4: db
 
-SECTION "wram_c2b6", WRAM0[$C2B6]
-_RAM_C2B6_: db
+        SECTION "wram_c2b6", WRAM0[$C2B6]
+        _RAM_C2B6_: db
 
-SECTION "wram_c2bd", WRAM0[$C2BD]
-time__year__maybe__RAM_C2BD: db
+        SECTION "wram_c2bd", WRAM0[$C2BD]
+        time__year__maybe__RAM_C2BD: db
 
 SECTION "wram_c304", WRAM0[$C304]
-_RAM_C304_: db
+date__month__low_digit_decimal__maybe__RAM_C304: db
 _RAM_C305_: db
 _RAM_C306_: db
 _RAM_C307_: db
@@ -841,8 +842,8 @@ VSYNC__RST_18:
 ; Data from 1B to 1F (5 bytes)
 db $25, $04, $00, $F4, $25
 
-_LABEL_20_:
-	jp   _LABEL_FEE_
+GFX_COPY_STRING__RST_20:
+	jp   gfx__copy_string_to_vram__0FEE
 
 ; Data from 23 to 27 (5 bytes)
 db $25, $0E, $00, $F5, $25
@@ -1019,6 +1020,7 @@ startup_init__0150:
 	ld   [_RAM_C10E_], a
 	ld   a, KYBD_STATUS__UNSET  ; $02
 	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+
     ; Skips the keyboard startup check which sets
     ; serial_io__keyboard_detected_status__RAM_C10A
     ; to either KYBD_STATUS__OK or KYBD_STATUS__NOT_FOUND
@@ -1056,11 +1058,11 @@ startup_init__0150:
     call savedata__maybe_some_sram_init__E42E
 	ld   a, $01
 	ld   [_RAM_C10F_], a
-	ld   a, [_RAM_C304_]
+	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	push af
 	call _LABEL_2B7D_
 	pop  af
-	ld   [_RAM_C304_], a
+	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
 	call _LABEL_D58_
 	xor  a
 	ld   [_RAM_C10F_], a
@@ -1715,7 +1717,7 @@ _LABEL_5E9_:
 	ret
 
 ; 10th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_604_:
+vblank__cmd_09_TODO__LABEL_604_:
 	ld   de, _RAM_C118_
 	ld   hl, $99F0
 	ld   b, $03
@@ -1736,16 +1738,16 @@ db $00
 _LABEL_62C_:
 	ld   de, $0617
 	ld   hl, $99C0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0001
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0004
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0005
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, [_RAM_C10C_]
 	jp   _LABEL_7B6_
 
@@ -1761,18 +1763,18 @@ _LABEL_65D_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0003
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_667_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, $99C0
 	ld   de, $0617
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, $9A00
 	ld   de, $0004
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, $9A20
 	ld   de, $0005
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_680_:
@@ -1973,7 +1975,7 @@ _LABEL_782_:
 	jr   _LABEL_73A_
 
 ; 8th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_79A_:
+vblank__cmd_07_TODO__LABEL_79A_:
 	ld   a, [_RAM_C130_]
 	or   a
 	jr   z, _LABEL_7B0_
@@ -2027,7 +2029,7 @@ _LABEL_7CD_:
 	ret
 
 ; 7th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_7E9_:
+vblank__cmd_06_TODO__LABEL_7E9_:
 	ld   hl, $99F0
 	ld   de, gfx__dest_addr_lo__RAM_C133_maybe
 	ld   b, $03
@@ -2041,7 +2043,7 @@ _LABEL_7F1_:
 	jp   vblank__cmd_default__25F7
 
 ; 6th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_7FC_:
+vblank__cmd_05_TODO__LABEL_7FC_:
 	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
 	ld   e, a
 	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
@@ -2066,11 +2068,11 @@ app_calendar__launch__0819:
 	ldh  [rOBP0], a
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 	ld   a, [_RAM_C137_]
 	ld   [_RAM_C153_], a
@@ -2180,13 +2182,13 @@ _LABEL_8E3_:
 db $2A, $EA, $52, $C1, $2A, $EA, $54, $C1, $2A, $EA, $55, $C1, $18, $18
 
 _LABEL_914_:
-	ld   a, [_RAM_C304_]
+	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	ld   [_RAM_C153_], a
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 _LABEL_92C_:
 	ld   a, [_RAM_C153_]
@@ -2265,29 +2267,37 @@ _LABEL_98B_:
 ; - send it out to keyboard to save?
 ; App->Control/Settings->Set Home-> Apply by pressing "S" keys ends up here
 _LABEL_991_:
+    ; HL: Source
+    ; DE: Dest
 	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   hl, _RAM_C149_
 	ldi  a, [hl]
 	ld   [de], a
-	inc  de
+
+	inc  de     ; Move DE to: time__hours__low_digit_ascii__RAM_C39C
 	ldi  a, [hl]
 	ld   [de], a
-	inc  de
+
+	inc  de     ; Move DE to: time__minutes__high_digit_ascii__RAM_C39D
 	inc  hl
 	ldi  a, [hl]
 	ld   [de], a
-	inc  de
+
+	inc  de     ; Move DE to: time__minutes__low_digit_ascii__RAM_C39E
 	ldi  a, [hl]
 	ld   [de], a
+
 	ld   a, [_RAM_C152_]
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ld   a, [_RAM_C153_]
-	ld   [_RAM_C304_], a
+	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
 	ld   a, [_RAM_C154_]
-	ld   [_RAM_C138_], a
+	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+
 	ld   de, $2150
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
+
 	ld   de, $0006
 	ld   hl, $99E3
 	rst  $28	; COPY_STRING_VRAM__RST_28
@@ -2311,13 +2321,13 @@ _LABEL_991_:
 
 
 _LABEL_9CE_:
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
-	ld   a, [_RAM_C304_]
+	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	ld   [_RAM_C153_], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 	ld   hl, _RAM_C13D_
 	ld   a, $20
@@ -2860,15 +2870,15 @@ _LABEL_D66_:
 _LABEL_D73_:
 	push af
 	push hl
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
@@ -2948,9 +2958,11 @@ _LABEL_DDA_:
 
 _LABEL_DE6_:
 	call _LABEL_288F_
+
 	ld   de, $0006
 	ld   hl, $98A3
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
+
 	call _LABEL_E05_
 _LABEL_DF3_:
 	call serial_io__send_maybe_rtc_etc_todo__0E6C
@@ -2960,7 +2972,7 @@ _LABEL_DF3_:
 	jr   z, _LABEL_DF3_
 	ld   de, $2150
 	ld   hl, $98A0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_E05_:
@@ -2999,7 +3011,7 @@ _LABEL_E38_:
 	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
-	ld   a, [_RAM_C304_]
+	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	inc  a
 	call util__upshift_A_by_4__0F2C
 	add  a
@@ -3036,53 +3048,71 @@ _LABEL_E65_:
 ; So far have only seen this called when setting the "Home" city/country location
 ; Main Menu -> S icon (middle of bottom row) -> Set Home -> Select country -> press "S" key to save
 serial_io__send_maybe_rtc_etc_todo__0E6C:
-	ld   a, WORKBOY_CMD_W_TODO ; $57
-	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-    ; Check returned serial byte, return if zero
-    ; also return if blank/unset (0xFF)
-	or   a
-	ret  z
-	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-	ret  z
-    ; Returned serial byte in A seems to get discarded here
 
-    ; Loops sending the 0x00 command unil reply is not WORKBOY_SCAN_KEY_NONE (0xFF) AND not null value (0x00)
-    ; TODO: Maybe it's polling for a "Ready" response
-    .loop_request_serial_until_valid_reply_byte__0E76:
-    	ld   a, WORKBOY_CMD_TODO_0  ; $00
+    if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
+    	ld   a, WORKBOY_CMD_W_TODO ; $57
     	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-    	or   a
-    	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+        ; Check returned serial byte, return if zero
+        ; also return if blank/unset (0xFF)
+    	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+    	ret  z
     	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-    	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+    	ret  z
+        ; Returned serial byte in A seems to get discarded here
 
-    ; The value written to 0xC2AE below is ignored and overwritten
-    ; shortly after the call below to 0x0EB1
-    ; The return value of A is also ignored?
-	ld   a, [_DATA_84_]
-	ld   [serial__rtc_transfer_buffer_21_bytes__RAM_C2AE], a
-	call _LABEL_EB1_
+        ; Loops sending the 0x00 command unil reply is not WORKBOY_SCAN_KEY_NONE (0xFF) AND not null value (0x00)
+        ; TODO: Maybe it's polling for a "Ready" response
+        .loop_request_serial_until_valid_reply_byte__0E76:
+        	ld   a, WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
+        	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+        	or   a
+        	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
 
-    ; Prepare to send 21 bytes of RTC data from a buffer
-    ; Send 21 bytes starting at _RAM_C2A9_ out over Serial IO
-	ld   de, _RAM_C2A9_
-	ld   c, 21  ; $15
-    .serial_send_loop__0E90:
-    	ld   a, [de]
-    	inc  de
-    	call serial_io__send_byte_and_wait_3msec__0B11
-    	call delay_2_94msec__334A
-    	dec  c
-    	jr   nz, .serial_send_loop__0E90
+        ; The value written to 0xC2AE below is ignored and overwritten
+        ; shortly after the call below to 0x0EB1
+    	ld   a, [_DATA_84_]
+    	ld   [serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE], a
+    	call rtc__load_data_to_rtc_transfer_buffer__0EB1
 
-    ; Send the last byte from above 21 bytes transfer starting at _RAM_C2A9_ out over Serial IO
-    ; Loop until serial reply byte is != 0 and != 0xFF
-    .serial_send_wait_valid_reply_loop__0E9B:
-    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-    	or   a
-    	jr   z, .serial_send_wait_valid_reply_loop__0E9B
-    	cp   $FF
-    	jr   z, .serial_send_wait_valid_reply_loop__0E9B
+        ; Prepare to send 21 bytes of RTC data from a buffer
+        ; Send 21 bytes starting at serial__transfer_buffer_21_bytes__RAM_C2A9 out over Serial IO
+        ; 5 Byte gap between the start of the buffer and loaded RTC data at: serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
+    	ld   de, serial__transfer_buffer_21_bytes__RAM_C2A9
+    	ld   c, 21  ; $15
+        .serial_send_loop__0E90:
+        	ld   a, [de]
+        	inc  de
+        	call serial_io__send_byte_and_wait_3msec__0B11
+        	call delay_2_94msec__334A
+        	dec  c
+        	jr   nz, .serial_send_loop__0E90
+
+        ; Send the last byte from above 21 bytes transfer starting at serial__transfer_buffer_21_bytes__RAM_C2A9 out over Serial IO
+        ; Loop until serial reply byte is != 0 and != 0xFF
+        .serial_send_wait_valid_reply_loop__0E9B:
+        	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+        	or   a ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+        	jr   z, .serial_send_wait_valid_reply_loop__0E9B
+        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        	jr   z, .serial_send_wait_valid_reply_loop__0E9B
+    ELSE  ; END: if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
+
+        ; TODO Format and send RTC data to MegaDuck Laptop
+
+        ; The value written to 0xC2AE below is ignored and overwritten
+        ; shortly after the call below to 0x0EB1
+        ld   a, [_DATA_84_]
+        ld   [serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE], a
+        call rtc__load_data_to_rtc_transfer_buffer__0EB1
+
+
+        jr   megaduck__resume__serial_io__send_maybe_rtc_etc__0EA5
+
+        SECTION "megaduck__resume__serial_io__send_maybe_rtc_etc__0EA5", ROM0[$0EA5]
+        megaduck__resume__serial_io__send_maybe_rtc_etc__0EA5:
+    ENDC
 
 	call time__convert_from_BCD__seconds__2916
 	call time__convert_from_BCD__minutes__2942
@@ -3090,13 +3120,16 @@ serial_io__send_maybe_rtc_etc_todo__0E6C:
 	ld   a, $01
 	ret
 
-_LABEL_EB1_:
-	ld   hl, serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
+rtc__load_data_to_rtc_transfer_buffer__0EB1:
+	ld   hl, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
+    ; [0] = Header ?
 	ld   [hl], $04
 	inc  hl
+    ; [1] = 0x00 ?
 	ld   [hl], $00
 	inc  hl
 
+    ; [2] = Seconds BCD
 	ld   a, [time__seconds__low_digit_ascii__RAM_C3A0]
 	sub  $30  ; -= 48  ("0")
 	ld   c, a
@@ -3106,6 +3139,7 @@ _LABEL_EB1_:
 	add  c
 	ldi  [hl], a
 
+    ; [3] = Minutes BCD
 	ld   a, [time__minutes__low_digit_ascii__RAM_C39E]
 	sub  $30  ; -= 48  ("0")
 	ld   c, a
@@ -3115,6 +3149,7 @@ _LABEL_EB1_:
 	add  c
 	ldi  [hl], a
 
+    ; [4] = Hours BCD
 	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
 	sub  $30  ; -= 48  ("0")
 	ld   c, a
@@ -3124,48 +3159,51 @@ _LABEL_EB1_:
 	add  c
 	ldi  [hl], a
 
-	ld   a, [_RAM_C13A_]
+    ; [5] = Day? BCD?
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	and  $03
 	call util__upshift_A_by_4__0F2C
-	add  a
+	add  a ; *= 4 -> C
 	add  a
 	ld   c, a
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ld   b, $00
-
-    ._LABEL_EFA_:
+    .modulo_10_loop__0EFA:
     	cp   $0A
-    	jr   c, ._LABEL_F03_
-    	sub  $0A
+    	jr   c, .modulo_10_done__0F03
+    	sub  $0A ; -= 10
     	inc  b
-    	jr   ._LABEL_EFA_
+    	jr   .modulo_10_loop__0EFA
+    .modulo_10_done__0F03:
+	add  c
+	ld   c, a
+	ld   a, b
+	call util__upshift_A_by_4__0F2C
+	add  c
+	ldi  [hl], a
 
-    ._LABEL_F03_:
-    	add  c
-    	ld   c, a
-    	ld   a, b
-    	call util__upshift_A_by_4__0F2C
-    	add  c
-    	ldi  [hl], a
-    	ld   a, [_RAM_C304_]
-    	call util__upshift_A_by_4__0F2C
-    	add  a
-    	ld   c, a
-    	ld   a, [_RAM_C138_]
-    	ld   b, $00
-    	cp   $0A
-    	jr   c, ._LABEL_F20_
-    	sub  $0A
+    ; [6] = Month? BCD?
+	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
+	call util__upshift_A_by_4__0F2C
+	add  a ; *= 2 -> C
+	ld   c, a
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   b, $00
+	cp   $0A
+	jr   c, .modulo_10_loop__0F20
+    	sub  $0A  ; -= 10
     	ld   b, $10
+    .modulo_10_loop__0F20:
+	add  c
+	add  b
+	ldi  [hl], a
 
-    ._LABEL_F20_:
-    	add  c
-    	add  b
-    	ldi  [hl], a
-    	ld   a, [_RAM_C13A_]
-    	and  $FC
-    	ld   [time__year__maybe__RAM_C2BD], a
-    	ret
+    ; Whaa.. 2 LSBits for Year are stored in 2 MSBits of Day?
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	and  $FC
+	ld   [time__year__maybe__RAM_C2BD], a
+	ret
+
 
     util__upshift_A_by_4__0F2C:
     	add  a ; x 2
@@ -3308,21 +3346,29 @@ _LABEL_FA1_:
 _DATA_FEA_:
 db $38, $2E, $38, $37
 
-_LABEL_FEE_:
+
+; Source address : DE (If MSB empty, E has index into pointer table to load source address instead)
+; Dest   address : HL
+gfx__copy_string_to_vram__0FEE:
+    ; Check if MSByte of source address is populated
 	ld   a, d
 	or   a
-	jr   nz, _LABEL_FFE_
-	push hl
-	ld   h, a
-	ld   l, e
-	add  hl, hl
-	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
-_LABEL_FFE_:
+	jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__0FFE
+
+        ; If source addr MSB empty, it means load source addr from pointer table instead
+        ; pointer address =  0xCEFE + (LOW(Source Address) x 2)
+    	push hl
+    	ld   h, a
+    	ld   l, e
+    	add  hl, hl
+    	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
+    	add  hl, de
+    	ld   e, [hl]
+    	inc  hl
+    	ld   d, [hl]
+    	pop  hl
+
+    .use_raw_source_addr__skip_load_from_pointer_table__0FFE:
 	ld   a, l
 	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
 	ld   a, h
@@ -3331,7 +3377,7 @@ _LABEL_FFE_:
 	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, d
 	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
-	ld   a, $0F
+	ld   a, VBL_CMD__COPY_TEXT__0x0F  ; $0F
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
     ; Reset vblank command to default
@@ -3348,18 +3394,18 @@ gfx__copy_string_to_vram_centered__1019:
 	or   a
 	jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__1029
 
-    ; If source addr MSB empty, it means load source addr from pointer table instead
-    ; pointer address =  0xCEFE + (LOW(Source Address) x 2)
-	push hl
-	ld   h, a
-	ld   l, e
-	add  hl, hl
-	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
+        ; If source addr MSB empty, it means load source addr from pointer table instead
+        ; pointer address =  0xCEFE + (LOW(Source Address) x 2)
+    	push hl
+    	ld   h, a
+    	ld   l, e
+    	add  hl, hl
+    	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
+    	add  hl, de
+    	ld   e, [hl]
+    	inc  hl
+    	ld   d, [hl]
+    	pop  hl
 
     .use_raw_source_addr__skip_load_from_pointer_table__1029:
     ; Find the number of bytes to copy (0 terminated)
@@ -3600,13 +3646,13 @@ _LABEL_11B2_:
 	call _LABEL_B765_
 	ld   de, $0002
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00D1
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00D2
 	ld   hl, $9A22
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_11DA_:
 	ld   a, [_RAM_C592_]
 	or   a
@@ -3657,7 +3703,7 @@ _LABEL_1210_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_1241_:
@@ -3680,7 +3726,7 @@ _LABEL_1241_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_1273_:
@@ -3786,10 +3832,10 @@ db $FF, $C6, $FF, $E6, $FF, $D6, $FF, $CE, $FF, $C6, $FF, $C6, $FF, $C6, $FF, $0
 _LABEL_132B_:
 	ld   de, $00D4
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00D5
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, [_RAM_C232_]
 	ld   d, $00
 	ld   e, a
@@ -3823,7 +3869,7 @@ _LABEL_1352_:
 	ret
 
 ; 12th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_1366_:
+vblank__cmd_0B_TODO__LABEL_1366_:
 	ld   hl, $99E0
 	ld   b, $14
 	xor  a
@@ -3850,7 +3896,7 @@ _LABEL_137D_:
 	jp   _LABEL_1410_
 
 ; 14th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_1388_:
+vblank__cmd_0D_TODO__LABEL_1388_:
 	ld   hl, $99E1
 	ld   de, _RAM_C13D_
 	ld   b, $03
@@ -3887,7 +3933,7 @@ _LABEL_13AF_:
 db $C3, $F7, $25
 
 ; 13th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_13BC_:
+vblank__cmd_0C_TODO__LABEL_13BC_:
 	ld   hl, _RAM_CF20_
 	ld   e, [hl]
 	inc  hl
@@ -3915,7 +3961,7 @@ _LABEL_13D4_:
 	jp   vblank__cmd_default__25F7
 
 ; 22nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_13E2_:
+vblank__cmd_15_TODO__LABEL_13E2_:
 	ld   hl, $9A01
 	ld   b, $12
 	ld   de, _RAM_C11B_
@@ -3934,7 +3980,7 @@ _LABEL_13F5_:
 	jp   vblank__cmd_default__25F7
 
 ; 9th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_13FD_:
+vblank__cmd_08_TODO__LABEL_13FD_:
 	ld   hl, _RAM_CF1C_
 	ld   e, [hl]
 	inc  hl
@@ -5752,7 +5798,7 @@ _LABEL_21C1_:
 	ld   de, $C261
 	ld   a, [vblank__dispatch_select__RAM_C27C]
 	push af
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  af
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ret
@@ -6000,14 +6046,14 @@ db $30, $38, $48, $50, $60, $68, $70, $78, $38, $40, $50, $58, $68, $70, $68, $7
 db $80, $88
 
 ; 20th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_2385_:
+vblank__cmd_13_TODO__LABEL_2385_:
 	call _LABEL_30A1_
 	ld   b, $02
 	ld   hl, $99AC
 	jr   _LABEL_23B8_
 
 ; 25th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_238F_:
+vblank__cmd_18_TODO__LABEL_238F_:
 	ld   b, $03
 	ld   hl, (_TILEMAP0 + $85)
 	ld   de, _RAM_C261_
@@ -6035,7 +6081,7 @@ _LABEL_2397_:
 	jp   vblank__cmd_default__25F7
 
 ; 19th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_23B3_:
+vblank__cmd_12_TODO__LABEL_23B3_:
 	ld   b, $03
 	ld   hl, $99E6
 _LABEL_23B8_:
@@ -6055,7 +6101,7 @@ _LABEL_23BB_:
 	jp   vblank__cmd_default__25F7
 
 ; 17th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_23CC_:
+vblank__cmd_10_TODO__LABEL_23CC_:
 	ld   hl, (_TILEMAP0 + $05)
 	ld   a, [_RAM_C260_]
 	or   a
@@ -6087,7 +6133,7 @@ _LABEL_23DD_:
 	jp   vblank__cmd_default__25F7
 
 ; 18th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_23F8_:
+vblank__cmd_11_TODO__LABEL_23F8_:
 	ld   de, _RAM_C261_
 	ld   hl, (_TILEMAP0 + $25)
 	ld   b, $02
@@ -6212,7 +6258,7 @@ _LABEL_24B4_:
 
 
 ; 16th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-vblank__cmd_copy_text__24BA:
+vblank__cmd_0F__copy_text__24BA:
     ; Dest  : RAM_C134,RAM_C133 (DE)
     ; Source: RAM_C135,RAM_C136 (HL)
 	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
@@ -6328,37 +6374,37 @@ gfx__vsync__2548:
 ; Jump Table from 2557 to 2588 (25 entries, indexed by vblank__dispatch_select__RAM_C27C)
 vblank__dispatch_table__2557:
     dw vblank__cmd_default__25F7  ; VBL_CMD__DEFAULT__0x00
-    dw _LABEL_B973_  ; VBL_COMMAND__0x01
-    dw _LABEL_26C6_  ; VBL_COMMAND__0x02
-    dw $2694         ; VBL_COMMAND__0x03
-    dw _LABEL_2667_  ; VBL_COMMAND__0x04
-    dw _LABEL_7FC_   ; VBL_COMMAND__0x05
-    dw _LABEL_7E9_   ; VBL_COMMAND__0x06
-    dw _LABEL_79A_   ; VBL_COMMAND__0x07
-    dw _LABEL_13FD_  ; VBL_COMMAND__0x08
-    dw _LABEL_604_   ; VBL_COMMAND__0x09
-    dw _LABEL_309B_  ; VBL_COMMAND__0x0A
-    dw _LABEL_1366_  ; VBL_COMMAND__0x0B
-    dw _LABEL_13BC_  ; VBL_COMMAND__0x0C
-    dw _LABEL_1388_  ; VBL_COMMAND__0x0D
-    dw _LABEL_25AE_  ; VBL_COMMAND__0x0E
-    dw vblank__cmd_copy_text__24BA  ; VBL_CMD__COPY_TEXT__0x0F
-    dw _LABEL_23CC_  ; VBL_COMMAND__0x10
-    dw _LABEL_23F8_  ; VBL_COMMAND__0x11
-    dw _LABEL_23B3_  ; VBL_COMMAND__0x12
-    dw _LABEL_2385_  ; VBL_COMMAND__0x13
-    dw _LABEL_2591_  ; VBL_COMMAND__0x14
-    dw _LABEL_13E2_  ; VBL_COMMAND__0x15
-    dw _LABEL_2BCF_  ; VBL_COMMAND__0x16
-    dw $4C44         ; VBL_COMMAND__0x17
-    dw _LABEL_238F_  ; VBL_COMMAND__0x18
+    dw vblank__cmd_01_TODO__LABEL_B973_  ; vblank__cmd_01
+    dw vblank__cmd_02_TODO__LABEL_26C6_  ; vblank__cmd_02
+    dw $2694         ; vblank__cmd_03
+    dw vblank__cmd_04_TODO__LABEL_2667_  ; vblank__cmd_04
+    dw vblank__cmd_05_TODO__LABEL_7FC_   ; vblank__cmd_05
+    dw vblank__cmd_06_TODO__LABEL_7E9_   ; vblank__cmd_06
+    dw vblank__cmd_07_TODO__LABEL_79A_   ; vblank__cmd_07
+    dw vblank__cmd_08_TODO__LABEL_13FD_  ; vblank__cmd_08
+    dw vblank__cmd_09_TODO__LABEL_604_   ; vblank__cmd_09
+    dw vblank__cmd_0A_TODO__LABEL_309B_  ; vblank__cmd_0A
+    dw vblank__cmd_0B_TODO__LABEL_1366_  ; vblank__cmd_0B
+    dw vblank__cmd_0C_TODO__LABEL_13BC_  ; vblank__cmd_0C
+    dw vblank__cmd_0D_TODO__LABEL_1388_  ; vblank__cmd_0D
+    dw vblank__cmd_0E_TODO__LABEL_25AE_  ; vblank__cmd_0E
+    dw vblank__cmd_0F__copy_text__24BA  ; VBL_CMD__COPY_TEXT__0x0F
+    dw vblank__cmd_10_TODO__LABEL_23CC_  ; vblank__cmd_10
+    dw vblank__cmd_11_TODO__LABEL_23F8_  ; vblank__cmd_11
+    dw vblank__cmd_12_TODO__LABEL_23B3_  ; vblank__cmd_12
+    dw vblank__cmd_13_TODO__LABEL_2385_  ; vblank__cmd_13
+    dw vblank__cmd_14_TODO__LABEL_2591_  ; vblank__cmd_14
+    dw vblank__cmd_15_TODO__LABEL_13E2_  ; vblank__cmd_15
+    dw vblank__cmd_16_TODO__LABEL_2BCF_  ; vblank__cmd_16
+    dw $4C44         ; vblank__cmd_17
+    dw vblank__cmd_18_TODO__LABEL_238F_  ; vblank__cmd_18
 
 
 ; Data from 2589 to 2590 (8 bytes)
 db $57, $4C, $B1, $2C, $92, $79, $AF, $79
 
 ; 21st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_2591_:
+vblank__cmd_14_TODO__LABEL_2591_:
 	ld   hl, (_TILEMAP0 + $44)
 	ld   de, _RAM_C13D_
 	ld   b, $03
@@ -6366,7 +6412,7 @@ _LABEL_2591_:
 	inc  hl
 	ld   b, $08
 	call _LABEL_25A5_
-	jp   _LABEL_309B_
+	jp   vblank__cmd_0A_TODO__LABEL_309B_
 
 _LABEL_25A5_:
 	ld   a, [de]
@@ -6378,7 +6424,7 @@ _LABEL_25A5_:
 	ret
 
 ; 15th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_25AE_:
+vblank__cmd_0E_TODO__LABEL_25AE_:
 	ld   a, [_RAM_C105_]
 	ld   l, a
 	ld   a, [_RAM_C106_]
@@ -6497,7 +6543,7 @@ vblank__handler__25CC:
     	reti
 
 ; 5th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_2667_:
+vblank__cmd_04_TODO__LABEL_2667_:
 	ld   de, _RAM_C283_
 	ld   hl, $98EA
 	ld   b, $07
@@ -6535,7 +6581,7 @@ db $C2, $28, $08, $FA, $52, $C1, $CD, $90, $49, $18, $DE, $AF, $22, $3E, $C2, $7
 db $18, $D7
 
 ; 3rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_26C6_:
+vblank__cmd_02_TODO__LABEL_26C6_:
 	xor  a
 	ld   [$99EB], a
 	ld   hl, $99EC
@@ -6816,7 +6862,7 @@ app_currency__launch__2845:
 
 ; * Checks to see if they keyboard peripheral is attached to Serial IO
 ; * If it is present then it requests 21 bytes of RTC data and stores
-;   the response at serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
+;   the response at serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
 ; * Incoming data is formatted as hex bytes composed of two ascii
 ;   characters (0-F) which are condensed to a single byte bcd value
 ; * The RTC data is then converted from BCD and some validation is performed
@@ -6824,13 +6870,21 @@ app_currency__launch__2845:
 ; Example RTC reply data *AFTER* ASCII -> BCD unpacking to RAM
 ;
 ; Buffer index[N]
-; [0] 4 (4 header)
-; [2] 18 (sec)
-; [3] 5 (min)
-; [4] 3 (hour)
-; [5] 19 (day)
-; [6] 8 (month)
-; [F] 7c (year - 1900)
+; [0]  4  (4 header)
+; [2] 18  (sec)
+; [3]  5  (min)
+; [4]  3  (hour)
+; [5] 19  (day)
+; [6]  8  (month)
+; [7]
+; [8]
+; [9]
+; [A]
+; [B]
+; [C]
+; [D]
+; [E]
+; [F] 7c  (year - 1900)
 ;
 ;             S  M  H  D  M                          Y - 1900
 ;             e  i  r  a  o                          r
@@ -6887,7 +6941,7 @@ if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
 
     ; Prepare to receive 21 bytes of RTC data into RTC buffer
     ; Rx bytes are in ascii hex, one nybble per character
-	ld   de, serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
+	ld   de, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
 	ld   c, 21 ; $15  ; Read 21 Bytes from serial
     .serial_read_loop__2879:
     	ld   a, $00
@@ -6908,7 +6962,7 @@ ELSE ; if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 
     ; Fake some RTC Data
-    ld   hl, serial__rtc_transfer_buffer_21_bytes__RAM_C2AE
+    ld   hl, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
     ld   [hl], $D4
     inc  hl
     ld   [hl], $00
@@ -6933,10 +6987,10 @@ ELSE ; if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     ld   [hl+], a
     ld   [hl+], a
     ld   [hl], $7C
-    jr   megaduck__startup__resume_workboy_postprocess_rtc_data__2883
+    jr   megaduck__resume__serial_io__startup_check_and_read_rtc__2883
 
-    SECTION "megaduck__startup__resume_workboy_postprocess_rtc_data__2883", ROM0[$2883]
-    megaduck__startup__resume_workboy_postprocess_rtc_data__2883:
+    SECTION "megaduck__resume__serial_io__startup_check_and_read_rtc__2883", ROM0[$2883]
+    megaduck__resume__serial_io__startup_check_and_read_rtc__2883:
 ENDC
 
 	call time__convert_from_BCD__seconds__2916
@@ -6954,7 +7008,7 @@ ENDC
     	ld   c, a
     	ld   a, [time__year__maybe__RAM_C2BD]
     	add  c
-    	ld   [_RAM_C13A_], a
+    	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
 
     	ld   a, [time__days__maybe__RAM_C2B3]
     	and  $30
@@ -6968,7 +7022,7 @@ ENDC
     	ld   a, [time__days__maybe__RAM_C2B3]
     	and  $0F
     	add  e
-    	ld   [_RAM_C139_], a
+    	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 
     	ld   a, [time__month__maybe__RAM_C2B4]
     	ld   e, a
@@ -6977,7 +7031,7 @@ ENDC
     	jr   z, _LABEL_28C6_
     	add  $0A
     _LABEL_28C6_:
-    	ld   [_RAM_C138_], a
+    	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 
     	ld   a, [time__month__maybe__RAM_C2B4]
     	and  $E0
@@ -6985,8 +7039,8 @@ ENDC
     	rr   a
     	call util__rr_downshift_A_by_4__2909
     	ld   [_RAM_C137_], a
-    	ld   [_RAM_C304_], a
-    	ld   a, [_RAM_C139_]
+    	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
+    	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
     	ld   e, a
     	ld   a, [_RAM_C137_]
     _LABEL_28E1_:
@@ -7000,12 +7054,12 @@ ENDC
 
     _LABEL_28ED_:
     	ld   [_RAM_C137_], a
-    	ld   a, [_RAM_C139_]
+    	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
     	or   a
     	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $20
     	jp   nc, time__handle_reset_invalid_RTC_data__2D4E
-    	ld   a, [_RAM_C138_]
+    	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
     	or   a
     	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $0D
@@ -7230,7 +7284,7 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 	ld   [rMBC1_RAM_ENABLE_ALT], a  ; $0002
 	pop  af
     ; Loop until a non-0x00 and non-0xFF serial response
-	cp   WORKBOY_SCAN_KEY_EMPTY  ; $00
+	cp   WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
 	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
 	cp   WORKBOY_SCAN_KEY_NONE   ; $FF
 	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
@@ -7586,7 +7640,7 @@ _LABEL_2BC5_:
 	ret
 
 ; 23rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_2BCF_:
+vblank__cmd_16_TODO__LABEL_2BCF_:
 	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
 	ld   l, a
 	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
@@ -7908,13 +7962,13 @@ time__handle_reset_invalid_RTC_data__2D4E:
 
     ; TODO: Not yet sure what these are
 	ld   a, $5C
-	ld   [_RAM_C13A_], a
+	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
 	ld   a, $01
-	ld   [_RAM_C138_], a
-	ld   [_RAM_C139_], a
+	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ld   a, $03
 	ld   [_RAM_C137_], a
-	call _LABEL_EB1_
+	call rtc__load_data_to_rtc_transfer_buffer__0EB1
 
     ; TODO: Validating 4 bytes of something in SRAM
     ;
@@ -7961,10 +8015,10 @@ _LABEL_2DA7_:
 	push de
 	ld   de, $00A4
 	ld   hl, $98A0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00A5
 	ld   hl, $98E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_2DC8_:
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
@@ -8373,7 +8427,7 @@ _LABEL_3096_:
 	ret
 
 ; 11th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_309B_:
+vblank__cmd_0A_TODO__LABEL_309B_:
 	call _LABEL_30A1_
 	jp   vblank__cmd_default__25F7
 
@@ -8523,13 +8577,13 @@ _LABEL_31EA_:
 	rst  $18	; Call VSYNC__RST_18
 	ld   de, _DATA_617_
 	ld   hl, $98A0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00D6
 	ld   hl, $98C0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0617
 	ld   hl, $98E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   b, $06
 _LABEL_3212_:
 	push bc
@@ -8540,7 +8594,7 @@ _LABEL_3215_:
 	jr   nz, _LABEL_3215_
 	ld   de, $2152
 	ld   hl, $98C1
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $14
 _LABEL_3222_:
 	rst  $18	; Call VSYNC__RST_18
@@ -8548,7 +8602,7 @@ _LABEL_3222_:
 	jr   nz, _LABEL_3222_
 	ld   de, $00D6
 	ld   hl, $98C0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  bc
 	dec  b
 	jr   nz, _LABEL_3212_
@@ -13248,13 +13302,13 @@ _LABEL_ACA8_:
 	jr   nz, _LABEL_AD13_
 	ld   de, $2150
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $2150
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0037
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_ACE7_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -13285,14 +13339,14 @@ _LABEL_ACE7_:
 _LABEL_AD13_:
 	ld   de, $2150
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0002
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_B7F7_
 	ld   de, $0039
 	ld   hl, $9A21
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_AD2B_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -13526,15 +13580,15 @@ _LABEL_AE6C_:
 	jr   _LABEL_AE30_
 
 _LABEL_AE77_:
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	cp   d
 	jr   c, _LABEL_AE8F_
 	jr   nz, _LABEL_AE91_
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	cp   c
 	jr   c, _LABEL_AE8F_
 	jr   nz, _LABEL_AE91_
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	cp   b
 	jr   z, _LABEL_AE8F_
 	jr   nc, _LABEL_AE91_
@@ -13563,13 +13617,13 @@ _LABEL_AE91_:
 	ret
 
 _LABEL_AEAE_:
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	cp   b
 	jr   nz, _LABEL_AEC2_
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	cp   c
 	jr   nz, _LABEL_AEC2_
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	cp   d
 	jr   nz, _LABEL_AEC2_
 	xor  a
@@ -13584,14 +13638,14 @@ _DATA_AEC5_:
 db $1F, $1C, $1F, $1E, $1F, $1E, $1F, $1F, $1E, $1F, $1E, $1F
 
 _LABEL_AED1_:
-	ld   a, [_RAM_C304_]
+	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	inc  a
 	cp   $07
 	jr   nz, _LABEL_AEDA_
 	xor  a
 _LABEL_AEDA_:
-	ld   [_RAM_C304_], a
-	ld   a, [_RAM_C138_]
+	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   hl, _DATA_AEC5_ - 1
 	add  l
 	ld   l, a
@@ -13602,45 +13656,45 @@ _LABEL_AEDA_:
 	cp   $1C
 	jr   z, _LABEL_AF15_
 	ld   c, a
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	inc  a
 	inc  c
 	cp   c
 	jr   z, _LABEL_AEFB_
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_AEFB_:
 	ld   a, $01
-	ld   [_RAM_C139_], a
-	ld   a, [_RAM_C138_]
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	inc  a
 	cp   $0D
 	jr   nz, _LABEL_AF11_
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	inc  a
-	ld   [_RAM_C13A_], a
+	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
 	ld   a, $01
 _LABEL_AF11_:
-	ld   [_RAM_C138_], a
+	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	ret
 
 _LABEL_AF15_:
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	inc  a
 	cp   $1E
 	jr   z, _LABEL_AEFB_
 	cp   $1D
 	jr   z, _LABEL_AF25_
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_AF25_:
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	and  $03
 	jr   nz, _LABEL_AEFB_
 	ld   a, $1D
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_AF32_:
@@ -13756,19 +13810,19 @@ _LABEL_AFDF_:
 	jr   nz, _LABEL_AFE9_
 	ld   a, $06
 _LABEL_AFE9_:
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	dec  a
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret  nz
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	dec  a
 	jr   nz, _LABEL_B000_
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	dec  a
-	ld   [_RAM_C13A_], a
+	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
 	ld   a, $0C
 _LABEL_B000_:
-	ld   [_RAM_C138_], a
+	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	ld   hl, _DATA_AEC5_ - 1
 	add  l
 	ld   l, a
@@ -13778,20 +13832,20 @@ _LABEL_B000_:
 	ld   a, [hl]
 	cp   $1C
 	jr   z, _LABEL_B015_
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_B015_:
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	and  $03
 	jr   z, _LABEL_B022_
 	ld   a, $1C
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_B022_:
 	ld   a, $1D
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_B028_:
@@ -14041,11 +14095,11 @@ _LABEL_B1CA_:
 	pop  af
 	ld   [_RAM_C10B_], a
 	ld   hl, _RAM_C700_
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ldi  [hl], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ldi  [hl], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
 	xor  a
 	ldi  [hl], a
@@ -14065,14 +14119,14 @@ _LABEL_B1F7_:
 	ld   [_RAM_C280_], a
 	ld   hl, _TILEMAP0
 	ld   de, $002C
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B20C_:
 	ld   hl, _RAM_C700_
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ldi  [hl], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ldi  [hl], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
 	call _LABEL_1352_
 	ld   a, [_RAM_C700_]
@@ -14104,11 +14158,11 @@ _LABEL_B20C_:
 	jr   nz, _LABEL_B20C_
 	ld   de, $2150
 	ld   hl, _TILEMAP0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_B62F_
 	ld   hl, (_TILEMAP0 + $20)
 	ld   de, $002D
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B271_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -14129,10 +14183,10 @@ _LABEL_B271_:
 _LABEL_B28D_:
 	ld   hl, (_TILEMAP0 + $20)
 	ld   de, $2150
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, (_TILEMAP0 + $20)
 	ld   de, $002E
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, _RAM_C261_
 	ld   a, $30
 	ldi  [hl], a
@@ -14156,25 +14210,25 @@ _LABEL_B2BF_:
 	ld   [_RAM_C703_], a
 	ld   de, $2150
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	jr   _LABEL_B31C_
 
 _LABEL_B2CD_:
 	ld   de, $0030
 	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0031
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0032
 	ld   hl, (_TILEMAP0 + $80)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0033
 	ld   hl, $98A0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0034
 	ld   hl, $98C0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B2F0_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -14193,7 +14247,7 @@ _LABEL_B30B_:
 	push bc
 	push hl
 	ld   de, $2150
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  hl
 	ld   bc, $0020
 	add  hl, bc
@@ -14209,7 +14263,7 @@ _LABEL_B320_:
 	call _LABEL_B4D4_
 	ld   de, $0035
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B32A_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -14229,7 +14283,7 @@ _LABEL_B32A_:
 	jr   nz, _LABEL_B32A_
 	ld   de, $0036
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B34D_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -14254,7 +14308,7 @@ _LABEL_B34D_:
 _LABEL_B36E_:
 	ld   de, $2150
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B375_:
 	call _LABEL_B6E0_
 	call _LABEL_B4C5_
@@ -14483,10 +14537,10 @@ _LABEL_B4BE_:
 _LABEL_B4C5_:
 	ld   hl, $98C0
 	ld   de, $761A
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, $9940
 	ld   de, $761A
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_B4D4_:
@@ -14502,7 +14556,7 @@ _LABEL_B4D4_:
 	inc  hl
 	ld   d, [hl]
 	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_B4EB_:
@@ -14802,7 +14856,7 @@ _LABEL_B6BE_:
 	ld   [hl], b
 	ld   hl, _TILEMAP0
 	ld   de, $C261
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_B6CD_:
@@ -14825,7 +14879,7 @@ _LABEL_B6D8_:
 _LABEL_B6E0_:
 	ld   hl, (_TILEMAP0 + $60)
 	ld   de, $2150
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, _RAM_C261_
 	ld   a, $20
 	ld   b, $14
@@ -14864,7 +14918,7 @@ _LABEL_B71E_:
 _LABEL_B728_:
 	ld   de, $C261
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_B730_:
@@ -14890,13 +14944,13 @@ _LABEL_B743_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   hl, $99C0
 	ld   de, $0617
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, $9A00
 	ld   de, $00D3
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, $9A20
 	ld   de, $0005
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 _LABEL_B75C_:
@@ -14935,10 +14989,10 @@ _LABEL_B77F_:
 	ld   [hl], $00
 	ld   de, $002E
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $C261
 	ld   hl, (_TILEMAP0 + $25)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B7B1_:
 	call _LABEL_B4D4_
 	call _LABEL_B6E0_
@@ -14963,7 +15017,7 @@ _LABEL_B7C9_:
 	push hl
 	push de
 	ld   de, $C261
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  de
 	pop  hl
 	ld   bc, $0020
@@ -15207,7 +15261,7 @@ _LABEL_B96C_:
 	ret
 
 ; 2nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
-_LABEL_B973_:
+vblank__cmd_01_TODO__LABEL_B973_:
 	ld   a, [_SRAM_221_]
 	ld   [(_TILEMAP0 + $65)], a
 	ld   de, _RAM_C466_
@@ -16113,7 +16167,7 @@ _LABEL_C05D_:
 	jr   nz, _LABEL_C05D_
 	ld   de, $2150
 	ld   hl, _TILEMAP0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, _RAM_C308_
 	ld   c, $00
 _LABEL_C071_:
@@ -16131,10 +16185,10 @@ _LABEL_C078_:
 	ld   h, $98
 	ld   l, a
 	ld   de, $C308
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $2150
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, [_RAM_C306_]
 	or   a
 	jr   nz, _LABEL_C0AD_
@@ -16156,11 +16210,11 @@ _LABEL_C09E_:
 	add  $20
 	ld   l, a
 	ld   de, $C327
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_C0AD_:
 	ld   de, $0062
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_C0B4_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
@@ -16651,7 +16705,7 @@ _LABEL_C3FA_:
 	ld   [hl], $20
 	ld   de, $C11B
 	ld   hl, $9A01
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $07
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	jr   _LABEL_C391_
@@ -16724,7 +16778,7 @@ _LABEL_C472_:
 	ld   [_RAM_C10D_], a
 	ld   de, $0003
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_680_
 	ld   a, [_RAM_C23B_]
 	ld   c, a
@@ -16779,7 +16833,7 @@ _LABEL_C4C3_:
 	jr   z, _LABEL_C4F1_
 	ld   hl, $99A6
 	ld   de, $0068
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, _RAM_C59C_
 	ld   de, _RAM_C261_
 	ld   b, $04
@@ -16798,7 +16852,7 @@ _LABEL_C4E1_:
 _LABEL_C4F1_:
 	ld   hl, $99E8
 	ld   de, $0067
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0063
 	ld   hl, (_TILEMAP0 + $20)
 	rst  $28	; COPY_STRING_VRAM__RST_28
@@ -16897,7 +16951,7 @@ _LABEL_C592_:
 _LABEL_C5AD_:
 	ld   hl, $99E0
 	ld   de, $002E
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, _RAM_C261_
 	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $06
@@ -16934,16 +16988,19 @@ _LABEL_C5E7_:
 _LABEL_C5F3_:
 	ld   de, $2150
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
+
 	ld   de, $0016
 	ld   hl, $99E1
-	rst  $20	; _LABEL_20_
-_LABEL_C601_:
-	call serial_io__send_maybe_rtc_etc_todo__0E6C
-	or   a
-	jr   z, _LABEL_C601_
-	cp   $FF
-	jr   z, _LABEL_C601_
+	rst  $20	; GFX_COPY_STRING__RST_20
+
+    .loop__LABEL_C601_:
+    	call serial_io__send_maybe_rtc_etc_todo__0E6C
+    	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+    	jr   z, .loop__LABEL_C601_
+    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    	jr   z, .loop__LABEL_C601_
+
 	call gfx__turn_off_screen_2827
 	jp   gfx__clear_tilemap_0__2722
 
@@ -17014,7 +17071,7 @@ _LABEL_C7C2_:
 _LABEL_C7CA_:
 	ld   hl, $99A6
 	ld   de, $0068
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   hl, _RAM_C261_
 	ld   de, time__hours__high_digit_ascii__RAM_C39B
 	ld   b, $06
@@ -17274,31 +17331,31 @@ _LABEL_C9A4_:
 	ret
 
 _LABEL_C9A7_:
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ld   [_RAM_C5C6_], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C5C4_], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C5C5_], a
 	call _LABEL_CA12_
 	ld   a, [_RAM_C700_]
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ld   [_RAM_C152_], a
 	ld   a, [_RAM_C701_]
 	ld   [_RAM_C154_], a
-	ld   [_RAM_C138_], a
+	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	ld   a, [_RAM_C702_]
 	ld   [_RAM_C155_], a
-	ld   [_RAM_C13A_], a
+	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
 	call _LABEL_1273_
 	ld   a, [_RAM_C153_]
-	ld   [_RAM_C304_], a
+	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
 	ld   a, [_RAM_C152_]
-	ld   [_RAM_C139_], a
+	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
 	ld   a, [_RAM_C155_]
-	ld   [_RAM_C13A_], a
+	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
 	ld   a, [_RAM_C154_]
-	ld   [_RAM_C138_], a
+	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	call _LABEL_C5F3_
 	call _LABEL_288F_
 	jp   _LABEL_C91B_
@@ -17334,7 +17391,7 @@ _LABEL_CA12_:
 	ld   [_RAM_C280_], a
 	ld   hl, $99E0
 	ld   de, $002C
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, [_RAM_C700_]
 	ld   hl, $C261
 	call _LABEL_2BBA_
@@ -17549,13 +17606,13 @@ _LABEL_CBBE_:
 	jr   z, _LABEL_CC24_
 	ld   de, $0001
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0017
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $2150
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, [_RAM_C5C7_]
 	ld   [_RAM_C10C_], a
 	call _LABEL_7B6_
@@ -17598,13 +17655,13 @@ _LABEL_CC05_:
 _LABEL_CC24_:
 	ld   de, $2150
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0085
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0086
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_CC39_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -17773,7 +17830,7 @@ _LABEL_CD58_:
 	ld   de, (_TILEMAP0 + $01)
 	add  hl, de
 	ld   de, $C11B
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $07
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	jp   _LABEL_CCEF_
@@ -18682,7 +18739,7 @@ _LABEL_D358_:
 	ld   [_RAM_C5CC_], a
 	ld   de, $009D
 	ld   hl, (_TILEMAP0 + $24)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_D56A_
 	ld   a, [_RAM_C5CC_]
 	sub  $1E
@@ -19182,10 +19239,10 @@ _LABEL_D78B_:
 	call gfx__clear_tilemap_0__2722
 	ld   de, $00A4
 	ld   hl, $98A0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00A5
 	ld   hl, $98E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_D79C_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -19480,7 +19537,7 @@ _LABEL_DB47_:
 _LABEL_DB4C_:
 	ld   de, $C11B
 	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_2769_
 	ld   a, [_RAM_C258_]
 	ld   c, a
@@ -19712,10 +19769,10 @@ _LABEL_DCC7_:
 	call gfx__clear_tilemap_0__2722
 	ld   de, $00AA
 	ld   hl, $98E4
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0006
 	ld   hl, $9923
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_DCD8_:
 	ld   a, [_RAM_C592_]
 	or   a
@@ -19742,14 +19799,14 @@ _LABEL_DCFE_:
 	jr   nz, _LABEL_DD22_
 	ld   de, $0003
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_7B3_
 	ld   de, $00E0
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00E1
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_DCD8_
 	jp   _LABEL_200_
 
@@ -19759,14 +19816,14 @@ _LABEL_DD22_:
 	call _LABEL_6D0_
 	ld   de, $0003
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_7B3_
 	ld   de, $00D1
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $2150
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_DD43_:
 	ld   a, [_RAM_C592_]
 	and  $03
@@ -19797,13 +19854,13 @@ _LABEL_DD70_:
 	jr   z, _LABEL_DDBE_
 	ld   de, $0001
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00D1
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $2150
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, [_RAM_C5C7_]
 	ld   [_RAM_C10C_], a
 	call _LABEL_7B6_
@@ -19835,13 +19892,13 @@ _LABEL_DDAD_:
 _LABEL_DDBE_:
 	ld   de, $2150
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0085
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $0086
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	jp   _LABEL_DCD8_
 
 _LABEL_DDD6_:
@@ -19934,7 +19991,7 @@ _LABEL_DE8C_:
 	push bc
 	ld   de, $00AA
 	ld   hl, (_TILEMAP0 + $44)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   b, $0A
 _LABEL_DE96_:
 	rst  $18	; Call VSYNC__RST_18
@@ -19942,7 +19999,7 @@ _LABEL_DE96_:
 	jr   nz, _LABEL_DE96_
 	ld   de, $00AB
 	ld   hl, (_TILEMAP0 + $44)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   b, $0A
 _LABEL_DEA3_:
 	rst  $18	; Call VSYNC__RST_18
@@ -19953,7 +20010,7 @@ _LABEL_DEA3_:
 	jr   nz, _LABEL_DE8C_
 	ld   de, $00AC
 	ld   hl, (_TILEMAP0 + $44)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	jr   _LABEL_DE70_
 
 _LABEL_DEB4_:
@@ -20069,7 +20126,7 @@ _LABEL_DF6B_:
 	call _LABEL_BC3_
 	ld   de, $00B6
 	ld   hl, $9A01
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_DF7D_:
 	ld   a, [_RAM_C232_]
 	ld   e, a
@@ -20153,7 +20210,7 @@ _LABEL_DFEE_:
 	call _LABEL_235A_
 	ld   de, $00AE
 	ld   hl, (_TILEMAP0 + $87)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $18
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	rst  $18	; Call VSYNC__RST_18
@@ -20184,7 +20241,7 @@ _LABEL_E04B_:
 	jr   nz, _LABEL_E04B_
 	ld   de, $00AF
 	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $06
 	call _LABEL_E25B_
 	ld   hl, _RAM_C5D5_
@@ -20197,7 +20254,7 @@ _LABEL_E063_:
 	jr   nz, _LABEL_E063_
 	ld   de, $00B0
 	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00B0
 	call _LABEL_1D2D_
 	ld   bc, $0909
@@ -20215,23 +20272,23 @@ _LABEL_E063_:
 	jr   z, _LABEL_E0A0_
 	ld   de, $00B3
 	ld   hl, $9947
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_E0A0_:
 	ld   de, $00B4
 	ld   hl, $9986
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00B4
 	ld   hl, $99A6
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00B4
 	ld   hl, $99C6
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  af
 	dec  a
 	ld   [_RAM_C5DF_], a
 	ld   de, $00B5
 	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, _DATA_2150_
 	ld   bc, $0C09
 	ld   a, $14
@@ -20407,11 +20464,11 @@ _LABEL_E1CF_:
 	call _LABEL_BC3_
 _LABEL_E1DA_:
 	ld   hl, _RAM_C700_
-	ld   a, [_RAM_C139_]
+	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
 	ldi  [hl], a
-	ld   a, [_RAM_C138_]
+	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ldi  [hl], a
-	ld   a, [_RAM_C13A_]
+	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
 	ld   a, [_SRAM_2A_]
 	or   a
@@ -20444,7 +20501,7 @@ _LABEL_E1FD_:
 	call _LABEL_235A_
 	ld   de, $00AE
 	ld   hl, (_TILEMAP0 + $87)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $18
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	ld   bc, $0700
@@ -20665,7 +20722,7 @@ _LABEL_E3B1_:
 	push bc
 	push hl
 	ld   de, $2150
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  hl
 	ld   de, $0020
 	add  hl, de
@@ -20678,10 +20735,10 @@ _LABEL_E3C3_:
 	call gfx__clear_shadow_oam__275B
 	ld   de, $00B8
 	ld   hl, _TILEMAP0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $481C
 	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   a, $06
 	ld   de, $C700
 	ld   bc, _RAM_C714_
@@ -20695,7 +20752,7 @@ _LABEL_E3DF_:
 	push af
 	xor  a
 	ld   [bc], a
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	pop  af
 	pop  bc
 	ld   [bc], a
@@ -20724,18 +20781,18 @@ _LABEL_E3DF_:
 	jr   nz, _LABEL_E3DF_
 	ld   de, $481C
 	ld   hl, $9900
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00B9
 	ld   hl, $9960
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $481C
 	ld   hl, $9980
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	xor  a
 	ld   [_RAM_C78C_], a
 	ld   de, $C778
 	ld   hl, $99A0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ret
 
 ; Data from E42A to E42D (4 bytes)
@@ -20892,14 +20949,14 @@ _LABEL_E532_:
 	jr   nz, _LABEL_E55B_
 	ld   de, $0003
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_7B3_
 	ld   de, $00E0
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00E1
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_E550_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -20913,14 +20970,14 @@ _LABEL_E55B_:
 	call _LABEL_6D0_
 	ld   de, $0003
 	ld   hl, $99E0
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_7B3_
 	ld   de, $0017
 	ld   hl, $9A00
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $2150
 	ld   hl, $9A20
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_E57C_:
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -21607,11 +21664,11 @@ _LABEL_E9FF_:
 	ret  z
 	ld   de, $00BC
 	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	call _LABEL_EA1F_
 	ld   de, $00BE
 	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_EA17_:
 	call serial_io__poll_keyboard__3278
 	cp   $FF
@@ -22389,19 +22446,19 @@ _LABEL_F790_:
 	ld   de, $00BF
 	ld   a, $09
 	ld   hl, (_TILEMAP0 + $26)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00C0
 	ld   hl, (_TILEMAP0 + $86)
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00C1
 	ld   hl, $98E6
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00C2
 	ld   hl, $9946
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   de, $00C3
 	ld   hl, $99A6
-	rst  $20	; _LABEL_20_
+	rst  $20	; GFX_COPY_STRING__RST_20
 	ld   bc, $09E0
 	ld   e, $06
 	call _LABEL_1CF6_
