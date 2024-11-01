@@ -24702,7 +24702,10 @@ ds 11, $FF
 
 ; Data from 178FC to 17A63 (360 bytes)
 _DATA_178FC_:
+SECTION "rom5_begin_MAYBE_unused_78FC_to_799B", ROMX[$78FC], BANK[$5]
 ds 160, $00
+SECTION "rom5_after_MAYBE_unused_78FC_to_799B", ROMX[$799C], BANK[$5]
+
 db $5F, $60, $61, $65, $66, $67, $6B, $6C, $6B, $6C, $71, $72, $75, $76, $79, $7A
 db $7B, $7F, $80, $81, $62, $63, $64, $68, $69, $6A, $6D, $6E, $6F, $70, $73, $74
 db $77, $78, $7C, $7D, $7E, $82, $83, $84, $85, $86, $89, $8A, $8D, $8E, $91, $92
@@ -24719,7 +24722,10 @@ db $EB, $EB, $EB, $70, $EE, $EF, $F0, $F1
 
 ; Data from 17A64 to 17CAC (585 bytes)
 _DATA_17A64_:
+SECTION "rom5_begin_MAYBE_unused_3A64_to_3B04", ROMX[$7A64], BANK[$5]
 ds 160, $00
+SECTION "rom5_after_MAYBE_unused_3A64_to_3B04", ROMX[$7B04], BANK[$5]
+
 db $5F, $60, $61, $65, $66, $67, $F3, $8D, $AB, $F1, $6B, $6C, $6F, $70, $73, $74
 db $75, $79, $7A, $7B, $62, $63, $64, $68, $69, $6A, $F4, $EA, $B6, $F2, $6D, $6E
 db $71, $72, $76, $77, $78, $7C, $7D, $7E, $7F, $80, $83, $84, $83, $84, $89, $8A
@@ -24999,8 +25005,8 @@ db $4C, $5C, $71, $85, $98, $AC, $BF, $C7, $D0, $D9, $E2, $EA, $F4, $FE, $08, $1
 db $1C, $26, $30, $3A, $44, $4E, $58, $62, $7A, $8F, $A4, $B9, $CE, $E3, $F8, $0C
 db $20, $34, $48, $5C, $70, $84, $98, $AC, $C1, $D6, $EA, $FE, $12, $24, $39, $4D
 
-; SECTION "rom5_begin_unused_7F6B", ROMX[$7F6B], BANK[$5]
-; ds 149, $00
+SECTION "rom5_begin_unused_7F6B", ROMX[$7F6B], BANK[$5]
+ds 149, $00
 
 
 
