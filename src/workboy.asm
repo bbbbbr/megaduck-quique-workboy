@@ -1,6 +1,9 @@
 
 ; Turn on to enable skipping some hardware specific code
 ; so that the QuiQue ROM will run the Main Menu on a GB
+; In SuperJuniorSameDuck:
+; - Use with: --megaduck_laptop
+; - *Do NOT* use with: --workboy
 ; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
 
 ; Temp workaround while MBC1 isn't supported in OG SameDuck (supported in forked Sameduck)
@@ -26,9 +29,19 @@ endc
 ; MegaDuck Laptop support (only for megaduck targets)
 ;
 ; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
+; In SuperJuniorSameDuck:
+; - Use with: --megaduck_laptop
+; - *Do NOT* use with: --workboy
 if def (TARGET_MEGADUCK)
-  def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
+;   def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
 endc
+
+; When this is enabled the Italian UI in Bank 4 can be overwritten with patch code
+; start at rom4_begin_overwrite_italian_4100_4E6F
+;
+; The UI looks ok for all languages except Italian.
+; For Italian it works, but is mostly filled with empty space or a repeating misc tile.
+; def OVERWRITE_ITALIAN_UI_TRANSLATION = 1
 
 ; Notes:
 ; When these two options are used together there is an as-yet unresolved SRAM
@@ -22693,6 +22706,16 @@ db $69, $6F, $6E, $65, $20, $35, $2E, $37, $34, $00, $53, $6F, $74, $74, $6F, $2
 db $6C, $69, $63, $65, $6E, $7A, $61, $20, $64, $69, $00, $4E, $69, $6E, $74, $65
 db $6E, $64, $6F, $00, $41, $7A, $69, $6F, $6E, $20, $63, $61, $74, $65, $6E, $61
 db $20, $72, $69, $63, $65, $72, $63, $61, $41, $5A, $49, $4F, $4E, $20, $43, $41
+
+
+; BEGIN: Looks like misc UI Italian text?: 0x10100 - 0x10E6F  (Bank 4 0x41000->0x4E6F)
+; - Actually maybe starts at 0x100F8
+if def(OVERWRITE_ITALIAN_UI_TRANSLATION)
+    SECTION "rom4_begin_overwrite_italian_4100_4E6F", ROMX[$4100], BANK[$4]
+    ; ds 3440, $0
+    SECTION "rom4_end_overwrite_italian_4100_4E6F", ROMX[$4E70], BANK[$4]
+
+else
 db $54, $45, $4E, $41, $20, $52, $49, $43, $45, $52, $43, $41, $52, $49, $43, $45
 db $52, $43, $41, $20, $46, $49, $4E, $4F, $20, $54, $45, $52, $4D, $49, $4E, $20
 db $50, $52, $45, $4D, $45, $52, $45, $20, $51, $55, $41, $4C, $53, $20, $54, $41
@@ -22914,6 +22937,11 @@ db $4C, $4F, $42, $41, $4C, $45, $20, $20, $20, $52, $49, $43, $45, $52, $43, $4
 db $20, $20, $53, $50, $45, $43, $49, $46, $49, $43, $41, $20, $4F, $72, $61, $2F
 db $44, $61, $74, $61, $20, $45, $72, $72, $61, $74, $61, $00, $42, $61, $74, $74
 db $65, $72, $69, $65, $20, $44, $65, $62, $6F, $6C, $74, $3F, $00, $20, $20, $20
+endc
+; BEGIN: Looks like misc UI Italian text?: 0x100F8 - 0x10E6F  (Bank 4 0x40F8->0x4E6F)
+
+
+
 db $20, $43, $49, $52, $43, $4F, $4C, $41, $5A, $49, $4F, $4E, $45, $20, $20, $20
 db $20, $20, $20, $4C, $49, $42, $52, $45, $54, $54, $4F, $20, $41, $53, $53, $45
 db $47, $4E, $49, $20, $20, $00, $00, $00, $00, $00, $00, $00, $4D, $4F, $49, $53
@@ -23703,7 +23731,7 @@ db $52, $46, $00, $01, $53, $18, $54, $18, $53, $18, $51, $18, $4F, $30, $56, $1
 db $58, $18, $56, $0C, $56, $0C, $54, $0C, $54, $0C, $5B, $18, $4F, $18, $4F, $0C
 db $4F, $0C, $51, $18, $56, $18, $53, $18, $54, $30, $FF, $01
 
-; SECTION "rom4_begin_unused_7FAF", ROMX[$7FAF], BANK[$4]
+SECTION "rom4_begin_unused_7FAF_7FFF", ROMX[$7FAF], BANK[$4]
 ; ds 81, $00
 
 
@@ -24703,7 +24731,7 @@ ds 11, $FF
 ; Data from 178FC to 17A63 (360 bytes)
 _DATA_178FC_:
 SECTION "rom5_begin_MAYBE_unused_78FC_to_799B", ROMX[$78FC], BANK[$5]
-ds 160, $00
+; ds 160, $00
 SECTION "rom5_after_MAYBE_unused_78FC_to_799B", ROMX[$799C], BANK[$5]
 
 db $5F, $60, $61, $65, $66, $67, $6B, $6C, $6B, $6C, $71, $72, $75, $76, $79, $7A
@@ -24723,7 +24751,7 @@ db $EB, $EB, $EB, $70, $EE, $EF, $F0, $F1
 ; Data from 17A64 to 17CAC (585 bytes)
 _DATA_17A64_:
 SECTION "rom5_begin_MAYBE_unused_3A64_to_3B04", ROMX[$7A64], BANK[$5]
-ds 160, $00
+; ds 160, $00
 SECTION "rom5_after_MAYBE_unused_3A64_to_3B04", ROMX[$7B04], BANK[$5]
 
 db $5F, $60, $61, $65, $66, $67, $F3, $8D, $AB, $F1, $6B, $6C, $6F, $70, $73, $74
@@ -25006,7 +25034,7 @@ db $1C, $26, $30, $3A, $44, $4E, $58, $62, $7A, $8F, $A4, $B9, $CE, $E3, $F8, $0
 db $20, $34, $48, $5C, $70, $84, $98, $AC, $C1, $D6, $EA, $FE, $12, $24, $39, $4D
 
 SECTION "rom5_begin_unused_7F6B", ROMX[$7F6B], BANK[$5]
-ds 149, $00
+; ds 149, $00
 
 
 
@@ -27153,6 +27181,6 @@ db $8B, $9E, $B2, $C5, $CC, $D3, $DB, $E3, $EC, $F6, $00, $0A, $14, $1E, $28, $3
 db $3C, $46, $50, $5A, $64, $7C, $91, $A6, $BB, $D0, $E5, $FA, $0E, $22, $36, $4A
 db $5E, $72, $86, $9A, $AE, $C3, $D8, $EC, $00, $14, $29, $39, $4D
 
-; SECTION "rom7_begin_unused_7FD6", ROMX[$7FD6], BANK[$7]
+SECTION "rom7_begin_unused_7FD6", ROMX[$7FD6], BANK[$7]
 ; ds 42, $00
 
