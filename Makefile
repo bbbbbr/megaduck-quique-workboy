@@ -26,7 +26,7 @@ endif
 
 
 gb: $(DIRGB)/$(ROMNAME_BASE).gb
-duck: $(DIRDUCK)/$(ROMNAME_BASE).duck
+duck: $(DIRDUCK)/$(ROMNAME_BASE).md2
 
 clean: cleanduck cleangb
 
@@ -44,6 +44,7 @@ $(DIRGB)/$(ROMNAME_BASE).gb: gbgfx $(SRCDIR)/$(SRCNAME)
 	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
 #   Overwrite save to ensure it has a working one with some data (sometimes gets reset)
 	cp -f $(TEST_SAV) $(DIRGB)/$(TEST_SAVE_NAME)
+	cp -f $(TEST_SAV) $(DIRDUCK)/$(TEST_SAVE_NAME)
 
 gbgfx:
 #	rgbgfx $(GFXDIR)/megaduck_logo_9x_8x8.png -o src/megaduck_logo_9_tiles.2bpp -c "#FFFFFF,#A0A0A0,#4E4E4E,#000000;"
@@ -51,16 +52,16 @@ gbgfx:
 
 # == Mega Duck ==
 
-duck: $(DIRDUCK)/$(ROMNAME_BASE).duck
+duck: $(DIRDUCK)/$(ROMNAME_BASE).md2
 
 clean: cleanduck
 
 cleanduck:
 	rm -f $(DIRDUCK)/*
 
-$(DIRDUCK)/$(ROMNAME_BASE).duck: duckgfx $(SRCDIR)/$(SRCNAME)
+$(DIRDUCK)/$(ROMNAME_BASE).md2: duckgfx $(SRCDIR)/$(SRCNAME)
 	rgbasm -Wno-obsolete -DTARGET_MEGADUCK --preserve-ld --halt-without-nop -i $(INCPATH) -o $(DIRDUCK)/$(ROMNAME_BASE).o $(SRCDIR)/$(SRCNAME)
-	rgblink -n $(DIRDUCK)/$(ROMNAME_BASE).sym -m $(DIRDUCK)/$(ROMNAME_BASE).map -n $(DIRGB)/$(ROMNAME_BASE).sym -o $(DIRDUCK)/$(ROMNAME_BASE).duck $(DIRDUCK)/$(ROMNAME_BASE).o
+	rgblink -n $(DIRDUCK)/$(ROMNAME_BASE).sym -m $(DIRDUCK)/$(ROMNAME_BASE).map -n $(DIRGB)/$(ROMNAME_BASE).sym -o $(DIRDUCK)/$(ROMNAME_BASE).md2 $(DIRDUCK)/$(ROMNAME_BASE).o
 	@if which md5sum &>/dev/null; then md5sum $@; else md5 $@; fi
 	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
 #   Overwrite save to ensure it has a working one with some data (sometimes gets reset)
@@ -71,10 +72,18 @@ duckgfx:
 
 
 bindiffduck:
-	vbindiff $(REFERENCE_ROM) $(DIRDUCK)/$(ROMNAME_BASE).duck
+	vbindiff $(REFERENCE_ROM) $(DIRDUCK)/$(ROMNAME_BASE).md2
 
 bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
+
+runduck: runduckmbc1
+
+runduckmbc1:
+	superjunior_sameduck --force-mbc 0x03 build_duck/$(ROMNAME_BASE).md2
+
+runduckmd2:
+	superjunior_sameduck --duck-sram-cart build_duck/$(ROMNAME_BASE).md2
 
 
 romusage:
@@ -83,11 +92,11 @@ romusage:
 # Needs stock inside gadgets firmware to work, can use flashgbx ui to swap it out if needed
 # Make sure 32K cart is specified
 flashduck:
-	-cd tools/gbxcart_duck; ./gbxcart_rw_megaduck_32kb_flasher ../../$(DIRDUCK)/$(ROMNAME_BASE).duck &
+	-cd tools/gbxcart_duck; ./gbxcart_rw_megaduck_32kb_flasher ../../$(DIRDUCK)/$(ROMNAME_BASE).md2 &
 
 
 # rom-first-32k:
-#	dd bs=32K count=1 if=$(REFERENCE_ROM) of=$(REFERENCE_ROM)_32k.duck
+#	dd bs=32K count=1 if=$(REFERENCE_ROM) of=$(REFERENCE_ROM)_32k.md2
 
 
 # create necessary directories after Makefile is parsed but before build

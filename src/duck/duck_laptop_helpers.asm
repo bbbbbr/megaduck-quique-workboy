@@ -1,0 +1,37 @@
+
+; All of these need to be in non-banked ROM0
+
+; Currently patched into space freed up by
+; the code unused in megaduck mode:
+;    `serial_io__send_command_A_wait_reply_byte_result_in_A__3356`
+
+duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first::
+    push af
+    ld   a, [duck_mbc_last_written_rom_bank]
+    ld   [duck_mbc_saved_rom_bank], a
+    pop  af
+duck_mbc_switch_bank_A_and_cache_banknum::
+    ld   [duck_mbc_last_written_rom_bank], a
+    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ret
+
+
+duck_mbc_restore_saved_bank::
+    ld   a, [duck_mbc_saved_rom_bank]
+    ld   [duck_mbc_last_written_rom_bank], a
+    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ret
+
+
+duck_keyboard_read_wrapper::
+    ld   a, BANK(duck_io_keyboard_poll_and_translate)
+    call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
+    ; ld   [rMBC1_ROMBANK], BANK(duck_io_keyboard_poll)
+
+    call duck_io_keyboard_poll_and_translate
+
+    push af
+    call duck_mbc_restore_saved_bank
+    pop  af
+
+    ret

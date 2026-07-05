@@ -1,4 +1,9 @@
 
+   ; FOR: BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
+   ; TODO: Search and make sure no calls to the following remain
+   ;   - serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+
+
 ; Turn on to enable skipping some hardware specific code
 ; so that the QuiQue ROM will run the Main Menu on a GB
 ; In SuperJuniorSameDuck:
@@ -7,16 +12,19 @@
 ; def DEBUG_SKIP_WORKBOY_STARTUP_CHECK = 1
 
 ; Temp workaround while MBC1 isn't supported in OG SameDuck (supported in forked Sameduck)
-if def (TARGET_MEGADUCK)
+IF DEF (TARGET_MEGADUCK)
+;    TODO: for MD2 it may also need sram switching changes and sram enable write suppression
 ;    def DEBUG_USE_DUCK_MBC_MD2 = 1
-endc
+;
+;    TODO: Maybe add option here for MBC5
+ENDC
 
 ; Temp workaround for lack of duck MBC SRAM
 ;
 ; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
-if def (TARGET_MEGADUCK)
+IF DEF (TARGET_MEGADUCK)
 ;    def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
-endc
+ENDC
 
 ; Alternative workaround for lack of duck MBC SRAM
 ;
@@ -30,12 +38,23 @@ endc
 ;
 ; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
 ; In SuperJuniorSameDuck:
-; - Use with: --megaduck_laptop
+; - Use with: megaduck laptop enabled
 ; - *Do NOT* use with: --workboy
-if def (TARGET_MEGADUCK)
-;   def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
-endc
+IF DEF (TARGET_MEGADUCK)
+   def BUILD_USE_DUCK_LAPTOP_HARDWARE = 1
+ENDC
 
+; MegaDuck Laptop build relies on the space freed up by
+; removing the  Italian translation
+IF DEF (BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Don't need to hardware delay on the MegaDuck Laptop
+    def DEBUG_SKIP_HARDWARE_STARTUP_DELAY = 1
+    ; Free up space for the MegaDuck Laptop IO interface code
+    def OVERWRITE_ITALIAN_UI_TRANSLATION = 1
+ENDC
+
+; OVERWRITE_ITALIAN_UI_TRANSLATION
+;
 ; When this is enabled the Italian UI in Bank 4 can be overwritten with patch code
 ; start at rom4_begin_overwrite_italian_4100_4E6F
 ;
@@ -52,6 +71,10 @@ endc
 
 include "inc/hardware.inc"
 
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    include "duck/inc/megaduck_laptop_io.inc"
+    include "duck/inc/megaduck_laptop_keycodes.inc"
+ENDC
 
 
 DEF MBC_DUCK_SYSROM  EQU $E0
@@ -91,12 +114,17 @@ DEF GAMEPAD_B_A       EQU 0
 
 
 
+; TODO: Need to harmonize naming of these with: workboy_scancodes.inc
 
 DEF WORKBOY_SCAN_KEY_NONE   EQU  $FF
 DEF WORKBOY_SCAN_KEY_EMPTY_MAYBE  EQU  $00
 
-; These key values are likely the translated from the raw keyboard scancode versions
+; These key values are from the translated from the raw keyboard scancode versions
+; into something ASCII-like, except for the special codes
+DEF WORKBOY_SYS_KEY_NUM_MODE      EQU  $0B
+DEF WORKBOY_SYS_KEY_CAPS_MODE     EQU  $0C
 DEF WORKBOY_SYS_KEY_RETURN        EQU  $0D ; Matches ms vkey
+
 
 DEF WORKBOY_SYS_KEY_ARROW_UP      EQU  $0F
 DEF WORKBOY_SYS_KEY_ARROW_LEFT    EQU  $10
@@ -130,14 +158,23 @@ DEF  APP_A_SYSCONTROL     EQU $0A
 DEF  APP_B_PHONE          EQU $0B
 
 
+; At least one version of this is
+; stored in keyboard_cur_mode__RAM_C280
+DEF KEYBD_MODE_ALT_CAPS_MAYBE     EQU $01 ; Set when CAPS key pressed
+DEF KEYBD_MODE_ALT_NUM_MAYBE      EQU $02 ; Set when NUM key pressed
+DEF KEYBD_MODE_ALT_UNKNOWN_0x03   EQU $03 ; This gets set sometimes too, not yet checked conditions
+DEF KEYBD_MODE_ALT_UNKNOWN_0x04   EQU $04 ; This gets set sometimes too, not yet checked conditions
+
+
+
 
 ; Commands sent to the Workboy peripheral over serial IO
 DEF WORKBOY_CMD_TODO_0       EQU 0   ; $00  ; TODO: Might be a poll for "Ready"
-DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; TODO: maybe this is more general, "just read something?"
-DEF WORKBOY_CMD_R_TODO       EQU "R" ; $52  ; TODO:
+DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; TODO: Maybe this is more general, "just read something?"
+DEF WORKBOY_CMD_R_TODO       EQU "R" ; $52  ; TODO: Sent at startup to check hardware and read RTC
 DEF WORKBOY_CMD_W_TODO       EQU "W" ; $57  ; TODO: Is this Write mode?
 
-DEF WORKBOY_REPLY_D_TODO     EQU "D"
+DEF WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO     EQU "D"
 
 DEF MAIN_MENU__GAMEPAD_POLLTIME_RESET  EQU  20 ; $14
 
@@ -153,671 +190,9 @@ DEF VBL_CMD__DEFAULT__0x00 EQU $00
 DEF VBL_CMD__COPY_TEXT__0x0F EQU $0f
 
 
-SECTION "wram_c000", WRAM0[$C000]
-shadow_oam_base__RAM_C000: db
-
-SECTION "wram_c100", WRAM0[$C100]
-vblank__frame_counter_maybe__RAM_C100: db
-
-SECTION "wram_c102", WRAM0[$C102]
-gfx__shadow_y_scroll__RAM_C102: db
-gamepad_buttons__RAM_C103: db
-_RAM_C104_: db
-_RAM_C105_: db
-_RAM_C106_: db
-_RAM_C107_: db
-
-SECTION "wram_c10a", WRAM0[$C10A]
-serial_io__keyboard_detected_status__RAM_C10A: db
-_RAM_C10B_: db
-_RAM_C10C_: db
-_RAM_C10D_: db
-_RAM_C10E_: db
-_RAM_C10F_: db
-_RAM_C110_: db
-main_menu__icon_cur_column__C111: db
-main_menu__icon_cur_row__C112: db
-_RAM_C113_: db
-_RAM_C114_: db
-main_menu__gamepad_polling_counter__C115: db
-_RAM_C116_: db
-_RAM_C117_: db
-_RAM_C118_: db
-_RAM_C119_: db
-_RAM_C11A_: db
-_RAM_C11B_: db
-
-SECTION "wram_c12b", WRAM0[$C12B]
-_RAM_C12B_: db
-_RAM_C12C_: db
-_RAM_C12D_: db
-
-SECTION "wram_c130", WRAM0[$C130]
-_RAM_C130_: db
-_RAM_C131_: db
-_RAM_C132_: db
-gfx__dest_addr_lo__RAM_C133_maybe: db
-gfx__dest_addr_hi__RAM_C134_maybe: db
-gfx__src_addr_lo__RAM_C135_maybe: db
-gfx__src_addr_hi__RAM_C136_maybe: db
-_RAM_C137_: db
-date__month__high_digit_decimal__maybe__RAM_C138: db
-date__days__low_digit_decimal__maybe__RAM_C139: db
-date__days__high_digit_decimal__maybe__RAM_C13A: db
-_RAM_C13B_: db
-_RAM_C13C_: db
-_RAM_C13D_: db
-
-SECTION "wram_c149", WRAM0[$C149]
-_RAM_C149_: db
-_RAM_C14A_: db
-
-SECTION "wram_c14c", WRAM0[$C14C]
-_RAM_C14C_: db
-
-SECTION "wram_c152", WRAM0[$C152]
-_RAM_C152_: db
-_RAM_C153_: db
-_RAM_C154_: db
-_RAM_C155_: db
-_RAM_C156_: db
-_RAM_C157_: db
-_RAM_C158_: db
-_RAM_C159_: db
-_RAM_C15A_: db
-
-SECTION "wram_c16e", WRAM0[$C16E]
-_RAM_C16E_: db
-
-SECTION "wram_c181", WRAM0[$C181]
-_RAM_C181_: db
-_RAM_C182_: db
-
-SECTION "wram_c196", WRAM0[$C196]
-_RAM_C196_: db
-_RAM_C197_: db
-_RAM_C198_: db
-_RAM_C199_: db
-_RAM_C19A_: db
-_RAM_C19B_: db
-_RAM_C19C_: db
-
-SECTION "wram_c232", WRAM0[$C232]
-_RAM_C232_: db
-_RAM_C233_: db
-_RAM_C234_: db
-_RAM_C235_: db
-
-SECTION "wram_c237", WRAM0[$C237]
-_RAM_C237_: db
-_RAM_C238_: db
-_RAM_C239_: db
-_RAM_C23A_: db
-_RAM_C23B_: db
-_RAM_C23C_: db
-_RAM_C23D_: db
-_RAM_C23E_: db
-_RAM_C23F_: db
-_RAM_C240_: db
-_RAM_C241_: db
-_RAM_C242_: db
-_RAM_C243_: db
-_RAM_C244_: db
-_RAM_C245_: db
-_RAM_C246_: db
-_RAM_C247_: db
-_RAM_C248_: db
-_RAM_C249_: db
-_RAM_C24A_: db
-_RAM_C24B_: db
-_RAM_C24C_: db
-_RAM_C24D_: db
-_RAM_C24E_: db
-_RAM_C24F_: db
-_RAM_C250_: db
-_RAM_C251_: db
-_RAM_C252_: db
-_RAM_C253_: db
-_RAM_C254_: db
-_RAM_C255_: db
-_RAM_C256_: db
-_RAM_C257_: db
-_RAM_C258_: db
-_RAM_C259_: db
-_RAM_C25A_: db
-_RAM_C25B_: db
-_RAM_C25C_: db
-_RAM_C25D_: db
-_RAM_C25E_: db
-_RAM_C25F_: db
-_RAM_C260_: db
-_RAM_C261_: db
-
-SECTION "wram_c265", WRAM0[$C265]
-_RAM_C265_: db
-
-SECTION "wram_c267", WRAM0[$C267]
-_RAM_C267_: db
-_RAM_C268_: db
-
-SECTION "wram_c276", WRAM0[$C276]
-_RAM_C276_: db
-_RAM_C277_: db
-_RAM_C278_: db
-_RAM_C279_: db
-_RAM_C27A_: db
-_RAM_C27B_: db
-vblank__dispatch_select__RAM_C27C: db
-gfx__rBGP_cache__RAM_C27D: db
-_RAM_C27E_: db
-_RAM_C27F_: db
-_RAM_C280_: db
-_RAM_C281_: db
-_RAM_C282_: db
-_RAM_C283_: db
-_RAM_C284_: db
-
-SECTION "wram_c288", WRAM0[$C288]
-_RAM_C288_: db
-
-SECTION "wram_c293", WRAM0[$C293]
-_RAM_C293_: db
-_RAM_C294_: db
-
-SECTION "wram_c29f", WRAM0[$C29F]
-_RAM_C29F_: db
-
-SECTION "wram_c2a9", WRAM0[$C2A9]
-serial__transfer_buffer_21_bytes__RAM_C2A9: db
-
-    SECTION "wram_c2ae", WRAM0[$C2AE]
-    serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE: db
-
-        SECTION "wram_c2b0", WRAM0[$C2B0]
-        time__seconds__BCD__RAM_C2B0: db
-        time__minutes__BCD__RAM_C2B1: db
-        time__hours__BCD__RAM_C2B2:   db
-        time__days__maybe__RAM_C2B3:  db
-        time__month__maybe__RAM_C2B4: db
-
-        SECTION "wram_c2b6", WRAM0[$C2B6]
-        _RAM_C2B6_: db
-
-        SECTION "wram_c2bd", WRAM0[$C2BD]
-        time__year__maybe__RAM_C2BD: db
-
-SECTION "wram_c304", WRAM0[$C304]
-date__month__low_digit_decimal__maybe__RAM_C304: db
-_RAM_C305_: db
-_RAM_C306_: db
-_RAM_C307_: db
-_RAM_C308_: db
-
-SECTION "wram_c31d", WRAM0[$C31D]
-_RAM_C31D_: db
-
-SECTION "wram_c322", WRAM0[$C322]
-_RAM_C322_: db
-
-SECTION "wram_c327", WRAM0[$C327]
-_RAM_C327_: db
-
-SECTION "wram_c33c", WRAM0[$C33C]
-_RAM_C33C_: db
-
-SECTION "wram_c355", WRAM0[$C355]
-_RAM_C355_: db
-_RAM_C356_: db
-_RAM_C357_: db
-_RAM_C358_: db
-
-SECTION "wram_c35b", WRAM0[$C35B]
-_RAM_C35B_: db
-
-SECTION "wram_c398", WRAM0[$C398]
-_RAM_C398_: db
-_RAM_C399_: db
-_RAM_C39A_: db
-time__hours__high_digit_ascii__RAM_C39B: db
-time__hours__low_digit_ascii__RAM_C39C: db
-time__minutes__high_digit_ascii__RAM_C39D: db
-time__minutes__low_digit_ascii__RAM_C39E: db
-time__seconds__high_digit_ascii__RAM_C39F: db
-time__seconds__low_digit_ascii__RAM_C3A0: db
-time__seconds__decimal__RAM_C3A1: db
-time__minutes__decimal__RAM_C3A2: db
-time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3: db
-time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4: db
-_RAM_C3A5_: db
-_RAM_C3A6_: db
-_RAM_C3A7_: db
-
-SECTION "wram_c3a9", WRAM0[$C3A9]
-_RAM_C3A9_: db
-_RAM_C3AA_: db
-_RAM_C3AB_: db
-_RAM_C3AC_: db
-_RAM_C3AD_: db
-
-SECTION "wram_c3b0", WRAM0[$C3B0]
-_RAM_C3B0_: db
-
-SECTION "wram_c3b2", WRAM0[$C3B2]
-_RAM_C3B2_: db
-_RAM_C3B3_: db
-_RAM_C3B4_: db
-_RAM_C3B5_: db
-_RAM_C3B6_: db
-_RAM_C3B7_: db
-_RAM_C3B8_: db
-_RAM_C3B9_: db
-_RAM_C3BA_: db
-_RAM_C3BB_: db
-_RAM_C3BC_: db
-_RAM_C3BD_: db
-_RAM_C3BE_: db
-_RAM_C3BF_: db
-_RAM_C3C0_: db
-_RAM_C3C1_: db
-_RAM_C3C2_: db
-_RAM_C3C3_: db
-_RAM_C3C4_: db
-_RAM_C3C5_: db
-_RAM_C3C6_: db
-_RAM_C3C7_: db
-_RAM_C3C8_: db
-_RAM_C3C9_: db
-_RAM_C3CA_: db
-_RAM_C3CB_: db
-_RAM_C3CC_: db
-_RAM_C3CD_: db
-_RAM_C3CE_: db
-_RAM_C3CF_: db
-_RAM_C3D0_: db
-_RAM_C3D1_: db
-_RAM_C3D2_: db
-_RAM_C3D3_: db
-_RAM_C3D4_: db
-_RAM_C3D5_: db
-_RAM_C3D6_: db
-_RAM_C3D7_: db
-_RAM_C3D8_: db
-_RAM_C3D9_: db
-_RAM_C3DA_: db
-_RAM_C3DB_: db
-_RAM_C3DC_: db
-_RAM_C3DD_: db
-_RAM_C3DE_: db
-_RAM_C3DF_: db
-_RAM_C3E0_: db
-_RAM_C3E1_: db
-_RAM_C3E2_: db
-_RAM_C3E3_: db
-
-SECTION "wram_c3ec", WRAM0[$C3EC]
-_RAM_C3EC_: db
-
-SECTION "wram_c3f8", WRAM0[$C3F8]
-_RAM_C3F8_: db
-_RAM_C3F9_: db
-_RAM_C3FA_: db
-_RAM_C3FB_: db
-
-SECTION "wram_c402", WRAM0[$C402]
-_RAM_C402_: db
-_RAM_C403_: db
-
-SECTION "wram_c409", WRAM0[$C409]
-_RAM_C409_: db
-_RAM_C40A_: db
-_RAM_C40B_: db
-_RAM_C40C_: db
-
-SECTION "wram_c413", WRAM0[$C413]
-_RAM_C413_: db
-_RAM_C414_: db
-
-SECTION "wram_c41a", WRAM0[$C41A]
-_RAM_C41A_: db
-_RAM_C41B_: db
-_RAM_C41C_: db
-_RAM_C41D_: db
-
-SECTION "wram_c42b", WRAM0[$C42B]
-_RAM_C42B_: db
-_RAM_C42C_: db
-
-SECTION "wram_c440", WRAM0[$C440]
-_RAM_C440_: db
-
-SECTION "wram_c44a", WRAM0[$C44A]
-_RAM_C44A_: db
-_RAM_C44B_: db
-_RAM_C44C_: db
-_RAM_C44D_: db
-_RAM_C44E_: db
-_RAM_C44F_: db
-_RAM_C450_: db
-_RAM_C451_: db
-_RAM_C452_: db
-_RAM_C453_: db
-_RAM_C454_: db
-_RAM_C455_: db
-
-SECTION "wram_c464", WRAM0[$C464]
-_RAM_C464_: db
-
-SECTION "wram_c466", WRAM0[$C466]
-_RAM_C466_: db
-_RAM_C467_: db
-
-SECTION "wram_c46f", WRAM0[$C46F]
-_RAM_C46F_: db
-_RAM_C470_: db
-_RAM_C471_: db
-_RAM_C472_: db
-_RAM_C473_: db
-_RAM_C474_: db
-_RAM_C475_: db
-_RAM_C476_: db
-_RAM_C477_: db
-_RAM_C478_: db
-_RAM_C479_: db
-_RAM_C47A_: db
-_RAM_C47B_: db
-_RAM_C47C_: db
-_RAM_C47D_: db
-
-SECTION "wram_c486", WRAM0[$C486]
-_RAM_C486_: db
-_RAM_C487_: db
-
-SECTION "wram_c490", WRAM0[$C490]
-_RAM_C490_: db
-_RAM_C491_: db
-
-SECTION "wram_c49a", WRAM0[$C49A]
-_RAM_C49A_: db
-
-SECTION "wram_c4a4", WRAM0[$C4A4]
-_RAM_C4A4_: db
-_RAM_C4A5_: db
-_RAM_C4A6_: db
-_RAM_C4A7_: db
-
-SECTION "wram_c56d", WRAM0[$C56D]
-_RAM_C56D_: db
-
-SECTION "wram_c58c", WRAM0[$C58C]
-_RAM_C58C_: db
-_RAM_C58D_: db
-_RAM_C58E_: db
-_RAM_C58F_: db
-_RAM_C590_: db
-_RAM_C591_: db
-_RAM_C592_: db
-_RAM_C593_: db
-_RAM_C594_: db
-_RAM_C595_: db
-_RAM_C596_: db
-_RAM_C597_: db
-
-SECTION "wram_c59b", WRAM0[$C59B]
-_RAM_C59B_: db
-_RAM_C59C_: db
-
-SECTION "wram_c5c4", WRAM0[$C5C4]
-_RAM_C5C4_: db
-_RAM_C5C5_: db
-_RAM_C5C6_: db
-_RAM_C5C7_: db
-_RAM_C5C8_: db
-_RAM_C5C9_: db
-_RAM_C5CA_: db
-_RAM_C5CB_: db
-_RAM_C5CC_: db
-_RAM_C5CD_: db
-
-SECTION "wram_c5d1", WRAM0[$C5D1]
-_RAM_C5D1_: db
-_RAM_C5D2_: db
-_RAM_C5D3_: db
-_RAM_C5D4_: db
-_RAM_C5D5_: db
-
-SECTION "wram_c5df", WRAM0[$C5DF]
-_RAM_C5DF_: db
-_RAM_C5E0_: db
-
-SECTION "wram_c5f2", WRAM0[$C5F2]
-_RAM_C5F2_: db
-_RAM_C5F3_: db
-_RAM_C5F4_: db
-_RAM_C5F5_: db
-
-SECTION "wram_c700", WRAM0[$C700]
-_RAM_C700_: db
-_RAM_C701_: db
-_RAM_C702_: db
-_RAM_C703_: db
-_RAM_C704_: db
-_RAM_C705_: db
-_RAM_C706_: db
-
-SECTION "wram_c714", WRAM0[$C714]
-_RAM_C714_: db
-
-SECTION "wram_c764", WRAM0[$C764]
-_RAM_C764_: db
-
-SECTION "wram_c778", WRAM0[$C778]
-_RAM_C778_: db
-
-SECTION "wram_c78c", WRAM0[$C78C]
-_RAM_C78C_: db
-
-SECTION "wram_c7b4", WRAM0[$C7B4]
-_RAM_C7B4_: db
-
-SECTION "wram_c800", WRAM0[$C800]
-_RAM_C800_: db
-
-SECTION "wram_c900", WRAM0[$C900]
-_RAM_C900_: db
-
-SECTION "wram_cefe", WRAM0[$CEFE]
-gfx__tilemap_string_addr_table__RAM_CEFE: db
-
-SECTION "wram_cf00", WRAM0[$CF00]
-_RAM_CF00_: db
-
-SECTION "wram_cf04", WRAM0[$CF04]
-_RAM_CF04_: db
-
-SECTION "wram_cf16", WRAM0[$CF16]
-_RAM_CF16_: db
-_RAM_CF17_: db
-
-SECTION "wram_cf1c", WRAM0[$CF1C]
-_RAM_CF1C_: db
-
-SECTION "wram_cf1e", WRAM0[$CF1E]
-_RAM_CF1E_: db
-
-SECTION "wram_cf20", WRAM0[$CF20]
-_RAM_CF20_: db
-
-SECTION "wram_cf2c", WRAM0[$CF2C]
-_RAM_CF2C_: db
-_RAM_CF2D_: db
-_RAM_CF2E_: db
-
-SECTION "wram_cf72", WRAM0[$CF72]
-_RAM_CF72_: db
-
-SECTION "wram_cfa4", WRAM0[$CFA4]
-_RAM_CFA4_: db
-
-SECTION "wram_cfa6", WRAM0[$CFA6]
-_RAM_CFA6_: db
-
-SECTION "wram_cfd8", WRAM0[$CFD8]
-_RAM_CFD8_: db
-
-SECTION "wram_cff0", WRAM0[$CFF0]
-_RAM_CFF0_: db
-
-SECTION "wram_d00c", WRAMX[$D00C]
-_RAM_D00C_: db
-
-SECTION "wram_d06c", WRAMX[$D06C]
-_RAM_D06C_: db
-
-SECTION "wram_d09e", WRAMX[$D09E]
-_RAM_D09E_: db
-
-SECTION "wram_d0d0", WRAMX[$D0D0]
-_RAM_D0D0_: db
-
-SECTION "hram_ff80", HRAM[$FF80]
-gfx__oam_dma__RAM_FF80: db
-
-SECTION "hram_ff8a", HRAM[$FF8A]
-ie_reg_cache__RAM_FF8A: db
-
-SECTION "hram_ff8c", HRAM[$FF8C]
-_RAM_FF8C_: db
-
-SECTION "hram_ffe1", HRAM[$FFE1]
-_RAM_FFE1_: db
-
-
-SECTION "sram_a000", SRAM[$A000]
-_SRAM_0_: db
-_SRAM_1_: db
-_SRAM_2_: db
-
-SECTION "sram_a006", SRAM[$A006]
-_SRAM_6_: db
-
-SECTION "sram_a02a", SRAM[$A02A]
-_SRAM_2A_: db
-
-SECTION "sram_a1f5", SRAM[$A1F5]
-_SRAM_1F5_: db
-
-SECTION "sram_a1f9", SRAM[$A1F9]
-_SRAM_1F9_: db
-
-SECTION "sram_a221", SRAM[$A221]
-_SRAM_221_: db
-_SRAM_222_: db
-_SRAM_223_: db
-
-SECTION "sram_a231", SRAM[$A231]
-_SRAM_231_: db
-
-SECTION "sram_a233", SRAM[$A233]
-_SRAM_233_: db
-
-SECTION "sram_a235", SRAM[$A235]
-_SRAM_235_: db
-
-SECTION "sram_a238", SRAM[$A238]
-_SRAM_238_: db
-
-SECTION "sram_a9ef", SRAM[$A9EF]
-_SRAM_9EF_: db
-_SRAM_9F0_: db
-
-SECTION "sram_a9fa", SRAM[$A9FA]
-_SRAM_9FA_: db
-
-SECTION "sram_aa04", SRAM[$AA04]
-_SRAM_A04_: db
-_SRAM_A05_: db
-
-SECTION "sram_aa08", SRAM[$AA08]
-_SRAM_A08_: db
-
-SECTION "sram_aa12", SRAM[$AA12]
-_SRAM_A12_: db
-
-SECTION "sram_aa25", SRAM[$AA25]
-_SRAM_A25_: db
-
-SECTION "sram_c000", SRAM[$A000], BANK[1]
-_SRAM_2000_: db
-_SRAM_2001_: db
-_SRAM_2002_: db
-
-SECTION "sram_dfff", SRAM[$BFFF], BANK[1]
-_SRAM_3FFF_: db
-
-SECTION "sram_e000", SRAM[$A000], BANK[2]
-maybe_database_init_flag__SRAM_A000_BANK_2_: db
-
-SECTION "sram_e002", SRAM[$A002], BANK[2]
-_SRAM_4002_: db
-
-SECTION "sram_e02a", SRAM[$A02A], BANK[2]
-_SRAM_402A_: db
-
-SECTION "sram_10000", SRAM[$A000], BANK[3]
-_SRAM_6000_: db
-
-SECTION "sram_10006", SRAM[$A006], BANK[3]
-_SRAM_6006_: db
-
-SECTION "sram_10015", SRAM[$A015], BANK[3]
-_SRAM_6015_: db
-
-SECTION "sram_1002a", SRAM[$A02A], BANK[3]
-_SRAM_602A_: db
-_SRAM_602B_: db
-_SRAM_602C_: db
-
-SECTION "sram_10100", SRAM[$A100], BANK[3]
-_SRAM_6100_: db
-
-
-; ; Ports
-; rP1 EQU $00
-; rSB EQU $01
-; rSC EQU $02
-; rIF EQU $0F
-; rAUD1SWEEP EQU $10
-; rAUD1LEN EQU $11
-; rAUD1ENV EQU $12
-; rAUD1LOW EQU $13
-; rAUD1HIGH EQU $14
-; rAUD2LEN EQU $16
-; rAUD2ENV EQU $17
-; rAUD2LOW EQU $18
-; rAUD2HIGH EQU $19
-; rAUD3ENA EQU $1A
-; rAUD3LEVEL EQU $1C
-; rAUD3LOW EQU $1D
-; rAUD3HIGH EQU $1E
-; rAUD4ENV EQU $21
-; rAUD4POLY EQU $22
-; rAUD4GO EQU $23
-; rAUDVOL EQU $24
-; rAUDTERM EQU $25
-; rAUDENA EQU $26
-; _AUD3WAVERAM EQU $30
-; _PORT_31_ EQU $31
-; rLCDC EQU $40
-; rSTAT EQU $41
-; rSCY EQU $42
-; rSCX EQU $43
-; rLY EQU $44
-; rLYC EQU $45
-; rDMA EQU $46
-; rBGP EQU $47
-; rOBP0 EQU $48
-; rOBP1 EQU $49
-; rIE EQU $FF
+include "inc/workboy_wram.inc"
+include "inc/workboy_hram.inc"
+include "inc/workboy_sram.inc"
 
 SECTION "rom0", ROM0
 _LABEL_0_:
@@ -865,11 +240,12 @@ db $25, $0E, $00, $F5, $25
 COPY_STRING_VRAM__RST_28:
 	jp   gfx__copy_string_to_vram_centered__1019
 
-_LABEL_2B_:
-	ld   a, $5D
-	ld   [_RAM_C3AC_], a
-	ld   a, $31
-	ld   [_RAM_C3AD_], a
+set_keycode_lut_ptr__altmap_ON__002B:
+    ; Load 0x315D into keycode lut pointer
+	ld   a, LOW(keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D) ; $5D
+	ld   [keycode_to_ascii_lut_ptr_lo__C3AC], a
+	ld   a, HIGH(keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D) ; $31
+	ld   [keycode_to_ascii_lut_ptr_hi__C3AD], a
 	ret
 
 ; Data from 36 to 3F (10 bytes)
@@ -884,12 +260,36 @@ db $26, $0E, $00, $12, $26
 _LABEL_48_:
 	jp   _LABEL_2F64_
 
-; Data from 4B to 83 (57 bytes)
-db $26, $0E, $00, $12, $26, $ED, $4D, $12, $26, $0E, $00, $12, $26, $ED, $4D, $12
-db $26, $0E, $00, $12, $26, $ED, $4D, $02, $02, $01, $00, $01, $40, $01, $80, $01
-db $C0, $02, $02, $02, $00, $02, $40, $02, $80, $02, $C0, $02, $02, $03, $00, $03
-db $40, $03, $80, $03, $C0, $02, $02, $04, $00
 
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; MegaDuck laptop needs this space for it's serial link ISR at 0x58
+    ; See: "SECTION "Duck Laptop SIO ISR", ROM0[$0058]" in megaduck_laptop_io.asm
+else
+    ; Likely some kind of LUT or jump table, haven't seen it referenced yet. Unsure if needed
+    ;
+    ; Data from 4B to 83 (57 bytes)
+    db $26, $0E, $00, $12,
+    db $26, $ED, $4D, $12,
+    db $26, $0E, $00, $12,
+    db $26, $ED, $4D, $12,
+    db $26, $0E, $00, $12,
+    db $26, $ED, $4D, $02,
+
+    db $02, $01, $00, $01,
+    db $40, $01, $80, $01,
+    db $C0, $02, $02, $02,
+    db $00, $02, $40, $02,
+    db $80, $02, $C0, $02,
+    db $02, $03, $00, $03,
+    db $40, $03, $80, $03,
+    db $C0, $02, $02, $04, $00
+ENDC
+
+
+SECTION "reset_vectors__unknown_lut_0084", ROM0[$0084]
+; Unsure of purpose, however...
+; First byte is used as initial byte for RTC Send command
+;
 ; Data from 84 to 9B (24 bytes)
 _DATA_84_:
 db $04, $40, $04, $80, $04, $C0, $02, $02, $05, $00, $05, $40, $05, $80, $05, $C0
@@ -933,7 +333,7 @@ db $00      ; CGB Flag: Game does not support CGB functions.
 db $00, $00 ; New Licensee Code
 db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
 if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
-    if DEF(DEBUG_USE_DUCK_MBC_MD2)
+    IF DEF(DEBUG_USE_DUCK_MBC_MD2)
         db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
     ELSE
         db $03      ; Cartridge Type: MBC1+RAM+BATTERY
@@ -941,7 +341,7 @@ if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
     db $02      ; ROM Size: 128 KByte 	8 banks
     db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
 ELSE
-    if DEF(DEBUG_USE_DUCK_MBC_MD2)
+    IF DEF(DEBUG_USE_DUCK_MBC_MD2)
         db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
     ELSE
         db $01      ; Cartridge Type: MBC1 (no SRAM)
@@ -1012,22 +412,21 @@ startup_init__0150:
 	ld   [_RAM_C10E_], a
 	call _LABEL_2F41_
 
-    ; Maybe startup delay for the keyboard accessory hardware
-    ; Calls vsync() 75 times in a row, ~1250 msec
-    ;
-    if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
+    IF DEF(DEBUG_SKIP_WORKBOY_STARTUP_DELAY)
+        ; Skip startup delay when running on MegaDuck laptop hardware and without hardware (i.e. GB or Duck with no workboy connected)
+        jr   startup__skip_power_up_delay_resume_01AC
+    ELSE
+        ; Maybe startup delay for the *Workboy* keyboard accessory hardware
+        ; Calls vsync() 75 times in a row, ~1250 msec
+        ;
     	ld   b, 75 ; Wait ~75 frames $4B
         .startup_wait_loop__01A8:
         	rst  $18	; Call VSYNC__RST_18
         	dec  b
         	jr   nz, .startup_wait_loop__01A8
-    ELSE
-        ; Skip startup delay for MegaDuck laptop
-        jr megaduck__startup__skip_power_up_delay_resume_01AC
-
-        megaduck__startup__skip_power_up_delay_resume_01AC:
     ENDC
     SECTION "startup__skip_power_up_delay_resume_01AC", ROM0[$01AC]
+    startup__skip_power_up_delay_resume_01AC:
 
 	xor  a
 	ld   [_RAM_C10E_], a
@@ -1040,12 +439,17 @@ startup_init__0150:
     ;
     ; Instead it's left at KYBD_STATUS__UNSET which passes
     ; most of the != 0 tests later in the code
-    IF (DEF(DEBUG_SKIP_WORKBOY_STARTUP_CHECK))
+    IF (DEF(DEBUG_SKIP_HARDWARE_STARTUP_CHECK))
         nop
         nop
         nop
     ELSE
-    	call serial_io__startup_check_and_read_rtc__2854
+        ; If BUILD_USE_DUCK_LAPTOP_HARDWARE enabled this
+        ; will check and perform duck laptop init instead.
+        ; The expected result status will still get stored
+        ; in serial_io__keyboard_detected_status__RAM_C10A,
+        ; and the RTC will still get set.
+   	    call serial_io__startup_check_and_read_rtc__2854
     ENDC
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	ld   a, $FF
@@ -1066,7 +470,11 @@ startup_init__0150:
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
     ; TODO: Needs SRAM support if it's going to run on the MegaDuck, or move SRAM data to WRAM
     call savedata__maybe_some_sram_init__E42E
 	ld   a, $01
@@ -1097,7 +505,11 @@ _LABEL_200_:
 	call gfx__clear_shadow_oam__275B
 	ld   a, $01
 	ld   [_RAM_C110_], a
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	xor  a
 	ld   [_RAM_C595_], a
 	ld   [_RAM_C19A_], a
@@ -1106,7 +518,7 @@ _LABEL_200_:
 	ld   [_RAM_C260_], a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ldh  [rSCX], a
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	di
 	ld   a, $04
 	ldh  [rSTAT], a
@@ -1129,11 +541,12 @@ _LABEL_200_:
 	call _LABEL_277_
 	jr   _LABEL_200_
 
-_LABEL_26C_:
-	ld   a, $28
-	ld   [_RAM_C3AC_], a
-	ld   a, $31
-	ld   [_RAM_C3AD_], a
+set_keycode_lut_ptr__altmap_OFF__026C:
+    ; Load 0x3128 into keycode lut pointer
+	ld   a, LOW(keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128) ; $28
+	ld   [keycode_to_ascii_lut_ptr_lo__C3AC], a
+	ld   a, HIGH(keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128) ; $31
+	ld   [keycode_to_ascii_lut_ptr_hi__C3AD], a
 	ret
 
 _LABEL_277_:
@@ -1458,7 +871,11 @@ _LABEL_3EF_:
 	call _LABEL_450_
 
 	ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   hl, _TILEDATA9000
 	ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
 	xor  a ; Copy 256 tiles
@@ -1467,7 +884,11 @@ _LABEL_3EF_:
 _LABEL_41B_:
 	call gfx__copy_some_tile_patterns_todo__0424
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 gfx__copy_some_tile_patterns_todo__0424:
@@ -1484,7 +905,11 @@ gfx__copy_some_tile_patterns_todo__0424:
 	call _LABEL_450_
 
     ld   a, BANK(gfx__tile_patterns_250_font_thermometer_etc__5000) ; $01
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   hl, _TILEDATA9000
 	ld   bc, gfx__tile_patterns_250_font_thermometer_etc__5000
 	xor  a ; Copy 256 tiles
@@ -1492,7 +917,11 @@ gfx__copy_some_tile_patterns_todo__0424:
 
 _LABEL_450_:
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC    
 
 	ld   hl, $8420
 	ld   de, _DATA_1CE92_
@@ -1502,7 +931,11 @@ _LABEL_450_:
 
 _LABEL_463_:
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC    
 
 	ld   hl, $8420
 	ld   de, _DATA_1FD5A_
@@ -1519,7 +952,11 @@ _LABEL_481_:
 	xor  a
 	ld   [_RAM_C116_], a
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 
 	ld   hl, $8420
 	ld   de, _DATA_1FEB1_
@@ -1545,7 +982,11 @@ _LABEL_498_:
 	ld   e, $70
 	call _LABEL_1CF6_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_E4D0_
 
 _LABEL_4C9_:
@@ -1564,9 +1005,9 @@ _LABEL_4C9_:
 	ldi  [hl], a
 	ldi  [hl], a
 	ldi  [hl], a
-	ld   a, $03
-	ld   [_RAM_C280_], a
-	call _LABEL_2B_
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
+	call set_keycode_lut_ptr__altmap_ON__002B
 	ld   a, $09
 	ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_4F4_:
@@ -2081,11 +1522,11 @@ app_calendar__launch__0819:
 	ldh  [rOBP0], a
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 	ld   a, [_RAM_C137_]
 	ld   [_RAM_C153_], a
@@ -2112,14 +1553,22 @@ _LABEL_839_:
 	call gfx__turn_off_screen_2827
 
 	ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
 	ld   hl, _TILEDATA9000
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   de, _DATA_9E17_
 	ld   hl, _TILEMAP0
 	ld   b, $12
@@ -2138,7 +1587,11 @@ _LABEL_882_:
 	dec  b
 	jr   nz, _LABEL_87F_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_C831_
 
 _LABEL_897_:
@@ -2154,13 +1607,21 @@ _LABEL_897_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_C154_
 
 _LABEL_8BC_:
 	call _LABEL_8E3_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 _LABEL_8C5_:
@@ -2169,7 +1630,11 @@ _LABEL_8C5_:
 	ld   a, $03
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   hl, $4E5C
 	ld   de, _SRAM_6100_
 	call _LABEL_17CAD_
@@ -2188,7 +1653,11 @@ _LABEL_8E3_:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_8C5_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_C047_
 
 ; Data from 906 to 913 (14 bytes)
@@ -2197,11 +1666,11 @@ db $2A, $EA, $52, $C1, $2A, $EA, $54, $C1, $2A, $EA, $55, $C1, $18, $18
 _LABEL_914_:
 	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	ld   [_RAM_C153_], a
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 _LABEL_92C_:
 	ld   a, [_RAM_C153_]
@@ -2301,7 +1770,7 @@ _LABEL_991_:
 	ld   [de], a
 
 	ld   a, [_RAM_C152_]
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   a, [_RAM_C153_]
 	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
 	ld   a, [_RAM_C154_]
@@ -2323,7 +1792,7 @@ _LABEL_991_:
     ; 5. _LABEL_D714_+$05d ($03:$5771)
     ; 6. _LABEL_200_+$067 ($00:$0267)
     .loop_serial_command_until_valid_reply_byte__09C3:
-    	call serial_io__send_maybe_rtc_etc_todo__0E6C
+    	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
         ; Check returned serial byte, return if zero
         ; also return if blank/unset (0xFF)
     	or   a
@@ -2334,13 +1803,13 @@ _LABEL_991_:
 
 
 _LABEL_9CE_:
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
 	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
 	ld   [_RAM_C153_], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 	ld   hl, _RAM_C13D_
 	ld   a, $20
@@ -2430,10 +1899,18 @@ _LABEL_A69_:
 	dec  d
 	ret  nz
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_AF93_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 _LABEL_A84_:
@@ -2488,18 +1965,34 @@ _LABEL_AC8_:
 	dec  d
 	ret  nz
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_AF32_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 _LABEL_AE3_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_AF32_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 ; 9th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
@@ -2507,7 +2000,11 @@ app_checkbook__launch__0AF1:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_DDD9_
 
 
@@ -2523,7 +2020,11 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
 	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
 
 	ld   a, $01
-	ld   [rMBC1_ROMBANK], a      ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a      ; [$3FFF]
+    ENDC
 
 	ld   a, MBC1_MODE_RAMBANKED  ; $01
 	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
@@ -2552,12 +2053,20 @@ _LABEL_B21_:
 	ld   a, $03
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $01
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_7D28_
 _LABEL_B2E_:
 	push af
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	pop  af
 	ret
 
@@ -2565,7 +2074,11 @@ _LABEL_B36_:
 	ld   a, $03
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_2A05_
 	jr   _LABEL_B2E_
 
@@ -2575,11 +2088,19 @@ _LABEL_B45_:
 	ld   bc, _DATA_15B4C_
 	ld   hl, _TILEDATA9000
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_2735_
 	ld   de, _DATA_A524_
 	ld   hl, (_TILEMAP0 + $60)
@@ -2589,7 +2110,11 @@ _LABEL_B45_:
 
 _LABEL_B6C_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_B160_
 	jr   _LABEL_B2E_
 
@@ -2601,7 +2126,11 @@ db $01, $0A, $63
 _LABEL_B99_:
 	call _LABEL_3EF_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 ; 12th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
@@ -2610,7 +2139,11 @@ app_phone__launch__0BA2:
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call _LABEL_3EF_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_E7EC_
 
 
@@ -2790,7 +2323,7 @@ _LABEL_CAD_:
 	ld   [_RAM_C10D_], a
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	xor  a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
@@ -2827,7 +2360,11 @@ _LABEL_CEE_:
 	xor  a
 	ld   [_RAM_C11B_], a
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_CA9F_
 
 _LABEL_D11_:
@@ -2837,7 +2374,11 @@ _LABEL_D16_:
 	ld   a, [_RAM_C479_]
 	push af
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   de, _RAM_C3E0_
 	ld   hl, _RAM_C3F9_
 	call _LABEL_AAA8_
@@ -2849,7 +2390,11 @@ _LABEL_D16_:
 	call _LABEL_BD22_
 	call _LABEL_AB74_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ret
 
 ; Data from D41 to D48 (8 bytes)
@@ -2861,7 +2406,11 @@ app_syscontrol__launch__0D49:
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_D714_
 
 _LABEL_D58_:
@@ -2883,7 +2432,7 @@ _LABEL_D66_:
 _LABEL_D73_:
 	push af
 	push hl
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
@@ -2891,7 +2440,7 @@ _LABEL_D73_:
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
@@ -2970,7 +2519,7 @@ _LABEL_DDA_:
 	ret
 
 _LABEL_DE6_:
-	call _LABEL_288F_
+	call date__convert_from_bcd_to_decimal_maybe__288F_
 
 	ld   de, $0006
 	ld   hl, $98A3
@@ -2978,7 +2527,7 @@ _LABEL_DE6_:
 
 	call _LABEL_E05_
 _LABEL_DF3_:
-	call serial_io__send_maybe_rtc_etc_todo__0E6C
+	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
 	or   a
 	jr   z, _LABEL_DF3_
 	cp   $FF
@@ -3058,11 +2607,71 @@ _LABEL_E65_:
 	ret
 
 
+; ### MEGADUCK-HARDWARE-PATCHING: RTC-WRITE
 ; So far have only seen this called when setting the "Home" city/country location
 ; Main Menu -> S icon (middle of bottom row) -> Set Home -> Select country -> press "S" key to save
-serial_io__send_maybe_rtc_etc_todo__0E6C:
+;
+; Original version: trashes A, DE, (and HL, C when it calls rtc__load_data_to_rtc_transfer_buffer__0EB1)
+serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
 
-    if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+
+        ; ~57 bytes to work with here
+        ;
+        ; First call function to load RTC data to buffer
+        call rtc__load_data_to_rtc_transfer_buffer__0EB1    
+
+        ; Then pick out the relevant bytes and reformat them into the megaduck rtc buffer
+        ;
+        ; [2] = Seconds BCD
+        ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
+        ld   [duck_rtc_sec], a
+
+        ; [3] = Minutes BCD
+        ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
+        ld   [duck_rtc_min], a
+
+        ; [4] = Hours BCD
+        ; TODO: Megaduck RTC: [duck_rtc_ampm] need to be handled here?
+        ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
+        ld   [duck_rtc_hour], a
+
+        ; [5] = Day BCD
+        ; TODO: Megaduck RTC: does [duck_rtc_weekday] need to be handled here?
+        ld   a, [sioxfer_time__days__RAM_C2B3]
+        ld   [duck_rtc_day], a
+
+        ; [6] = Month BCD
+        ld   a, [sioxfer_time__month__RAM_C2B4]
+        ld   [duck_rtc_mon], a
+
+        ; [F] = Year, decimal (same for Megaduck RTC)
+        ld   a, [sioxfer_time__year__RAM_C2BD]
+        ld   [duck_rtc_year], a
+
+        ; Now send the RTC data to the Megaduck laptop hardware
+        ld   a, BANK(duck_io_set_rtc)
+        call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
+        ; ld   [rMBC1_ROMBANK], BANK(duck_io_set_rtc)
+        call duck_io_set_rtc
+        ; TODO: In theory we might care about whether the RTC write succeeded,
+        ;       but in practice it's not a big deal for the ROM hack right now.
+        ; cp   a, DUCK_IO_OK
+        ; jr   nz, .rtc_set_fail        
+        ;
+        ;     .rtc_set_ok
+        ;         ...
+        ; 
+        ;     .rtc_set_fail
+        ;         ...
+
+        call duck_mbc_restore_saved_bank
+
+        jr   megaduck__rtc_send_patch_done__0EA5
+        SECTION "megaduck__rtc_send_patch_done__0EA5", ROM0[$0EA5]
+        megaduck__rtc_send_patch_done__0EA5:
+    ELSE
+        ; Put Workboy hardware into WRITE mode
     	ld   a, WORKBOY_CMD_W_TODO ; $57
     	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
         ; Check returned serial byte, return if zero
@@ -3073,8 +2682,8 @@ serial_io__send_maybe_rtc_etc_todo__0E6C:
     	ret  z
         ; Returned serial byte in A seems to get discarded here
 
-        ; Loops sending the 0x00 command unil reply is not WORKBOY_SCAN_KEY_NONE (0xFF) AND not null value (0x00)
-        ; TODO: Maybe it's polling for a "Ready" response
+        ; Loops sending the 0x00 command until reply is not WORKBOY_SCAN_KEY_NONE (0xFF) AND not null value (0x00)
+        ; Polling for a "Ready" response
         .loop_request_serial_until_valid_reply_byte__0E76:
         	ld   a, WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
         	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
@@ -3110,23 +2719,9 @@ serial_io__send_maybe_rtc_etc_todo__0E6C:
         	jr   z, .serial_send_wait_valid_reply_loop__0E9B
         	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
         	jr   z, .serial_send_wait_valid_reply_loop__0E9B
-    ELSE  ; END: if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
-
-        ; TODO Format and send RTC data to MegaDuck Laptop
-
-        ; The value written to 0xC2AE below is ignored and overwritten
-        ; shortly after the call below to 0x0EB1
-        ld   a, [_DATA_84_]
-        ld   [serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE], a
-        call rtc__load_data_to_rtc_transfer_buffer__0EB1
-
-
-        jr   megaduck__resume__serial_io__send_maybe_rtc_etc__0EA5
-
-        SECTION "megaduck__resume__serial_io__send_maybe_rtc_etc__0EA5", ROM0[$0EA5]
-        megaduck__resume__serial_io__send_maybe_rtc_etc__0EA5:
     ENDC
 
+    ; TODO: Why converting time from BCD here when it just wrote the time and date out to the workboy hardware?
 	call time__convert_from_BCD__seconds__2916
 	call time__convert_from_BCD__minutes__2942
 	call time__convert_from_BCD_and_something_TODO__hours__296E
@@ -3172,14 +2767,20 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
 	add  c
 	ldi  [hl], a
 
-    ; [5] = Day? BCD?
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
-	and  $03
-	call util__upshift_A_by_4__0F2C
-	add  a ; *= 4 -> C
-	add  a
-	ld   c, a
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+    ; [5] = Day BCD
+    ; They store the lower 2 bits of year in the Day field upper 2 bits for some reason
+    ; Not doing this foolishness on the MegaDuck
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+       ld   c, 0
+    ELSE
+	   ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+	   and  $03
+	   call util__upshift_A_by_4__0F2C
+	   add  a ; *= 4 -> C
+	   add  a
+	   ld   c, a
+    ENDC
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   b, $00
     .modulo_10_loop__0EFA:
     	cp   $0A
@@ -3211,13 +2812,20 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
 	add  b
 	ldi  [hl], a
 
-    ; Whaa.. 2 LSBits for Year are stored in 2 MSBits of Day?
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
-	and  $FC
-	ld   [time__year__maybe__RAM_C2BD], a
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ; Why are 2 LSBits for Year are stored in 2 MSBits of Day further above???
+    ; Not doing this foolishness on the MegaDuck
+    if (!(DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)))
+	   and  $FC
+    ENDC
+
+    ; This is equivalent to serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE[0xF]
+	ld   [sioxfer_time__year__RAM_C2BD], a
 	ret
 
-
+; Added to fill in gaps on Megaduck build
+; for shortened version of above: rtc__load_data_to_rtc_transfer_buffer__0EB1
+SECTION "util__upshift_A_by_4__0F2C", ROM0[$0F2C]
     util__upshift_A_by_4__0F2C:
     	add  a ; x 2
     	add  a ; x 4
@@ -3225,6 +2833,9 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
     	add  a ; x 16
 	ret
 
+
+; Data below Appears to be ROM bank lookup table of some kind
+;
 ; Data from F31 to F31 (1 bytes)
 _DATA_F31_:
 db $02
@@ -3266,7 +2877,11 @@ _LABEL_F77_:
 	ld   hl, _DATA_F4A_
 	add  hl, de
 	ldi  a, [hl]
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ldi  a, [hl]
 	ld   h, [hl]
 	ld   l, a
@@ -3308,7 +2923,11 @@ _LABEL_FA1_:
 	ld   hl, _DATA_F31_
 	add  hl, de
 	ldi  a, [hl]
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   e, [hl]
 	inc  hl
 	ld   d, [hl]
@@ -3330,7 +2949,11 @@ _LABEL_FA1_:
     ; Search for start of displayed version text
     ; Load RAM Address to start search
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   a, [_RAM_CF16_]
 	ld   l, a
 	ld   a, [_RAM_CF17_]
@@ -3537,7 +3160,11 @@ alt_menu__show_when_no_keyboard_found__10C3:
 
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   a, [_RAM_C233_]
 	or   a
 	jr   z, ._LABEL_10DF_
@@ -3619,7 +3246,11 @@ _LABEL_1174_:
 	ld   bc, $2808
 	call _LABEL_27DD_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_DB40_
 	push af
 	push bc
@@ -3653,7 +3284,11 @@ _LABEL_11B2_:
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_tilemap_0__2722
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	dec  a
 	ld   [_RAM_C10B_], a
 	call _LABEL_B765_
@@ -3701,18 +3336,30 @@ _LABEL_1210_:
 	ld   [_RAM_C234_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1DDCA_
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   de, _DATA_178FC_
 	call gfx__copy_tilemap_screen_from_DE__3969
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, (_TILEMAP0 + $40)
@@ -3724,18 +3371,30 @@ _LABEL_1241_:
 	ld   [_RAM_C234_], a
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1ED6A_
 	xor  a ; Copy 256 tiles
 	call gfx__copy_tile_patterns__1437
 	ld   a, $05
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   de, _DATA_17A64_
 	call gfx__copy_tilemap_screen_from_DE__3969
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $0010
 	ld   hl, (_TILEMAP0 + $40)
@@ -4230,7 +3889,7 @@ _LABEL_1563_:
 
 ; 6th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_world__launch__1572:
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	xor  a
 	ld   [gfx__shadow_y_scroll__RAM_C102], a
 	ld   a, $64
@@ -4259,7 +3918,11 @@ app_conversion__launch__1598:
 	call gfx__turn_on_screen_bg_obj__2540
 	call _LABEL_1DDC_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_D105_
 
 
@@ -4292,7 +3955,11 @@ _LABEL_15E1_:
 	call sys_run_submenu_result_in_A__206D
 	push af
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	pop  af
 	cp   $01
 	jp   z, _LABEL_E7EF_
@@ -4326,7 +3993,11 @@ _LABEL_160B_:
 	cp   $03
 	jp   z, _LABEL_200_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   hl, _RAM_CFA6_
@@ -4445,7 +4116,11 @@ _LABEL_16F5_:
 	ld   l, a
 	ld   h, $40
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   e, [hl]
 	inc  l
 	ld   d, [hl]
@@ -4456,14 +4131,22 @@ _LABEL_16F5_:
 	push bc
 	push de
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_F790_
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	pop  de
 	pop  bc
 	pop  af
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   a, $00
 	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
 	ld   a, $C7
@@ -4936,7 +4619,11 @@ _LABEL_1A6A_:
 	call gfx__turn_off_screen_2827
 	call _LABEL_2735_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_F790_
 	call _LABEL_F74D_
 	ld   a, $F2
@@ -4981,21 +4668,23 @@ _LABEL_1AD9_:
 	jr   z, _LABEL_1AD9_
 	or   a
 	jp   z, _LABEL_200_
-	cp   $0D
+
+	cp   WORKBOY_SYS_KEY_RETURN ; $0D
 	jr   z, _LABEL_1B47_
-	cp   $0B
+
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
 	jr   nz, _LABEL_1AF8_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_1AD9_
 
 _LABEL_1AF8_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_1B06_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_1AD9_
 
 _LABEL_1B06_:
@@ -5056,7 +4745,11 @@ _LABEL_1B47_:
 	call _LABEL_1CC6_
 _LABEL_1B6F_:
 	ld   a, [_RAM_C24A_]
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_1C3D_
 	or   a
 	jp   z, _LABEL_1C17_
@@ -5103,7 +4796,11 @@ _LABEL_1BC9_:
 	ld   hl, _RAM_C24E_
 	dec  [hl]
 	ld   a, [_RAM_C24A_]
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_19A9_
 	ld   a, $00
 	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
@@ -5257,7 +4954,11 @@ _LABEL_1CC2_:
 
 _LABEL_1CC6_:
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   a, [_RAM_C24B_]
 	dec  a
 	add  a
@@ -5273,7 +4974,11 @@ _LABEL_1CC6_:
 	ld   a, [hl]
 	ld   [_RAM_C24E_], a
 	ld   a, [_RAM_C24A_]
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   a, [_RAM_C5F5_]
 	or   a
 	call nz, _LABEL_1A4F_
@@ -5483,7 +5188,11 @@ _LABEL_1E6A_:
 	call gfx__copy_some_tile_patterns_todo__0424
 	call _LABEL_2735_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_C4C3_
 
 _LABEL_1E7F_:
@@ -5854,7 +5563,11 @@ _LABEL_2218_:
 	ei
 	call _LABEL_3EF_
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_B75C_
 	ld   bc, $FFE4
 	ld   e, $70
@@ -5862,14 +5575,14 @@ _LABEL_2218_:
 _LABEL_2241_:
 	call _LABEL_1563_
 _LABEL_2244_:
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_224C_:
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
+	cp   WORKBOY_SCAN_KEY_NONE ; $FF
 	jr   z, _LABEL_224C_
 	or   a
 	jp   z, _LABEL_200_
@@ -6721,8 +6434,8 @@ gfx__clear_shadow_oam__275B:
 
 _LABEL_2769_:
 	call gfx__clear_shadow_oam__275B
-	ld   a, [_RAM_C280_]
-	cp   $04
+	ld   a, [keyboard_cur_mode__RAM_C280]
+	cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
 	jr   z, _LABEL_27A7_
 	ld   a, [_RAM_C114_]
 	dec  a
@@ -6745,7 +6458,7 @@ _LABEL_278B_:
 	ldi  [hl], a
 	ld   a, [_RAM_C281_]
 	ldi  [hl], a
-	ld   a, [_RAM_C280_]
+	ld   a, [keyboard_cur_mode__RAM_C280]  ; Why is this getting loaded into shadow oam?
 	ldi  [hl], a
 	xor  a
 	ldi  [hl], a
@@ -6791,7 +6504,11 @@ _LABEL_27DD_:
 	ld   [_RAM_C282_], a
 	ld   hl, (_TILEDATA8000 + $10)
 	ld   a, $01
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	ld   de, _DATA_130B_
 	ld   b, $20
 _LABEL_27F2_:
@@ -6828,7 +6545,7 @@ _LABEL_2801_:
     	jr   nz, .copy_invert_color_loop__2812
 	ld   [_RAM_C113_], a
 	inc  a
-	ld   [_RAM_C280_], a
+	ld   [keyboard_cur_mode__RAM_C280], a  ; What is getting loaded here?
 	ld   a, $05
 	ld   [_RAM_C114_], a
 	ret
@@ -6869,7 +6586,11 @@ app_currency__launch__2845:
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__copy_some_tile_patterns_todo__0424
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_D459_
 
 
@@ -6919,7 +6640,59 @@ app_currency__launch__2845:
 ; Addr    9B 9C 9D 9E 9F A0 A1 A2 A3 A4 A5 A6 A7
 ;
 serial_io__startup_check_and_read_rtc__2854:
-if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Addr: $2854
+
+    ; Perform duck laptop IO init
+    ; Initialize the peripheral IO hardware
+    ;
+    ; Probably don't really need to restore ROM bank here since
+    ; it will get overwritten shortly after returning, but just in case.
+    ; ld   [rMBC1_ROMBANK], BANK(duck_io_laptop_init)
+    ld   a, BANK(duck_io_laptop_init)
+    call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
+
+    call duck_io_laptop_init
+    cp   a, DUCK_IO_OK
+    jr   z, .duck_laptop_init_ok
+
+    ; Handle failure to init duck laptop hardware
+    ; Use same Workboy method of reporting hardware failure
+    .duck_laptop_init_fail
+        xor  a  ; = KYBD_STATUS__NOT_FOUND
+        ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+        call duck_mbc_restore_saved_bank
+        ret
+
+    .duck_laptop_init_ok
+    ; Set keyboard status to OK
+    ld   a, KYBD_STATUS__OK
+    ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+
+        ; Read the  RTC data from the Megaduck
+        ; Expected ROM bank is restored below
+        ld   a, BANK(duck_io_get_rtc)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+        ; ld   [rMBC1_ROMBANK], BANK(duck_io_get_rtc)
+        call duck_io_get_rtc
+        cp   a, DUCK_IO_OK
+        jr   z, .rtc_ok
+
+        .rtc_fail
+            jr .duck_laptop_init_fail
+
+        .rtc_ok
+            ; Load the Megaduck rtc data into the expected Workboy BCD formatted RTC buffer
+            ;
+            ; Handling code here moved into "duck_io_get_rtc" due to space constraints
+            
+    call duck_mbc_restore_saved_bank
+    ; ld   [rMBC1_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
+
+    jr   megaduck__resume__serial_io__startup_check_and_read_rtc__2883
+    SECTION "megaduck__resume__serial_io__startup_check_and_read_rtc__2883", ROM0[$2883]
+    megaduck__resume__serial_io__startup_check_and_read_rtc__2883:
+else
     ; do {
     ;     If ((serial_io__keyboard_detected_status__RAM_C10A == KYBD_STATUS__UNSET)
     ;          && (gamepad_buttons__RAM_C103 != 0)) {
@@ -6931,29 +6704,34 @@ if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
     ; } while (serial_reply != 'D')
 	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
 	cp   KYBD_STATUS__UNSET  ; $02
-	jr   nz, .serial_io__send_cmd_R_todo__2866
+	jr   nz, .serial_io__send_cmd_R__2866
 
 	ld   a, [gamepad_buttons__RAM_C103]
 	or   a
-	jr   z, .serial_io__send_cmd_R_todo__2866
+	jr   z, .serial_io__send_cmd_R__2866
 
 	xor  a  ; = KYBD_STATUS__NOT_FOUND
 	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 	ret
 
-    .serial_io__send_cmd_R_todo__2866:
+    ; Put Workboy hardware in READ mode
+    .serial_io__send_cmd_R__2866:
     	ld   a, WORKBOY_CMD_R_TODO  ; $52
     	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-    	cp   WORKBOY_REPLY_D_TODO  ; $44
+    	cp   WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO  ; $44
         ; Loop again if Serial Reply wasn't "D"
     	jr   nz, serial_io__startup_check_and_read_rtc__2854
 
-    ; Keyboard detected, flag is as connected
+    ; Keyboard detected, flag it as connected
 	ld   a, KYBD_STATUS__OK  ; $01
 	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 
     ; Prepare to receive 21 bytes of RTC data into RTC buffer
     ; Rx bytes are in ascii hex, one nybble per character
+    ;
+    ; Ok, why does it write RTC to the Workboy hardware in Packed BCD format
+    ; and read RTC from the hardware in ASCII text format? That's weird
+    ;
 	ld   de, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
 	ld   c, 21 ; $15  ; Read 21 Bytes from serial
     .serial_read_loop__2879:
@@ -6963,81 +6741,60 @@ if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
     	inc  de
     	dec  c
     	jr   nz, .serial_read_loop__2879
-
-ELSE ; if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
-    ; Addr: $2854
-
-    ; Switch bank...
-    ; call megaduck__startup__check_keybaord_and_read_rtc_data
-
-    ; Set keyboard status to OK
-    ld   a, KYBD_STATUS__OK
-    ld   [serial_io__keyboard_detected_status__RAM_C10A], a
-
-    ; Fake some RTC Data
-    ld   hl, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
-    ld   [hl], $D4
-    inc  hl
-    ld   [hl], $00
-    inc  hl
-    ld   [hl], $18
-    inc  hl
-    ld   [hl], $05
-    inc  hl
-    ld   [hl], $03
-    inc  hl
-    ld   [hl], $19
-    inc  hl
-    ld   [hl], $08
-    inc  hl
-    xor  a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl+], a
-    ld   [hl], $7C
-    jr   megaduck__resume__serial_io__startup_check_and_read_rtc__2883
-
-    SECTION "megaduck__resume__serial_io__startup_check_and_read_rtc__2883", ROM0[$2883]
-    megaduck__resume__serial_io__startup_check_and_read_rtc__2883:
-ENDC
+ENDC ; End Workboy hardware version
 
 	call time__convert_from_BCD__seconds__2916
 	call time__convert_from_BCD__minutes__2942
 	call time__convert_from_BCD_and_something_TODO__hours__296E
 	call time__validate_RTC_data__2CED
 
-    _LABEL_288F_:
-    	ld   a, [time__days__maybe__RAM_C2B3]
-    	or   a
-    	rl   a
-    	rl   a
-    	rl   a
-    	and  $03
-    	ld   c, a
-    	ld   a, [time__year__maybe__RAM_C2BD]
+    ; Load and maybe convert Date fields from serial xfer buffer
+    date__convert_from_bcd_to_decimal_maybe__288F_:
+        ; Load Year value from sioxfer buffer
+        ;
+        ; They store the lower 2 bits of year in the Day field upper 2 bits for some reason
+        ; Not doing this foolishness on the MegaDuck
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            ld   c, 0
+        ELSE
+            ; ((sioxfer_time__days__RAM_C2B3 >> 6) & 0x03)
+        	ld   a, [sioxfer_time__days__RAM_C2B3]
+        	or   a  ; Clear carry flag
+        	rl   a  ; Rotate upper 2 bits through carry into lower 2 bits
+        	rl   a
+        	rl   a
+        	and  $03
+        	ld   c, a
+        ENDC
+    	ld   a, [sioxfer_time__year__RAM_C2BD]
     	add  c
-    	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
+    	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 
-    	ld   a, [time__days__maybe__RAM_C2B3]
+        ; Load Days value from sioxfer buffer
+        ; Convert from BCD to Decimal
+        ;
+        ; ((sioxfer_time__days__RAM_C2B3 & 0x30) >> 4) * 10
+        ; + (sioxfer_time__days__RAM_C2B3 & 0x0F)
+        ;
+        ; Upper BCD Digit
+    	ld   a, [sioxfer_time__days__RAM_C2B3]
     	and  $30
     	call util__rr_downshift_A_by_4__2909
-    	add  a
+    	add  a    ; A x 10 -> E
     	ld   e, a
     	add  a
     	add  a
     	add  e
     	ld   e, a
-    	ld   a, [time__days__maybe__RAM_C2B3]
+        ; Lower BCD Digit
+    	ld   a, [sioxfer_time__days__RAM_C2B3]
     	and  $0F
     	add  e
-    	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+    	ld   [date__days__decimal__maybe__RAM_C139], a
 
-    	ld   a, [time__month__maybe__RAM_C2B4]
+        ; Load Month from sioxfer buffer
+        ; Convert from BCD to Decimal
+    	ld   a, [sioxfer_time__month__RAM_C2B4]
     	ld   e, a
     	and  $0F
     	bit  4, e
@@ -7045,15 +6802,15 @@ ENDC
     	add  $0A
     _LABEL_28C6_:
     	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
-
-    	ld   a, [time__month__maybe__RAM_C2B4]
+        ; TODO: Whatever is going on here
+    	ld   a, [sioxfer_time__month__RAM_C2B4]
     	and  $E0
     	or   a
     	rr   a
     	call util__rr_downshift_A_by_4__2909
     	ld   [_RAM_C137_], a
     	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
-    	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+    	ld   a, [date__days__decimal__maybe__RAM_C139]
     	ld   e, a
     	ld   a, [_RAM_C137_]
     _LABEL_28E1_:
@@ -7067,7 +6824,7 @@ ENDC
 
     _LABEL_28ED_:
     	ld   [_RAM_C137_], a
-    	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+    	ld   a, [date__days__decimal__maybe__RAM_C139]
     	or   a
     	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $20
@@ -7094,7 +6851,7 @@ util__rr_downshift_A_by_4__2909:
 
 ; Converts stored seconds in BCD format to Decimal and Ascii (saved to RAM)
 time__convert_from_BCD__seconds__2916:
-	ld   a, [time__seconds__BCD__RAM_C2B0]
+	ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
     ; Extract High BCD digit from seconds
 	and  $F0
 	call util__rr_downshift_A_by_4__2909
@@ -7119,7 +6876,7 @@ time__convert_from_BCD__seconds__2916:
 	ld   [time__seconds__high_digit_ascii__RAM_C39F], a
 
     ; Extract Low BCD digit from seconds
-	ld   a, [time__seconds__BCD__RAM_C2B0]
+	ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
     ; (Seconds_BCD &= 0x0F)
 	and  $0F
 	ld   b, a
@@ -7137,7 +6894,7 @@ time__convert_from_BCD__seconds__2916:
 
 ; Converts stored minutes in BCD format to Decimal and Ascii (saved to RAM)
 time__convert_from_BCD__minutes__2942:
-	ld   a, [time__minutes__BCD__RAM_C2B1]
+	ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
     ; Extract High BCD digit from minutes
 	and  $F0
 	call util__rr_downshift_A_by_4__2909
@@ -7162,7 +6919,7 @@ time__convert_from_BCD__minutes__2942:
 	ld   [time__minutes__high_digit_ascii__RAM_C39D], a
 
     ; Extract Low BCD digit from minutes
-	ld   a, [time__minutes__BCD__RAM_C2B1]
+	ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
     ; (Minutes_BCD &= 0x0F)
 	and  $0F
 	ld   b, a
@@ -7180,7 +6937,7 @@ time__convert_from_BCD__minutes__2942:
 
 ; Converts stored hours in BCD format to Decimal and Ascii (saved to RAM)
 time__convert_from_BCD_and_something_TODO__hours__296E:
-	ld   a, [time__hours__BCD__RAM_C2B2]
+	ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
     ; Extract High BCD digit from hours
 	and  $30
 	call util__rr_downshift_A_by_4__2909
@@ -7205,7 +6962,7 @@ time__convert_from_BCD_and_something_TODO__hours__296E:
 	ld   [time__hours__high_digit_ascii__RAM_C39B], a
 
     ; Extract Low BCD digit from hours
-	ld   a, [time__hours__BCD__RAM_C2B2]
+	ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
 	and  $0F
     ; (Hours_BCD &= 0x0F)
 	ld   b, a
@@ -7589,7 +7346,11 @@ _LABEL_2B5C_:
 	ld   a, $0B
 	call _LABEL_3918_
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_BE47_
 
 _LABEL_2B7D_:
@@ -7604,7 +7365,11 @@ _LABEL_2B7D_:
 	or   a
 	ret  z
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	call _LABEL_ADDA_
 	ld   a, [_RAM_C58C_]
 	or   a
@@ -7613,7 +7378,11 @@ _LABEL_2B7D_:
 	call _LABEL_2735_
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_ACA0_
 
 _LABEL_2BA9_:
@@ -7975,10 +7744,10 @@ time__handle_reset_invalid_RTC_data__2D4E:
 
     ; TODO: Not yet sure what these are
 	ld   a, $5C
-	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
+	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, $01
 	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   a, $03
 	ld   [_RAM_C137_], a
 	call rtc__load_data_to_rtc_transfer_buffer__0EB1
@@ -8220,7 +7989,11 @@ db $3A, $00, $3B, $00, $3C, $00
 _LABEL_2F41_:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 
 	ld   hl, _TILEDATA9000
 	ld   bc, _DATA_1D252_
@@ -8230,7 +8003,11 @@ _LABEL_2F41_:
 	call gfx__copy_tilemap_screen_from_DE__3969
 	call _LABEL_F68_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
     ; Copies rows of text from RAM to hardware tile map
     ; Source is RAM because it copies there in order to patch the displayed version text
 	jp   gfx__title_screen_copy_text_D6D6_
@@ -8284,7 +8061,11 @@ app_clock__launch__2F8E:
 	ld   a, $AA
 	ldh  [rOBP1], a
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 
 	ld   hl, _TILEDATA8000
 	ld   de, _DATA_EECC_
@@ -8294,7 +8075,11 @@ app_clock__launch__2F8E:
 	ld   a, $04
 	call _LABEL_3918_
 	ld   a, $03
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_F69E_
 
 ; Data from 2FCB to 2FE5 (27 bytes)
@@ -8419,7 +8204,11 @@ _LABEL_3070_:
 	inc  hl
 	ld   [hl], $30
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_AED1_
 
 _LABEL_308C_:
@@ -8504,18 +8293,39 @@ _LABEL_30E7_:
 	ld   c, a
 	jp   _LABEL_F636_
 
+
+; Maps the hardware keycodes into their physical order (left->right, top -> bottom)
+;
+; It seems to scan the table until it finds the matching key code
+; and uses that location as the index into the ascii tables below
+;
 ; Data from 30F3 to 3191 (159 bytes)
-_DATA_30F3_:
-db $0A, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0B, $0C, $11, $12, $13, $14
-db $15, $16, $17, $18, $19, $1A, $1B, $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24
-db $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F, $30, $36, $31, $32, $33
-db $34, $35, $0D, $37, $38, $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80
-db $C7, $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $24, $41, $53, $44, $46
-db $47, $48, $4A, $4B, $4C, $3B, $0D, $0B, $5A, $58, $43, $56, $42, $4E, $4D, $2C
-db $2E, $0F, $2F, $0C, $22, $20, $27, $10, $12, $11, $00, $01, $02, $03, $04, $05
-db $06, $07, $08, $09, $80, $C7, $31, $32, $33, $72, $74, $79, $75, $21, $7E, $2A
-db $23, $34, $35, $36, $2B, $2D, $68, $6A, $28, $29, $3A, $0D, $0B, $37, $38, $39
-db $2E, $25, $3D, $7F, $3C, $3E, $0F, $3F, $0C, $30, $20, $40, $10, $12, $11
+keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3:
+db $0A, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0B, $0C, ; 12 Keys: Row 1(top): Esc + functions + Del + Ins
+db $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B,      ; 11 Keys: Row 2     : Qwerty... + $
+db $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24, $25, $26,      ; 11 Keys: Row 3     : Asdf... + Rtn/Ret
+db $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F, $30, $36, $31, ; 12 Keys: Row 4     : Num + Zxcv... + Comma + Period + Up + /
+db $32, $33, $34, $35, $0D, $37, $38                           ;  7 Keys: Row 5     : Caps + Quote + Space + Apostrophe? + Left + Down + Right
+
+; The keycode tables below seem to be Ascii-ish
+
+; loaded by calling: set_keycode_lut_ptr__altmap_OFF__026C
+; Size: 53 bytes -> Exact number of keys on keyboard
+keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128:  ; TODO, verify address
+db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80, $C7, ; 12 Keys: Row 1(top): Esc + functions + Del + Ins
+db $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $24,      ; 11 Keys: Row 2     : Qwerty... + $
+db $41, $53, $44, $46, $47, $48, $4A, $4B, $4C, $3B, $0D,      ; 11 Keys: Row 3     : Asdf... + Rtn/Ret
+db $0B, $5A, $58, $43, $56, $42, $4E, $4D, $2C, $2E, $0F, $2F, ; 12 Keys: Row 4     : Num + Zxcv... + Comma + Period + Up + /
+db $0C, $22, $20, $27, $10, $12, $11                           ;  7 Keys: Row 5     : Caps + Quote + Space + Apostrophe? + Left + Down + Right
+
+; loaded by calling set_keycode_lut_ptr__altmap_ON__002B
+; Size: 53 bytes -> Exact number of keys on keyboard
+keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D:  ; TODO, verify address
+db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80, $C7 ; 12 Keys: Row 1(top): Esc + functions + Del + Ins
+db $31, $32, $33, $72, $74, $79, $75, $21, $7E, $2A, $23,     ; 11 Keys: Row 2     : 123 + M+ + M-
+db $34, $35, $36, $2B, $2D, $68, $6A, $28, $29, $3A, $0D,     ; 11 Keys: Row 3     : 456 + "+" + "-" ... + Rtn/Ret
+db $0B, $37, $38, $39, $2E, $25, $3D, $7F, $3C, $3E, $0F, $3F ; 12 Keys: Row 4     : Num + 789 + . + ? + = ...  + Up + ?
+db $0C, $30, $20, $40, $10, $12, $11                          ;  7 Keys: Row 5     : Caps + 0 + Space + @? + Left + Down + Right
 
 _LABEL_3192_:
 	ld   a, [_RAM_C19B_]
@@ -8670,6 +8480,7 @@ _LABEL_326E_:
 	ret
 
 
+; ### MEGADUCK-HARDWARE-PATCHING: KEYBOARD-READ
 ; Polls the keyboard for input
 ; - Resulting key returned in A
 ; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
@@ -8679,17 +8490,19 @@ serial_io__poll_keyboard__3278:
 	or   a
 	call nz, _LABEL_3241_
 
-if (!DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE))
-    ; Load keyboard key request and send it
-	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
-	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-ELSE
-    ; TODO: Do a banked call to read megaduck laptop keyboard polling
-    ld a, WORKBOY_SCAN_KEY_NONE
-    nop
-    nop
-    nop
-ENDC
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; Since there isn't quite enough space to do the full set of save/change/restore bank
+        ; here, it happens in the wrapper call instead
+        nop
+        nop
+        call duck_keyboard_read_wrapper
+        ; The keyboard read wrapper is expected to parse and translate
+        ; the returned keyboard data into a format the workboy ROM expects
+    ELSE
+        ; Load keyboard key request and send it
+    	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
+    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+    ENDC
 
     ; Check returned Key value, return if blank/unset
     ; Also make sure it's not zero
@@ -8700,45 +8513,55 @@ ENDC
 	dec  a ; Wraps 0 around to WORKBOY_SCAN_KEY_NONE/$FF
 	ret
 
+
     .serial_io__translate_returned_scan_key__328C:
-    	ld   hl, _DATA_30F3_
+        ; Look up physical index of the key on the keyboard
+    	ld   hl, keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3
     	ld   c, $00
     	ld   b, a
-    _LABEL_3292_:
-    	ldi  a, [hl]
-    	cp   b
-    	jr   z, _LABEL_3299_
-    	inc  c
-    	jr   _LABEL_3292_
+        ; Result of this check will be C as the zero based index into the table
+        .check_for_key_in_table_loop__3292:
+        	ldi  a, [hl]
+        	cp   b
+        	jr   z, .done_key_in_table_found__3299
+        	inc  c
+        	jr     .check_for_key_in_table_loop__3292
 
-    _LABEL_3299_:
-    	ld   a, [_RAM_C3AC_]
+    .done_key_in_table_found__3299:
+        ; Now convert the key index to ascii
+    	ld   a, [keycode_to_ascii_lut_ptr_lo__C3AC]
     	ld   l, a
-    	ld   a, [_RAM_C3AD_]
+    	ld   a, [keycode_to_ascii_lut_ptr_hi__C3AD]
     	ld   h, a
     	ld   b, $00
+        ; Adding the keycodes index in keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3
     	add  hl, bc
-    	ld   a, [hl]
+    	ld   a, [hl]    ; A now stores the ascii value for the key
+
+        ; Update current / previous key
     	ld   c, a
-    	ld   a, [_RAM_C476_]
-    	ld   [_RAM_C477_], a
+    	ld   a, [keyboard__prob_current_key__RAM_C476]
+    	ld   [keyboard__prob_previous_key__RAM_C477], a
     	ld   a, c
-    	ld   [_RAM_C476_], a
-    	or   a
+    	ld   [keyboard__prob_current_key__RAM_C476], a
+
+    	or   a    ; Is current key zero? Return
     	ret  z
-    	cp   $0A
+    	cp   $0A  ; Is it >= 10? (Not a function key) Return
     	ret  nc
     	push af
+
+    ; Probably Begin handling all kinds of function key related actions and eventual dispatch
     	call audio__todo__380D
     	pop  af
-    	cp   $09
+    	cp   $09  ; Is it the Telephone function key?
     	jr   nz, _LABEL_32C7_
-    	push af
-    	ld   a, [_RAM_C19A_]
-    	or   a
-    	jr   z, _LABEL_32C8_
-    	pop  af
-    	ret
+        	push af
+        	ld   a, [_RAM_C19A_]
+        	or   a
+        	jr   z, _LABEL_32C8_
+        	pop  af
+        	ret
 
     _LABEL_32C7_:
     	push af
@@ -8842,60 +8665,69 @@ delay_2_94msec__334A:
 ; - Resulting byte returned in A
 ; - If no reply or error will be WORKBOY_SCAN_KEY_NONE (0xFF) or null value 0x00
 serial_io__send_command_A_wait_reply_byte_result_in_A__3356:
-	push bc
-	ld   c, a
-    ; If keyboard is connected send the poll request, otherwise skip sending and return
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; != KYBD_STATUS__NOT_FOUND
-	jr   nz, .send_command_and_wait_reply__3361
 
-	dec  a  ; Likely returning: WORKBOY_SCAN_KEY_NONE (0xFF) due to keyboard not present
-	pop  bc
-	ret
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
 
-    ; C: Serial command byte to send is in C
-    .send_command_and_wait_reply__3361:
-        ; Send the serial command and wait for response
-    	ld   a, c
-    	ldh  [rSB], a
-    	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-    	ldh  [rSC], a
-    	call delay_2_94msec__334A
-        ; Load serial reply
-    	ldh  a, [rSB]
+        include "duck/duck_laptop_helpers.asm"
+
+        jr   megaduck__helpers_patch_done__338A
+        SECTION "megaduck__helpers_patch_done__338A", ROM0[$338A]
+        megaduck__helpers_patch_done__338A:
+    ELSE
+    	push bc
+    	ld   c, a
+        ; If keyboard is connected send the poll request, otherwise skip sending and return
+    	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    	or   a  ; != KYBD_STATUS__NOT_FOUND
+    	jr   nz, .send_command_and_wait_reply__3361
+
+    	dec  a  ; Likely returning: WORKBOY_SCAN_KEY_NONE (0xFF) due to keyboard not present
     	pop  bc
-    	push af
-        ; Turn off serial IO
-    	ld   a, ( SERIAL_XFER_OFF ) ; $00
-    	ldh  [rSC], a
-
-        ; Check returned serial byte, return if zero
-        ; also return if blank/unset (0xFF)
-    	pop  af
-    	or   a
-    	ret  z
-    	cp   WORKBOY_SCAN_KEY_NONE  ;  $FF
-    	ret  z
-
-    	push af
-    	ld   a, [_RAM_C110_]  ; TODO: What is this testing after a serial transfer? set to 4 on initial startup, then 1 on startup, and later 0 or 1 occasionally
-    	or   a
-    	jr   z, .return_serial_reply_byte_in_A__3388
-    	ld   a, $24
-    	ld   bc, $0211
-    	call _LABEL_33FC_
-
-    .return_serial_reply_byte_in_A__3388:
-    	pop  af
     	ret
 
+        ; C: Serial command byte to send is in C
+        .send_command_and_wait_reply__3361:
+            ; Send the serial command and wait for response
+        	ld   a, c
+        	ldh  [rSB], a
+        	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+        	ldh  [rSC], a
+        	call delay_2_94msec__334A
+            ; Load serial reply
+        	ldh  a, [rSB]
+        	pop  bc
+        	push af
+            ; Turn off serial IO
+        	ld   a, ( SERIAL_XFER_OFF ) ; $00
+        	ldh  [rSC], a
+
+            ; Check returned serial byte, return if zero
+            ; also return if blank/unset (0xFF)
+        	pop  af
+        	or   a
+        	ret  z
+        	cp   WORKBOY_SCAN_KEY_NONE  ;  $FF
+        	ret  z
+
+        	push af
+        	ld   a, [_RAM_C110_]  ; TODO: What is this testing after a serial transfer? set to 4 on initial startup, then 1 on startup, and later 0 or 1 occasionally
+        	or   a
+        	jr   z, .return_serial_reply_byte_in_A__3388
+        	ld   a, $24
+        	ld   bc, $0211
+        	call _LABEL_33FC_
+
+        .return_serial_reply_byte_in_A__3388:
+        	pop  af
+        	ret
+    ENDC
 
 ; 2nd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_calculator__launch__338A:
 	xor  a
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	call gfx__clear_shadow_oam__275B
-	call _LABEL_2B_
+	call set_keycode_lut_ptr__altmap_ON__002B
 	ld   a, $02
 	call _LABEL_3918_
 	ld   bc, $5830
@@ -8910,7 +8742,11 @@ app_calculator__launch__338A:
 
     .skip_setting_rOBP0__33A9:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	jp   _LABEL_B9F0_
 
 ; Data from 33B1 to 33C8 (24 bytes)
@@ -9602,7 +9438,11 @@ _LABEL_3918_:
 	ld   b, [hl]
 	inc  hl
 	ld   a, [hl]
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	pop  af
 	push de
 	ld   hl, _TILEDATA9000
@@ -9626,7 +9466,11 @@ _LABEL_3959_:
 	call gfx__copy_tile_patterns__1437
 _LABEL_395D_:
 	ld   a, $02
-	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_mbc_switch_bank_A_and_cache_banknum
+    ELSE
+    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ENDC
 	pop  de
 	call gfx__copy_tilemap_screen_from_DE__3969
 	jp   gfx__turn_on_screen_bg_obj__2540
@@ -13286,7 +13130,7 @@ _LABEL_AC91_:
 	jp   _LABEL_AAA8_
 
 _LABEL_ACA0_:
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	ld   a, $01
 	ld   [_RAM_C58D_], a
 _LABEL_ACA8_:
@@ -13593,7 +13437,7 @@ _LABEL_AE6C_:
 	jr   _LABEL_AE30_
 
 _LABEL_AE77_:
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	cp   d
 	jr   c, _LABEL_AE8F_
 	jr   nz, _LABEL_AE91_
@@ -13601,7 +13445,7 @@ _LABEL_AE77_:
 	cp   c
 	jr   c, _LABEL_AE8F_
 	jr   nz, _LABEL_AE91_
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	cp   b
 	jr   z, _LABEL_AE8F_
 	jr   nc, _LABEL_AE91_
@@ -13630,13 +13474,13 @@ _LABEL_AE91_:
 	ret
 
 _LABEL_AEAE_:
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	cp   b
 	jr   nz, _LABEL_AEC2_
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	cp   c
 	jr   nz, _LABEL_AEC2_
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	cp   d
 	jr   nz, _LABEL_AEC2_
 	xor  a
@@ -13669,45 +13513,45 @@ _LABEL_AEDA_:
 	cp   $1C
 	jr   z, _LABEL_AF15_
 	ld   c, a
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	inc  a
 	inc  c
 	cp   c
 	jr   z, _LABEL_AEFB_
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_AEFB_:
 	ld   a, $01
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	inc  a
 	cp   $0D
 	jr   nz, _LABEL_AF11_
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	inc  a
-	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
+	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, $01
 _LABEL_AF11_:
 	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	ret
 
 _LABEL_AF15_:
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	inc  a
 	cp   $1E
 	jr   z, _LABEL_AEFB_
 	cp   $1D
 	jr   z, _LABEL_AF25_
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_AF25_:
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	and  $03
 	jr   nz, _LABEL_AEFB_
 	ld   a, $1D
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_AF32_:
@@ -13823,16 +13667,16 @@ _LABEL_AFDF_:
 	jr   nz, _LABEL_AFE9_
 	ld   a, $06
 _LABEL_AFE9_:
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	dec  a
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret  nz
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	dec  a
 	jr   nz, _LABEL_B000_
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	dec  a
-	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
+	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, $0C
 _LABEL_B000_:
 	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
@@ -13845,20 +13689,20 @@ _LABEL_B000_:
 	ld   a, [hl]
 	cp   $1C
 	jr   z, _LABEL_B015_
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_B015_:
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	and  $03
 	jr   z, _LABEL_B022_
 	ld   a, $1C
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_B022_:
 	ld   a, $1D
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret
 
 _LABEL_B028_:
@@ -14108,11 +13952,11 @@ _LABEL_B1CA_:
 	pop  af
 	ld   [_RAM_C10B_], a
 	ld   hl, _RAM_C700_
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ldi  [hl], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ldi  [hl], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
 	xor  a
 	ldi  [hl], a
@@ -14127,19 +13971,19 @@ _LABEL_B1F3_:
 _LABEL_B1F7_:
 	call _LABEL_24D5_
 	call _LABEL_1563_
-	call _LABEL_2B_
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 	ld   hl, _TILEMAP0
 	ld   de, $002C
 	rst  $20	; GFX_COPY_STRING__RST_20
 _LABEL_B20C_:
 	ld   hl, _RAM_C700_
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ldi  [hl], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ldi  [hl], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
 	call _LABEL_1352_
 	ld   a, [_RAM_C700_]
@@ -14327,7 +14171,7 @@ _LABEL_B375_:
 	call _LABEL_B4C5_
 	call _LABEL_B7BA_
 	call _LABEL_B4F8_
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_B3C0_
 	ld   a, [_RAM_C596_]
@@ -14591,9 +14435,9 @@ _LABEL_B4F8_:
 	ld   [_RAM_C281_], a
 	ld   a, $48
 	ld   [_RAM_C282_], a
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
@@ -14606,11 +14450,11 @@ _LABEL_B513_:
 	jr   z, _LABEL_B513_
 	or   a
 	ret  z
-	cp   $0B
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
 	jr   nz, _LABEL_B52C_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_B513_
 
 _LABEL_B52C_:
@@ -14630,11 +14474,11 @@ _LABEL_B52C_:
 	jr   _LABEL_B513_
 
 _LABEL_B54D_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_B55B_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_B513_
 
 _LABEL_B55B_:
@@ -15324,8 +15168,8 @@ _LABEL_BA05_:
 	ld   [_RAM_C475_], a
 	ld   [_RAM_C473_], a
 	ld   [_RAM_C474_], a
-	ld   [_RAM_C476_], a
-	ld   [_RAM_C477_], a
+	ld   [keyboard__prob_current_key__RAM_C476], a
+	ld   [keyboard__prob_previous_key__RAM_C477], a
 _LABEL_BA26_:
 	call gfx__clear_shadow_oam__275B
 	call _LABEL_B145_
@@ -15529,7 +15373,7 @@ _LABEL_BB7E_:
 	jp   _LABEL_BA26_
 
 _LABEL_BB89_:
-	ld   a, [_RAM_C477_]
+	ld   a, [keyboard__prob_previous_key__RAM_C477]
 	cp   $6A
 	ret  z
 	cp   $68
@@ -15617,7 +15461,7 @@ _LABEL_BC23_:
 	jp   _LABEL_BA26_
 
 _LABEL_BC2D_:
-	ld   a, [_RAM_C477_]
+	ld   a, [keyboard__prob_previous_key__RAM_C477]
 	cp   $6A
 	ret  z
 	cp   $68
@@ -16162,7 +16006,7 @@ db $06, $0E, $6D, $7B, $04, $19, $4E, $50, $53, $56, $5A, $57, $53, $50, $43, $5
 db $41, $53, $55, $50, $53
 
 _LABEL_C047_:
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 _LABEL_C04A_:
 	ld   a, [_SRAM_602B_]
 	ld   b, a
@@ -16170,8 +16014,8 @@ _LABEL_C04A_:
 	ld   [_RAM_C24C_], a
 	ld   a, $A1
 	ld   [_RAM_C24D_], a
-	ld   a, $04
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x04; $04
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C05D_:
 	push bc
 	call _LABEL_B36_
@@ -16349,8 +16193,8 @@ _LABEL_C154_:
 	ld   [_RAM_C281_], a
 	ld   a, $98
 	ld   [_RAM_C282_], a
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C18C_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
@@ -16576,8 +16420,8 @@ _LABEL_C2EF_:
 	jr   nz, _LABEL_C2EF_
 	call _LABEL_9CE_
 	call _LABEL_92C_
-	ld   a, $04
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
+	ld   [keyboard_cur_mode__RAM_C280], a
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $0D
 	ld   [vblank__dispatch_select__RAM_C27C], a
@@ -16612,15 +16456,15 @@ _LABEL_C335_:
 	rst  $18	; Call VSYNC__RST_18
 	ld   a, $0D
 	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, [_RAM_C280_]
-	cp   $04
+	ld   a, [keyboard_cur_mode__RAM_C280]
+	cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
 	call nz, gfx__clear_shadow_oam__275B
 _LABEL_C348_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_9CE_
 	call _LABEL_92C_
-	ld   a, [_RAM_C280_]
-	cp   $04
+	ld   a, [keyboard_cur_mode__RAM_C280]
+	cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
 	call z, _LABEL_2769_
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
 	cp   $FF
@@ -16656,25 +16500,27 @@ _LABEL_C391_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
+	cp   WORKBOY_SCAN_KEY_NONE ; $FF
 	jr   z, _LABEL_C391_
 	or   a
 	jp   z, _LABEL_200_
-	cp   $0D
+
+	cp   WORKBOY_SYS_KEY_RETURN ; $0D
 	jp   z, _LABEL_C44F_
-	cp   $0B
-	jr   nz, _LABEL_C3B1_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B   ; Test for NUM Key, if so turn alt keymap ON
+	jr   nz, .key_next_test_caps_mode__C3B1
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_C391_
 
-_LABEL_C3B1_:
-	cp   $0C
+.key_next_test_caps_mode__C3B1:
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C   ; Test for CAPS Key, if so turn alt keymap OFF
 	jr   nz, _LABEL_C3BF_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_C391_
 
 _LABEL_C3BF_:
@@ -16839,7 +16685,7 @@ _LABEL_C4BD_:
 
 _LABEL_C4C3_:
 	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, [_RAM_C59C_]
 	or   a
@@ -16958,9 +16804,9 @@ _LABEL_C592_:
 	cp   $4E
 	jp   z, _LABEL_1E7F_
 	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2B_
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C5AD_:
 	ld   hl, $99E0
 	ld   de, $002E
@@ -17008,7 +16854,7 @@ _LABEL_C5F3_:
 	rst  $20	; GFX_COPY_STRING__RST_20
 
     .loop__LABEL_C601_:
-    	call serial_io__send_maybe_rtc_etc_todo__0E6C
+    	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
     	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
     	jr   z, .loop__LABEL_C601_
     	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
@@ -17078,9 +16924,9 @@ _LABEL_C7A2_:
 	ret
 
 _LABEL_C7C2_:
-	call _LABEL_2B_
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C7CA_:
 	ld   hl, $99A6
 	ld   de, $0068
@@ -17344,33 +17190,33 @@ _LABEL_C9A4_:
 	ret
 
 _LABEL_C9A7_:
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C5C6_], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C5C4_], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ld   [_RAM_C5C5_], a
 	call _LABEL_CA12_
 	ld   a, [_RAM_C700_]
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   [_RAM_C152_], a
 	ld   a, [_RAM_C701_]
 	ld   [_RAM_C154_], a
 	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	ld   a, [_RAM_C702_]
 	ld   [_RAM_C155_], a
-	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
+	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	call _LABEL_1273_
 	ld   a, [_RAM_C153_]
 	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
 	ld   a, [_RAM_C152_]
-	ld   [date__days__low_digit_decimal__maybe__RAM_C139], a
+	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   a, [_RAM_C155_]
-	ld   [date__days__high_digit_decimal__maybe__RAM_C13A], a
+	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, [_RAM_C154_]
 	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
 	call _LABEL_C5F3_
-	call _LABEL_288F_
+	call date__convert_from_bcd_to_decimal_maybe__288F_
 	jp   _LABEL_C91B_
 
 _LABEL_C9FB_:
@@ -17399,9 +17245,9 @@ _LABEL_CA12_:
 	ld   a, [_RAM_C5C4_]
 	ldi  [hl], a
 	call _LABEL_1352_
-	call _LABEL_2B_
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 	ld   hl, $99E0
 	ld   de, $002C
 	rst  $20	; GFX_COPY_STRING__RST_20
@@ -17441,9 +17287,9 @@ db $4E, $54, $46, $45, $44, $53, $50, $51, $4E, $4C, $48, $42, $45, $50, $41, $5
 db $4E, $54, $46, $43, $52, $50, $45, $55
 
 _LABEL_CA9F_:
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	ld   a, [_RAM_C10C_]
 	or   a
 	jr   z, _LABEL_CAC0_
@@ -17611,9 +17457,9 @@ _LABEL_CB97_:
 _LABEL_CBBE_:
 	call _LABEL_CC76_
 	push af
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	pop  af
 	or   a
 	jr   z, _LABEL_CC24_
@@ -17767,9 +17613,9 @@ _LABEL_CCD9_:
 	ld   [_RAM_C281_], a
 	pop  af
 	ld   [_RAM_C282_], a
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_CCEF_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
@@ -17778,21 +17624,23 @@ _LABEL_CCEF_:
 	jr   z, _LABEL_CCEF_
 	or   a
 	jp   z, _LABEL_200_
-	cp   $0D
+
+	cp   WORKBOY_SYS_KEY_RETURN ; $0D
 	jp   z, _LABEL_CDB9_
-	cp   $0B
+
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
 	jr   nz, _LABEL_CD0F_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_CCEF_
 
 _LABEL_CD0F_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_CD1D_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_CCEF_
 
 _LABEL_CD1D_:
@@ -18008,9 +17856,9 @@ _LABEL_CE88_:
 	dec  b
 	jr   nz, _LABEL_CE88_
 	call _LABEL_1563_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jp   _LABEL_CAC3_
 
 _LABEL_CE9C_:
@@ -18032,9 +17880,9 @@ _LABEL_CEAF_:
 	ret  z
 	cp   $0B
 	jr   nz, _LABEL_CEC8_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_CEAF_
 
 _LABEL_CEC8_:
@@ -18054,11 +17902,11 @@ _LABEL_CEC8_:
 	jr   _LABEL_CEAF_
 
 _LABEL_CEE9_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_CEF7_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_CEAF_
 
 _LABEL_CEF7_:
@@ -18186,9 +18034,9 @@ _LABEL_CFB6_:
 	ld   [_RAM_C281_], a
 	ld   a, $78
 	ld   [_RAM_C282_], a
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
@@ -18534,8 +18382,8 @@ _LABEL_D1BB_:
 	call _LABEL_BC3_
 	ld   a, $30
 	ld   [_RAM_C281_], a
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 	ld   a, $90
 	ld   [_RAM_C282_], a
 	ld   hl, _RAM_C283_
@@ -18545,7 +18393,7 @@ _LABEL_D200_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_D200_
-	call _LABEL_2B_
+	call set_keycode_lut_ptr__altmap_ON__002B
 	ld   a, $17
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	xor  a
@@ -19317,9 +19165,9 @@ _LABEL_D7FD_:
 	ld   a, $10
 	ld   [_RAM_C282_], a
 	call _LABEL_1563_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	xor  a
 	ld   [_RAM_C130_], a
 	ld   a, $07
@@ -19370,11 +19218,11 @@ _LABEL_D836_:
 	ld   [hl], a
 	ld   a, $0D
 _LABEL_D863_:
-	cp   $0B
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
 	jr   nz, _LABEL_D871_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_D820_
 
 _LABEL_D871_:
@@ -19394,23 +19242,24 @@ _LABEL_D871_:
 	jr   _LABEL_D820_
 
 _LABEL_D892_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_D8A1_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jp   _LABEL_D820_
 
 _LABEL_D8A1_:
-	cp   $0F
+    ; Checking for arrow keys?
+	cp   WORKBOY_SYS_KEY_ARROW_UP ; $0F
 	jr   c, _LABEL_D8CD_
 	cp   $13
 	jr   nc, _LABEL_D8CD_
-	cp   $0F
+	cp   WORKBOY_SYS_KEY_ARROW_UP ; $0F
 	jr   z, _LABEL_D8BB_
-	cp   $10
+	cp   WORKBOY_SYS_KEY_ARROW_LEFT ; $10
 	jr   z, _LABEL_D8C1_
-	cp   $11
+	cp   WORKBOY_SYS_KEY_ARROW_RIGHT ; $11
 	jr   z, _LABEL_D8C7_
 _LABEL_D8B5_:
 	call _LABEL_D8FA_
@@ -19578,24 +19427,24 @@ _LABEL_DB79_:
 _LABEL_DB80_:
 	or   a
 	jp   z, _LABEL_200_
-	cp   $0B
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
 	jr   nz, _LABEL_DB98_
 	ld   a, [_RAM_C234_]
 	dec  a
 	jr   z, _LABEL_DB4C_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	call _LABEL_1241_
 	jr   _LABEL_DB4C_
 
 _LABEL_DB98_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_DBAC_
 	ld   a, [_RAM_C234_]
 	or   a
 	jr   z, _LABEL_DB4C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	call _LABEL_1210_
 	jr   _LABEL_DB4C_
 
@@ -20477,11 +20326,11 @@ _LABEL_E1CF_:
 	call _LABEL_BC3_
 _LABEL_E1DA_:
 	ld   hl, _RAM_C700_
-	ld   a, [date__days__low_digit_decimal__maybe__RAM_C139]
+	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ldi  [hl], a
 	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
 	ldi  [hl], a
-	ld   a, [date__days__high_digit_decimal__maybe__RAM_C13A]
+	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
 	ld   a, [_SRAM_2A_]
 	or   a
@@ -20493,9 +20342,9 @@ _LABEL_E1DA_:
 	ld   a, c
 	ld   [_RAM_C701_], a
 _LABEL_E1FD_:
-	call _LABEL_2B_
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 	ld   a, [_RAM_C700_]
 	ld   hl, _RAM_C261_
 	call _LABEL_2BBA_
@@ -20546,8 +20395,8 @@ _LABEL_E25B_:
 	call _LABEL_BC3_
 	ld   a, $30
 	ld   [_RAM_C281_], a
-	ld   a, $03
-	ld   [_RAM_C280_], a
+	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+	ld   [keyboard_cur_mode__RAM_C280], a
 	ld   a, [_RAM_C5F2_]
 	add  a
 	add  a
@@ -20561,7 +20410,7 @@ _LABEL_E289_:
 	ldi  [hl], a
 	dec  b
 	jr   nz, _LABEL_E289_
-	call _LABEL_2B_
+	call set_keycode_lut_ptr__altmap_ON__002B
 	ld   a, $19
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	xor  a
@@ -20905,15 +20754,15 @@ db $4E, $54, $46, $43, $52, $50, $45, $55
 
 _LABEL_E4D0_:
 	call _LABEL_1563_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_E4DB_:
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
+	cp   WORKBOY_SCAN_KEY_NONE ; $FF
 	jr   z, _LABEL_E4DB_
 	or   a
 	jr   nz, _LABEL_E4F1_
@@ -21453,9 +21302,9 @@ _LABEL_E843_:
 	ld   [_RAM_C281_], a
 	ld   a, $90
 	ld   [_RAM_C282_], a
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_E867_:
 	rst  $18	; Call VSYNC__RST_18
 	call _LABEL_2769_
@@ -21466,19 +21315,19 @@ _LABEL_E867_:
 	jp   z, _LABEL_200_
 	cp   $0D
 	jp   z, _LABEL_E92D_
-	cp   $0B
+	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
 	jr   nz, _LABEL_E887_
-	call _LABEL_2B_
-	ld   a, $02
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_ON__002B
+	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_E867_
 
 _LABEL_E887_:
-	cp   $0C
+	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
 	jr   nz, _LABEL_E895_
-	call _LABEL_26C_
-	ld   a, $01
-	ld   [_RAM_C280_], a
+	call set_keycode_lut_ptr__altmap_OFF__026C
+	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+	ld   [keyboard_cur_mode__RAM_C280], a
 	jr   _LABEL_E867_
 
 _LABEL_E895_:
@@ -21578,7 +21427,7 @@ _LABEL_E95A_:
 	ld   [_RAM_C23E_], a
 	ldh  a, [rBGP]
 	ldh  [rOBP0], a
-	call _LABEL_2B_
+	call set_keycode_lut_ptr__altmap_ON__002B
 	xor  a
 	ld   [_RAM_C110_], a
 	di
@@ -22454,7 +22303,7 @@ _LABEL_F74D_:
 	ret
 
 _LABEL_F790_:
-	call _LABEL_26C_
+	call set_keycode_lut_ptr__altmap_OFF__026C
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   de, $00BF
 	ld   a, $09
@@ -22710,234 +22559,247 @@ db $20, $72, $69, $63, $65, $72, $63, $61, $41, $5A, $49, $4F, $4E, $20, $43, $4
 
 ; BEGIN: Looks like misc UI Italian text?: 0x10100 - 0x10E6F  (Bank 4 0x41000->0x4E6F)
 ; - Actually maybe starts at 0x100F8
-if def(OVERWRITE_ITALIAN_UI_TRANSLATION)
+IF DEF(OVERWRITE_ITALIAN_UI_TRANSLATION)
     SECTION "rom4_begin_overwrite_italian_4100_4E6F", ROMX[$4100], BANK[$4]
     ; ds 3440, $0
-    SECTION "rom4_end_overwrite_italian_4100_4E6F", ROMX[$4E70], BANK[$4]
 
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        include "inc/workboy_scancodes.inc"
+
+        include "duck/megaduck_laptop_io.asm"
+
+        include "duck/duck_to_workboy_keyboard_recode_table.asm"
+
+        include "duck/megaduck_laptop_keyboard.asm"
+        include "duck/megaduck_laptop_rtc.asm"        
+    ENDC
+
+
+
+    SECTION "rom4_end_overwrite_italian_4100_4E6F", ROMX[$4E70], BANK[$4]
 else
-db $54, $45, $4E, $41, $20, $52, $49, $43, $45, $52, $43, $41, $52, $49, $43, $45
-db $52, $43, $41, $20, $46, $49, $4E, $4F, $20, $54, $45, $52, $4D, $49, $4E, $20
-db $50, $52, $45, $4D, $45, $52, $45, $20, $51, $55, $41, $4C, $53, $20, $54, $41
-db $53, $54, $4F, $20, $20, $20, $20, $52, $49, $43, $45, $52, $43, $41, $20, $4C
-db $49, $4E, $47, $55, $41, $20, $20, $20, $52, $69, $63, $65, $72, $63, $61, $20
-db $66, $69, $6E, $6F, $20, $61, $20, $66, $69, $6E, $65, $00, $64, $61, $74, $6F
-db $2E, $4E, $6F, $6E, $20, $74, $72, $61, $76, $61, $74, $6F, $3F, $00, $50, $72
-db $65, $6D, $65, $72, $65, $20, $51, $75, $61, $6C, $73, $20, $54, $61, $73, $74
-db $6F, $00, $20, $50, $72, $6F, $73, $73, $69, $6D, $6F, $20, $20, $55, $73, $63
-db $69, $74, $61, $20, $20, $20, $00, $50, $52, $4F, $53, $53, $49, $4D, $4F, $20
-db $55, $53, $43, $49, $54, $41, $20, $20, $20, $4D, $49, $4E, $49, $54, $52, $41
-db $44, $55, $54, $54, $4F, $52, $45, $20, $20, $20, $20, $54, $72, $6F, $76, $61
-db $72, $65, $20, $20, $6C, $61, $20, $70, $61, $72, $6F, $6C, $61, $20, $20, $56
-db $69, $73, $75, $61, $6C, $69, $7A, $7A, $20, $49, $6E, $74, $65, $73, $74, $61
-db $7A, $20, $20, $20, $20, $20, $20, $20, $20, $55, $73, $63, $69, $74, $61, $20
-db $20, $20, $20, $20, $20, $20, $20, $46, $55, $4E, $5A, $49, $4F, $4E, $49, $20
-db $44, $45, $4C, $20, $4D, $4F, $4E, $44, $4F, $20, $20, $20, $20, $4D, $69, $6E
-db $69, $74, $72, $61, $64, $75, $74, $74, $6F, $72, $65, $20, $20, $20, $20, $20
-db $4D, $61, $70, $70, $61, $20, $20, $64, $65, $6C, $20, $4D, $6F, $6E, $64, $6F
-db $20, $20, $20, $20, $20, $46, $55, $4E, $5A, $49, $4F, $4E, $49, $20, $20, $44
-db $41, $54, $41, $20, $20, $20, $20, $20, $20, $20, $41, $73, $73, $65, $67, $6E
-db $61, $7A, $69, $6F, $6E, $69
-ds 9, $20
-db $43, $61, $6C, $65, $6E, $64, $61, $72, $69, $6F, $20, $20, $20, $20, $20, $20
-db $20, $4F, $50, $5A, $49, $4F, $4E, $49, $20, $54, $45, $4C, $45, $46, $4F, $4E
-db $4F, $20, $20, $20, $4E, $75, $6D, $65, $72, $6F, $20, $43, $6F, $6D, $70, $6F
-db $6E, $69, $62, $69, $6C, $65, $20, $20, $20, $54, $61, $73, $74, $69, $65, $72
-db $61, $20, $61, $20, $54, $6F, $63, $63, $6F, $20, $20, $20, $20, $20, $20, $43
-db $4F, $4E, $56, $45, $52, $53, $49, $4F, $4E, $45, $20, $20, $20, $20, $20, $20
-db $41, $20, $4D, $69, $73, $75, $72, $65, $20, $20, $4D, $65, $74, $72, $69, $63
-db $68, $65, $20, $20, $44, $61, $20, $4D, $69, $73, $75, $72, $65, $20, $4D, $65
-db $74, $72, $69, $63, $68, $65, $20, $20, $4F, $50, $5A, $49, $4F, $4E, $49, $20
-db $20, $52, $45, $47, $49, $53, $54, $52, $41, $5A, $20, $20, $20, $20, $20, $20
-db $20, $44, $61, $74, $61, $62, $61, $73, $65, $20, $20, $20, $20, $20, $20, $49
-db $6E, $64, $69, $72, $69, $7A, $7A, $61, $72, $69, $6F, $20, $20, $20, $20, $44
-db $61, $74, $61, $20, $20, $20, $2F, $20, $20, $2F, $00, $41, $73, $73, $2E, $20
-db $54, $65, $6D, $70, $6F, $3F, $53, $4E, $00, $54, $65, $6D, $70, $6F, $20, $20
-db $3A, $00, $4D, $75, $73, $69, $63, $61, $6C, $65, $3F, $53, $4E, $00, $50, $72
-db $65, $6D, $65, $72, $65, $20, $31, $20, $32, $20, $33, $20, $6F, $20, $34, $00
-db $31, $20, $41, $6C, $6C, $61, $72, $6D, $65, $20, $61, $63, $75, $73, $74, $69
-db $63, $6F, $00, $32, $20, $43, $6F, $6D, $70, $6C, $65, $61, $6E, $6E, $6F, $00
-db $33, $20, $4E, $61, $74, $61, $6C, $65, $00, $34, $20, $50, $72, $69, $6F, $72
-db $69, $74, $61, $00, $43, $6F, $6E, $74, $6F, $20, $61, $20, $52, $6F, $76, $65
-db $73, $63, $69, $61, $3F, $53, $4E, $00, $4E, $75, $6D, $65, $72, $6F, $20, $67
-db $69, $6F, $72, $6E, $69, $3F, $28, $31, $2D, $37, $29, $00, $50, $65, $72, $20
-db $63, $61, $6E, $63, $20, $41, $73, $73, $65, $67, $6E, $3F, $53, $4E, $00, $50
-db $72, $6F, $73, $73, $20, $70, $52, $65, $63, $65, $64, $20, $20, $55, $73, $63
-db $69, $74, $61, $00, $47, $65, $6E, $6E, $61, $69, $6F, $00, $46, $65, $62, $62
-db $72, $61, $69, $6F, $00, $4D, $61, $72, $7A, $6F, $00, $41, $70, $72, $69, $6C
-db $65, $00, $4D, $61, $67, $67, $69, $6F, $00, $47, $69, $75, $67, $6E, $6F, $00
-db $4C, $75, $67, $6C, $69, $6F, $00, $41, $67, $6F, $73, $74, $6F, $00, $53, $65
-db $74, $74, $65, $6D, $62, $72, $65, $00, $4F, $74, $74, $6F, $62, $72, $65, $00
-db $4E, $6F, $76, $65, $6D, $62, $72, $65, $00, $44, $69, $63, $65, $6D, $62, $72
-db $65, $00, $73, $74, $6E, $64, $72, $64, $74, $68, $4E, $6F, $20, $63, $6F, $6E
-db $74, $6F, $20, $61, $20, $72, $6F, $76, $65, $73, $63, $69, $61, $00, $43, $6F
-db $6E, $74, $6F, $20, $61, $20, $72, $6F, $76, $65, $73, $3A, $00, $31, $20, $67
-db $69, $6F, $72, $6E, $6F, $00, $67, $69, $6F, $72, $6E, $69, $00, $4E, $65, $73
-db $73, $75, $6E, $20, $41, $6C, $6C, $61, $72, $6D, $65, $00, $41, $6C, $6C, $61
-db $72, $20, $63, $6F, $6E, $20, $53, $65, $67, $6E, $20, $41, $63, $75, $73, $00
-db $41, $6C, $6C, $61, $72, $6D, $65, $20, $43, $6F, $6D, $70, $6C, $65, $61, $6E
-db $6E, $6F, $00, $41, $6C, $6C, $61, $72, $6D, $65, $20, $4E, $61, $74, $61, $6C
-db $65, $00, $41, $6C, $6C, $61, $72, $6D, $65, $20, $64, $69, $20, $50, $72, $69
-db $6F, $72, $69, $74, $61, $00, $20, $20, $20, $45, $52, $52, $4F, $52, $45, $20
-db $20, $20, $20, $20, $20, $20, $20, $41, $75, $74, $6F, $6D, $6F, $62, $69, $6C
-db $65, $20, $20, $20, $20, $20, $20, $20, $20, $42, $61, $6E, $63, $68, $65, $2F
-db $46, $69, $6E, $61, $6E, $7A, $61, $20, $20, $20, $20, $20, $42, $65, $6C, $6C
-db $65, $7A, $7A, $61, $2F, $53, $61, $6C, $75, $74, $65, $20, $20, $20, $20, $20
-db $20, $43, $6F, $6D, $75, $6E, $69, $63, $61, $7A, $69, $6F, $6E, $65
-ds 9, $20
-db $44, $61, $74, $65, $2F, $54, $65, $6D, $70, $6F
-ds 10, $20
-db $53, $70, $65, $74, $74, $61, $63, $6F, $6C, $6F, $20, $20, $20, $20, $20, $47
-db $65, $6E, $65, $72, $61, $6C, $65, $2F, $43, $6F, $6E, $76, $65, $6E, $65, $76
-db $6F, $6C, $69, $20, $20, $20, $20, $20, $20, $41, $6C, $62, $65, $72, $67, $6F
-ds 9, $20
-db $53, $61, $6E, $69, $74, $61, $2F, $45, $6D, $65, $72, $67, $65, $6E, $7A, $61
-db $20, $20, $20, $20, $52, $69, $73, $74, $6F, $72, $61, $6E, $74, $69, $2F, $43
-db $69, $62, $6F, $20, $20, $20, $20, $20, $53, $70, $65, $73, $65, $2F, $50, $65
-db $72, $73, $6F, $6E, $61, $6C, $65, $20, $20, $20, $20, $20, $56, $69, $73, $69
-db $74, $61, $20, $54, $75, $72, $69, $73, $74, $69, $63, $61
-ds 9, $20
-db $53, $70, $6F, $72, $74
-ds 14, $20
-db $56, $69, $61, $67, $67, $69, $6F, $20, $20, $20, $20, $20, $20, $20, $53, $55
-db $43, $43, $45, $53, $53, $20, $50, $52, $45, $43, $45, $44, $20, $53, $45, $4C
-db $45, $5A, $00, $56, $69, $73, $75, $61, $6C, $69, $7A, $7A, $20, $4F, $72, $6F
-db $6C, $6F, $67, $69, $6F, $00, $50, $65, $72, $20, $73, $65, $74, $74, $61, $72
-db $65, $20, $74, $65, $6D, $70, $6F, $00, $50, $65, $72, $20, $73, $65, $74, $74
-db $61, $72, $65, $20, $61, $6C, $6C, $61, $72, $6D, $65, $00, $50, $65, $72, $20
-db $63, $61, $6E, $63, $65, $6C, $6C, $20, $61, $6C, $6C, $61, $72, $6D, $65, $00
-db $3A, $20, $20, $3A, $00, $41, $6C, $6C, $61, $72, $6D, $65, $20, $3A, $00, $20
-db $50, $65, $72, $20, $76, $69, $73, $75, $61, $6C, $69, $7A, $7A, $20, $64, $61
-db $74, $61, $20, $20, $20, $50, $65, $72, $20, $73, $65, $74, $74, $61, $72, $65
-db $20, $64, $61, $74, $61, $20, $20, $20, $49, $4D, $50, $4F, $53, $54, $2E, $20
-db $20, $41, $4D, $4D, $4F, $4E, $54, $41, $52, $45, $20, $20, $50, $52, $45, $4D
-db $45, $52, $45, $20, $55, $4E, $20, $54, $41, $53, $54, $4F, $20, $00, $49, $6E
-db $63, $68, $65, $73, $20, $61, $20, $43, $6D, $00, $50, $69, $65, $64, $69, $20
-db $61, $20, $4D, $65, $74, $72, $69, $00, $59, $61, $72, $64, $20, $61, $20, $4D
-db $65, $74, $72, $69, $00, $4D, $69, $67, $6C, $69, $61, $20, $61, $20, $43, $68
-db $69, $6C, $6F, $6D, $65, $74, $72, $69, $00, $41, $63, $72, $69, $20, $61, $64
-db $20, $45, $74, $74, $61, $72, $69, $00, $4F, $6E, $63, $65, $20, $66, $6C, $75
-db $69, $64, $65, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $51, $75, $61, $72
-db $74, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $47, $61, $6C, $6C, $6F, $6E
-db $69, $20, $55, $53, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $47, $61, $6C
-db $6C, $6F, $6E, $69, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $4F, $6E, $63
-db $65, $20, $61, $64, $20, $47, $72, $61, $6D, $6D, $69, $00, $4C, $69, $62, $62
-db $72, $65, $20, $61, $20, $43, $68, $69, $6C, $6F, $67, $72, $61, $6D, $6D, $69
-db $00, $54, $6F, $6E, $20, $61, $20, $54, $6F, $6E, $6E, $65, $6C, $6C, $61, $74
-db $65, $00, $43, $6D, $20, $61, $20, $49, $6E, $63, $68, $00, $4D, $65, $74, $72
-db $69, $20, $61, $20, $50, $69, $65, $64, $69, $00, $4D, $65, $74, $72, $69, $20
-db $61, $20, $59, $61, $72, $64, $00, $43, $68, $69, $6C, $6F, $6D, $65, $74, $72
-db $69, $20, $61, $20, $4D, $69, $67, $6C, $69, $61, $00, $45, $74, $74, $61, $72
-db $69, $20, $61, $64, $20, $41, $63, $72, $69, $00, $4C, $69, $74, $72, $69, $20
-db $61, $64, $20, $4F, $6E, $63, $65, $20, $46, $6C, $75, $69, $64, $65, $00, $4C
-db $69, $74, $72, $69, $20, $61, $20, $51, $75, $61, $72, $74, $00, $4C, $69, $74
-db $72, $69, $20, $61, $20, $47, $61, $6C, $6C, $6F, $6E, $69, $20, $55, $53, $00
-db $4C, $69, $74, $72, $69, $20, $61, $20, $47, $61, $6C, $6C, $6F, $6E, $69, $00
-db $47, $72, $61, $6D, $6D, $69, $20, $61, $64, $20, $4F, $6E, $63, $65, $00, $43
-db $68, $69, $6C, $6F, $67, $72, $61, $6D, $6D, $69, $20, $61, $20, $4C, $69, $62
-db $62, $72, $65, $00, $54, $6F, $6E, $6E, $65, $6C, $6C, $61, $74, $65, $20, $61
-db $20, $54, $6F, $6E, $00, $43, $6F, $72, $72, $69, $73, $70, $20, $6E, $6F, $6E
-db $20, $74, $72, $6F, $76, $61, $74, $6F, $00, $51, $75, $61, $6C, $73, $20, $74
-db $61, $73, $74, $6F, $20, $70, $65, $72, $20, $63, $6F, $6E, $74, $00, $84, $98
-db $4D, $61, $72, $63, $68, $69, $20, $54, $65, $64, $65, $73, $63, $68, $69, $00
-db $C6, $98, $44, $6F, $6C, $6C, $61, $72, $69, $00, $07, $99, $46, $72, $61, $6E
-db $63, $68, $69, $00, $48, $99, $4C, $69, $72, $65, $00, $86, $99, $50, $65, $73
-db $65, $74, $61, $00, $C7, $99, $53, $74, $65, $72, $6C, $69, $6E, $65, $00, $08
-db $9A, $59, $65, $6E, $00, $12, $20, $20, $4D, $61, $72, $63, $68, $69, $20, $20
-db $54, $65, $64, $65, $73, $63, $68, $69, $20, $20, $09, $20, $20, $20, $20, $20
-db $20, $44, $6F, $6C, $6C, $61, $72, $69, $20, $20, $20, $20, $20, $20, $20, $09
-db $20, $20, $20, $20, $20, $20, $46, $72, $61, $6E, $63, $68, $69, $20, $20, $20
-db $20, $20, $20, $20, $06, $20, $20, $20, $20, $20, $20, $20, $20, $4C, $69, $72
-db $65, $20, $20, $20, $20, $20, $20, $20, $20, $08, $20, $20, $20, $20, $20, $20
-db $20, $50, $65, $73, $65, $74, $61, $20, $20, $20, $20, $20, $20, $20, $0A, $20
-db $20, $20, $20, $20, $20, $53, $74, $65, $72, $6C, $69, $6E, $65, $20, $20, $20
-db $20, $20, $20, $05, $20, $20, $20, $20, $20, $20, $20, $20, $59, $65, $6E
-ds 9, $20
-db $04, $4D, $61, $72, $63, $68, $69, $20, $54, $65, $64, $65, $73, $63, $68, $69
-db $00, $06, $44, $6F, $6C, $6C, $61, $72, $69, $00, $07, $46, $72, $61, $6E, $63
-db $68, $69, $00, $08, $4C, $69, $72, $65, $00, $06, $50, $65, $73, $65, $74, $61
-db $00, $07, $53, $74, $65, $72, $6C, $69, $6E, $65, $00, $08, $59, $65, $6E, $00
-db $43, $4F, $4E, $56, $45, $52, $54, $49, $52, $45, $20, $44, $41, $00, $43, $4F
-db $4E, $56, $45, $52, $54, $49, $52, $45, $20, $41, $20, $00, $20, $49, $4D, $50
-db $4F, $53, $54, $2E, $20, $20, $41, $4D, $4D, $4F, $4E, $54, $41, $52, $45, $20
-db $20, $20, $20, $49, $4D, $50, $4F, $53, $54, $41, $52, $45, $20, $44, $41, $54
-db $41, $20, $20, $20, $20, $41, $4D, $4D, $4F, $4E, $54, $41, $52, $45, $20, $20
-db $44, $41, $54, $4F, $20, $49, $4E, $20, $20, $20, $20, $20, $4D, $45, $4E, $55
-db $20, $43, $4F, $4D, $41, $4E, $44, $49, $20, $20, $20, $20, $20, $50, $45, $52
-db $20, $20, $43, $41, $4E, $43, $20, $4F, $47, $4E, $49, $20, $52, $45, $47, $20
-db $20, $50, $45, $52, $20, $53, $45, $54, $54, $41, $52, $45, $20, $41, $20, $48
-db $4F, $4D, $45, $20, $50, $52, $45, $4D, $20, $53, $20, $41, $20, $43, $4F, $4E
-db $46, $45, $52, $4D, $41, $20, $00, $00, $51, $55, $41, $4C, $53, $20, $54, $41
-db $53, $54, $4F, $20, $41, $4E, $4E, $55, $4C, $4C, $20, $00, $20, $50, $45, $52
-db $20, $42, $49, $4C, $41, $4E, $43, $49, $4F, $2F, $53, $41, $4C, $44, $4F, $20
-db $20, $42, $49, $4C, $41, $4E, $43, $49, $4F, $20, $20, $43, $4F, $52, $52, $45
-db $4E, $54, $45, $20, $20, $56, $49, $53, $55, $41, $4C, $49, $5A, $5A, $20, $20
-db $52, $45, $47, $49, $53, $54, $52, $20, $20, $49, $4D, $50, $4F, $53, $54, $41
-db $52, $45, $20, $20, $52, $45, $47, $49, $53, $54, $52, $20, $20, $4E, $45, $53
-db $53, $55, $4E, $41, $20, $20, $52, $45, $47, $49, $53, $54, $52, $41, $5A
-ds 19, $20
-db $00, $20, $56, $49, $53, $55, $41, $4C, $49, $5A, $5A, $20, $20, $52, $45, $47
-db $49, $53, $54, $52, $20, $20, $20, $20, $44, $49, $47, $49, $54, $41, $52, $45
-db $20, $44, $41, $54, $41, $20, $20, $20, $20, $2F, $20, $20, $2F, $00, $49, $4D
-db $50, $4F, $53, $54, $41, $52, $45, $20, $41, $4D, $4F, $4E, $54, $41, $52, $45
-db $00, $20, $50, $45, $52, $20, $41, $43, $43, $52, $45, $44, $2F, $41, $44, $44
-db $45, $42, $20, $00, $20, $20, $20, $20, $20, $41, $43, $43, $52, $45, $44, $49
-db $54, $4F
-ds 12, $20
-db $41, $44, $44, $45, $42, $49, $54, $4F, $20, $20, $20, $20, $20, $20, $41, $44
-db $44, $45, $42, $49, $54, $4F, $00, $8C, $8C, $8C, $8C, $8C, $8C, $8C, $8C, $00
-db $20, $49, $4D, $50, $4F, $53, $54, $41, $52, $45, $20, $20, $44, $45, $53, $43
-db $52, $20, $00, $8C, $8C, $50, $72, $6F, $73, $73, $8C, $70, $52, $65, $63, $8C
-db $55, $73, $63, $00, $20, $20, $52, $65, $67, $69, $73, $74, $72, $20, $4E, $72
-db $20, $20, $20, $20, $78, $78, $20, $20, $4E, $6F, $6D, $65, $20, $65, $20, $49
-db $6E, $64, $69, $72, $69, $7A, $7A, $6F, $00, $4E, $75, $6D, $65, $72, $6F, $20
-db $54, $65, $6C, $65, $66, $6F, $6E, $6F, $00, $49, $6D, $70, $6F, $73, $74, $20
-db $6E, $72, $20, $64, $61, $20, $66, $61, $72, $65, $00, $20, $44, $69, $67, $69
-db $74, $61, $72, $65, $20, $69, $6C, $20, $6E, $75, $6D, $65, $72, $6F, $20, $43
-db $6F, $6D, $70, $6F, $73, $20, $6E, $72, $20, $61, $7A, $69, $6F, $6E, $61, $74
-db $61, $00, $20, $45, $53, $43, $41, $50, $45, $20, $20, $50, $45, $52, $20, $55
-db $53, $43, $49, $52, $45, $20, $20, $50, $52, $45, $4D, $20, $51, $55, $41, $4C
-db $53, $20, $54, $41, $53, $54, $4F, $20, $00, $49, $6E, $67, $6C, $65, $73, $65
-db $00, $54, $65, $64, $65, $73, $63, $6F, $00, $46, $72, $61, $6E, $63, $65, $73
-db $65, $00, $53, $70, $61, $67, $6E, $6F, $6C, $6F, $00, $49, $74, $61, $6C, $69
-db $61, $6E, $6F, $00, $20, $47, $45, $4E, $4E, $41, $49, $4F, $20, $1F, $46, $45
-db $42, $42, $52, $41, $49, $4F, $20, $1C, $20, $20, $4D, $41, $52, $5A, $4F, $20
-db $20, $1F, $20, $41, $50, $52, $49, $4C, $45, $20, $20, $1E, $20, $4D, $41, $47
-db $47, $49, $4F, $20, $20, $1F, $20, $47, $49, $55, $47, $4E, $4F, $20, $20, $1E
-db $20, $4C, $55, $47, $4C, $49, $4F, $20, $20, $1F, $20, $41, $47, $4F, $53, $54
-db $4F, $20, $20, $1F, $53, $45, $54, $54, $45, $4D, $42, $52, $45, $1E, $20, $4F
-db $54, $54, $4F, $42, $52, $45, $20, $1F, $20, $4E, $4F, $56, $45, $4D, $42, $52
-db $45, $1E, $20, $44, $49, $43, $45, $4D, $42, $52, $45, $1F, $4C, $55, $4E, $4D
-db $41, $52, $4D, $45, $52, $47, $49, $4F, $56, $45, $4E, $53, $41, $42, $44, $4F
-db $4D, $4C, $55, $4E, $42, $3D, $50, $72, $6F, $73, $73, $69, $6D, $6F, $20, $20
-db $41, $3D, $55, $73, $63, $69, $74, $61, $00, $20, $53, $65, $6C, $65, $63, $74
-db $3D, $50, $72, $65, $63, $65, $64, $65, $6E, $74, $65, $20, $20, $00, $46, $61
-db $72, $65, $2E, $20, $20, $43, $61, $6E, $63, $2E, $20, $20, $52, $65, $76, $69
-db $73, $2E, $00, $50, $52, $45, $4D, $45, $52, $45, $20, $53, $20, $41, $20, $43
-db $4F, $4E, $46, $45, $52, $4D, $41, $00, $41, $4C, $54, $52, $4F, $20, $54, $41
-db $53, $54, $4F, $20, $46, $41, $4C, $4C, $49, $53, $43, $45, $00, $2A, $43, $4F
-db $4E, $54, $52, $4F, $4C, $4C, $2E, $41, $50, $50, $55, $4E, $54, $41, $4D, $2E
-db $2A, $00, $20, $20, $53, $43, $45, $47, $4C, $49, $45, $52, $45, $20, $4C, $49
-db $4E, $47, $55, $41, $20, $20, $20, $20, $53, $43, $45, $4C, $54, $41, $20, $20
-db $41, $50, $50, $4F, $47, $47, $49, $4F, $20, $20, $20, $20, $43, $41, $52, $49
-db $43, $4F, $20, $20, $47, $49, $55, $20, $41, $20, $50, $43, $20, $20, $20, $20
-db $43, $41, $52, $49, $43, $4F, $20, $20, $53, $55, $20, $44, $41, $20, $50, $43
-db $20, $20, $20, $20, $20, $4D, $45, $4E, $55, $20, $43, $4F, $4E, $54, $52, $4F
-db $4C, $4C, $4F, $20, $20, $20, $20, $20, $4C, $49, $42, $52, $4F, $20, $20, $49
-db $4E, $44, $49, $52, $49, $5A, $5A, $49, $20, $20, $20, $20, $20, $20, $41, $50
-db $50, $55, $4E, $54, $41, $4D, $45, $4E, $54, $49, $20, $20, $20, $20, $20, $20
-db $20, $20, $43, $41, $4C, $43, $4F, $4C, $45, $52, $52, $49, $43, $41, $20, $20
-db $20, $20, $20, $20, $20, $20, $42, $41, $53, $45, $20, $44, $49, $20, $44, $41
-db $54, $49, $20, $20, $20, $20, $43, $61, $72, $63, $61, $72, $65, $20, $61, $6C
-db $6C, $61, $20, $66, $69, $6E, $65, $20, $64, $69, $00, $44, $61, $74, $69, $20
-db $70, $72, $6D, $2E, $71, $75, $61, $6C, $73, $2E, $74, $61, $73, $74, $6F, $00
-db $20, $20, $20, $53, $43, $45, $4C, $54, $45, $20, $52, $49, $43, $45, $52, $43
-db $41, $20, $20, $20, $20, $20, $52, $49, $43, $45, $52, $43, $41, $20, $20, $47
-db $4C, $4F, $42, $41, $4C, $45, $20, $20, $20, $52, $49, $43, $45, $52, $43, $41
-db $20, $20, $53, $50, $45, $43, $49, $46, $49, $43, $41, $20, $4F, $72, $61, $2F
-db $44, $61, $74, $61, $20, $45, $72, $72, $61, $74, $61, $00, $42, $61, $74, $74
-db $65, $72, $69, $65, $20, $44, $65, $62, $6F, $6C, $74, $3F, $00, $20, $20, $20
-endc
+    db $54, $45, $4E, $41, $20, $52, $49, $43, $45, $52, $43, $41, $52, $49, $43, $45
+    db $52, $43, $41, $20, $46, $49, $4E, $4F, $20, $54, $45, $52, $4D, $49, $4E, $20
+    db $50, $52, $45, $4D, $45, $52, $45, $20, $51, $55, $41, $4C, $53, $20, $54, $41
+    db $53, $54, $4F, $20, $20, $20, $20, $52, $49, $43, $45, $52, $43, $41, $20, $4C
+    db $49, $4E, $47, $55, $41, $20, $20, $20, $52, $69, $63, $65, $72, $63, $61, $20
+    db $66, $69, $6E, $6F, $20, $61, $20, $66, $69, $6E, $65, $00, $64, $61, $74, $6F
+    db $2E, $4E, $6F, $6E, $20, $74, $72, $61, $76, $61, $74, $6F, $3F, $00, $50, $72
+    db $65, $6D, $65, $72, $65, $20, $51, $75, $61, $6C, $73, $20, $54, $61, $73, $74
+    db $6F, $00, $20, $50, $72, $6F, $73, $73, $69, $6D, $6F, $20, $20, $55, $73, $63
+    db $69, $74, $61, $20, $20, $20, $00, $50, $52, $4F, $53, $53, $49, $4D, $4F, $20
+    db $55, $53, $43, $49, $54, $41, $20, $20, $20, $4D, $49, $4E, $49, $54, $52, $41
+    db $44, $55, $54, $54, $4F, $52, $45, $20, $20, $20, $20, $54, $72, $6F, $76, $61
+    db $72, $65, $20, $20, $6C, $61, $20, $70, $61, $72, $6F, $6C, $61, $20, $20, $56
+    db $69, $73, $75, $61, $6C, $69, $7A, $7A, $20, $49, $6E, $74, $65, $73, $74, $61
+    db $7A, $20, $20, $20, $20, $20, $20, $20, $20, $55, $73, $63, $69, $74, $61, $20
+    db $20, $20, $20, $20, $20, $20, $20, $46, $55, $4E, $5A, $49, $4F, $4E, $49, $20
+    db $44, $45, $4C, $20, $4D, $4F, $4E, $44, $4F, $20, $20, $20, $20, $4D, $69, $6E
+    db $69, $74, $72, $61, $64, $75, $74, $74, $6F, $72, $65, $20, $20, $20, $20, $20
+    db $4D, $61, $70, $70, $61, $20, $20, $64, $65, $6C, $20, $4D, $6F, $6E, $64, $6F
+    db $20, $20, $20, $20, $20, $46, $55, $4E, $5A, $49, $4F, $4E, $49, $20, $20, $44
+    db $41, $54, $41, $20, $20, $20, $20, $20, $20, $20, $41, $73, $73, $65, $67, $6E
+    db $61, $7A, $69, $6F, $6E, $69
+    ds 9, $20
+    db $43, $61, $6C, $65, $6E, $64, $61, $72, $69, $6F, $20, $20, $20, $20, $20, $20
+    db $20, $4F, $50, $5A, $49, $4F, $4E, $49, $20, $54, $45, $4C, $45, $46, $4F, $4E
+    db $4F, $20, $20, $20, $4E, $75, $6D, $65, $72, $6F, $20, $43, $6F, $6D, $70, $6F
+    db $6E, $69, $62, $69, $6C, $65, $20, $20, $20, $54, $61, $73, $74, $69, $65, $72
+    db $61, $20, $61, $20, $54, $6F, $63, $63, $6F, $20, $20, $20, $20, $20, $20, $43
+    db $4F, $4E, $56, $45, $52, $53, $49, $4F, $4E, $45, $20, $20, $20, $20, $20, $20
+    db $41, $20, $4D, $69, $73, $75, $72, $65, $20, $20, $4D, $65, $74, $72, $69, $63
+    db $68, $65, $20, $20, $44, $61, $20, $4D, $69, $73, $75, $72, $65, $20, $4D, $65
+    db $74, $72, $69, $63, $68, $65, $20, $20, $4F, $50, $5A, $49, $4F, $4E, $49, $20
+    db $20, $52, $45, $47, $49, $53, $54, $52, $41, $5A, $20, $20, $20, $20, $20, $20
+    db $20, $44, $61, $74, $61, $62, $61, $73, $65, $20, $20, $20, $20, $20, $20, $49
+    db $6E, $64, $69, $72, $69, $7A, $7A, $61, $72, $69, $6F, $20, $20, $20, $20, $44
+    db $61, $74, $61, $20, $20, $20, $2F, $20, $20, $2F, $00, $41, $73, $73, $2E, $20
+    db $54, $65, $6D, $70, $6F, $3F, $53, $4E, $00, $54, $65, $6D, $70, $6F, $20, $20
+    db $3A, $00, $4D, $75, $73, $69, $63, $61, $6C, $65, $3F, $53, $4E, $00, $50, $72
+    db $65, $6D, $65, $72, $65, $20, $31, $20, $32, $20, $33, $20, $6F, $20, $34, $00
+    db $31, $20, $41, $6C, $6C, $61, $72, $6D, $65, $20, $61, $63, $75, $73, $74, $69
+    db $63, $6F, $00, $32, $20, $43, $6F, $6D, $70, $6C, $65, $61, $6E, $6E, $6F, $00
+    db $33, $20, $4E, $61, $74, $61, $6C, $65, $00, $34, $20, $50, $72, $69, $6F, $72
+    db $69, $74, $61, $00, $43, $6F, $6E, $74, $6F, $20, $61, $20, $52, $6F, $76, $65
+    db $73, $63, $69, $61, $3F, $53, $4E, $00, $4E, $75, $6D, $65, $72, $6F, $20, $67
+    db $69, $6F, $72, $6E, $69, $3F, $28, $31, $2D, $37, $29, $00, $50, $65, $72, $20
+    db $63, $61, $6E, $63, $20, $41, $73, $73, $65, $67, $6E, $3F, $53, $4E, $00, $50
+    db $72, $6F, $73, $73, $20, $70, $52, $65, $63, $65, $64, $20, $20, $55, $73, $63
+    db $69, $74, $61, $00, $47, $65, $6E, $6E, $61, $69, $6F, $00, $46, $65, $62, $62
+    db $72, $61, $69, $6F, $00, $4D, $61, $72, $7A, $6F, $00, $41, $70, $72, $69, $6C
+    db $65, $00, $4D, $61, $67, $67, $69, $6F, $00, $47, $69, $75, $67, $6E, $6F, $00
+    db $4C, $75, $67, $6C, $69, $6F, $00, $41, $67, $6F, $73, $74, $6F, $00, $53, $65
+    db $74, $74, $65, $6D, $62, $72, $65, $00, $4F, $74, $74, $6F, $62, $72, $65, $00
+    db $4E, $6F, $76, $65, $6D, $62, $72, $65, $00, $44, $69, $63, $65, $6D, $62, $72
+    db $65, $00, $73, $74, $6E, $64, $72, $64, $74, $68, $4E, $6F, $20, $63, $6F, $6E
+    db $74, $6F, $20, $61, $20, $72, $6F, $76, $65, $73, $63, $69, $61, $00, $43, $6F
+    db $6E, $74, $6F, $20, $61, $20, $72, $6F, $76, $65, $73, $3A, $00, $31, $20, $67
+    db $69, $6F, $72, $6E, $6F, $00, $67, $69, $6F, $72, $6E, $69, $00, $4E, $65, $73
+    db $73, $75, $6E, $20, $41, $6C, $6C, $61, $72, $6D, $65, $00, $41, $6C, $6C, $61
+    db $72, $20, $63, $6F, $6E, $20, $53, $65, $67, $6E, $20, $41, $63, $75, $73, $00
+    db $41, $6C, $6C, $61, $72, $6D, $65, $20, $43, $6F, $6D, $70, $6C, $65, $61, $6E
+    db $6E, $6F, $00, $41, $6C, $6C, $61, $72, $6D, $65, $20, $4E, $61, $74, $61, $6C
+    db $65, $00, $41, $6C, $6C, $61, $72, $6D, $65, $20, $64, $69, $20, $50, $72, $69
+    db $6F, $72, $69, $74, $61, $00, $20, $20, $20, $45, $52, $52, $4F, $52, $45, $20
+    db $20, $20, $20, $20, $20, $20, $20, $41, $75, $74, $6F, $6D, $6F, $62, $69, $6C
+    db $65, $20, $20, $20, $20, $20, $20, $20, $20, $42, $61, $6E, $63, $68, $65, $2F
+    db $46, $69, $6E, $61, $6E, $7A, $61, $20, $20, $20, $20, $20, $42, $65, $6C, $6C
+    db $65, $7A, $7A, $61, $2F, $53, $61, $6C, $75, $74, $65, $20, $20, $20, $20, $20
+    db $20, $43, $6F, $6D, $75, $6E, $69, $63, $61, $7A, $69, $6F, $6E, $65
+    ds 9, $20
+    db $44, $61, $74, $65, $2F, $54, $65, $6D, $70, $6F
+    ds 10, $20
+    db $53, $70, $65, $74, $74, $61, $63, $6F, $6C, $6F, $20, $20, $20, $20, $20, $47
+    db $65, $6E, $65, $72, $61, $6C, $65, $2F, $43, $6F, $6E, $76, $65, $6E, $65, $76
+    db $6F, $6C, $69, $20, $20, $20, $20, $20, $20, $41, $6C, $62, $65, $72, $67, $6F
+    ds 9, $20
+    db $53, $61, $6E, $69, $74, $61, $2F, $45, $6D, $65, $72, $67, $65, $6E, $7A, $61
+    db $20, $20, $20, $20, $52, $69, $73, $74, $6F, $72, $61, $6E, $74, $69, $2F, $43
+    db $69, $62, $6F, $20, $20, $20, $20, $20, $53, $70, $65, $73, $65, $2F, $50, $65
+    db $72, $73, $6F, $6E, $61, $6C, $65, $20, $20, $20, $20, $20, $56, $69, $73, $69
+    db $74, $61, $20, $54, $75, $72, $69, $73, $74, $69, $63, $61
+    ds 9, $20
+    db $53, $70, $6F, $72, $74
+    ds 14, $20
+    db $56, $69, $61, $67, $67, $69, $6F, $20, $20, $20, $20, $20, $20, $20, $53, $55
+    db $43, $43, $45, $53, $53, $20, $50, $52, $45, $43, $45, $44, $20, $53, $45, $4C
+    db $45, $5A, $00, $56, $69, $73, $75, $61, $6C, $69, $7A, $7A, $20, $4F, $72, $6F
+    db $6C, $6F, $67, $69, $6F, $00, $50, $65, $72, $20, $73, $65, $74, $74, $61, $72
+    db $65, $20, $74, $65, $6D, $70, $6F, $00, $50, $65, $72, $20, $73, $65, $74, $74
+    db $61, $72, $65, $20, $61, $6C, $6C, $61, $72, $6D, $65, $00, $50, $65, $72, $20
+    db $63, $61, $6E, $63, $65, $6C, $6C, $20, $61, $6C, $6C, $61, $72, $6D, $65, $00
+    db $3A, $20, $20, $3A, $00, $41, $6C, $6C, $61, $72, $6D, $65, $20, $3A, $00, $20
+    db $50, $65, $72, $20, $76, $69, $73, $75, $61, $6C, $69, $7A, $7A, $20, $64, $61
+    db $74, $61, $20, $20, $20, $50, $65, $72, $20, $73, $65, $74, $74, $61, $72, $65
+    db $20, $64, $61, $74, $61, $20, $20, $20, $49, $4D, $50, $4F, $53, $54, $2E, $20
+    db $20, $41, $4D, $4D, $4F, $4E, $54, $41, $52, $45, $20, $20, $50, $52, $45, $4D
+    db $45, $52, $45, $20, $55, $4E, $20, $54, $41, $53, $54, $4F, $20, $00, $49, $6E
+    db $63, $68, $65, $73, $20, $61, $20, $43, $6D, $00, $50, $69, $65, $64, $69, $20
+    db $61, $20, $4D, $65, $74, $72, $69, $00, $59, $61, $72, $64, $20, $61, $20, $4D
+    db $65, $74, $72, $69, $00, $4D, $69, $67, $6C, $69, $61, $20, $61, $20, $43, $68
+    db $69, $6C, $6F, $6D, $65, $74, $72, $69, $00, $41, $63, $72, $69, $20, $61, $64
+    db $20, $45, $74, $74, $61, $72, $69, $00, $4F, $6E, $63, $65, $20, $66, $6C, $75
+    db $69, $64, $65, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $51, $75, $61, $72
+    db $74, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $47, $61, $6C, $6C, $6F, $6E
+    db $69, $20, $55, $53, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $47, $61, $6C
+    db $6C, $6F, $6E, $69, $20, $61, $20, $4C, $69, $74, $72, $69, $00, $4F, $6E, $63
+    db $65, $20, $61, $64, $20, $47, $72, $61, $6D, $6D, $69, $00, $4C, $69, $62, $62
+    db $72, $65, $20, $61, $20, $43, $68, $69, $6C, $6F, $67, $72, $61, $6D, $6D, $69
+    db $00, $54, $6F, $6E, $20, $61, $20, $54, $6F, $6E, $6E, $65, $6C, $6C, $61, $74
+    db $65, $00, $43, $6D, $20, $61, $20, $49, $6E, $63, $68, $00, $4D, $65, $74, $72
+    db $69, $20, $61, $20, $50, $69, $65, $64, $69, $00, $4D, $65, $74, $72, $69, $20
+    db $61, $20, $59, $61, $72, $64, $00, $43, $68, $69, $6C, $6F, $6D, $65, $74, $72
+    db $69, $20, $61, $20, $4D, $69, $67, $6C, $69, $61, $00, $45, $74, $74, $61, $72
+    db $69, $20, $61, $64, $20, $41, $63, $72, $69, $00, $4C, $69, $74, $72, $69, $20
+    db $61, $64, $20, $4F, $6E, $63, $65, $20, $46, $6C, $75, $69, $64, $65, $00, $4C
+    db $69, $74, $72, $69, $20, $61, $20, $51, $75, $61, $72, $74, $00, $4C, $69, $74
+    db $72, $69, $20, $61, $20, $47, $61, $6C, $6C, $6F, $6E, $69, $20, $55, $53, $00
+    db $4C, $69, $74, $72, $69, $20, $61, $20, $47, $61, $6C, $6C, $6F, $6E, $69, $00
+    db $47, $72, $61, $6D, $6D, $69, $20, $61, $64, $20, $4F, $6E, $63, $65, $00, $43
+    db $68, $69, $6C, $6F, $67, $72, $61, $6D, $6D, $69, $20, $61, $20, $4C, $69, $62
+    db $62, $72, $65, $00, $54, $6F, $6E, $6E, $65, $6C, $6C, $61, $74, $65, $20, $61
+    db $20, $54, $6F, $6E, $00, $43, $6F, $72, $72, $69, $73, $70, $20, $6E, $6F, $6E
+    db $20, $74, $72, $6F, $76, $61, $74, $6F, $00, $51, $75, $61, $6C, $73, $20, $74
+    db $61, $73, $74, $6F, $20, $70, $65, $72, $20, $63, $6F, $6E, $74, $00, $84, $98
+    db $4D, $61, $72, $63, $68, $69, $20, $54, $65, $64, $65, $73, $63, $68, $69, $00
+    db $C6, $98, $44, $6F, $6C, $6C, $61, $72, $69, $00, $07, $99, $46, $72, $61, $6E
+    db $63, $68, $69, $00, $48, $99, $4C, $69, $72, $65, $00, $86, $99, $50, $65, $73
+    db $65, $74, $61, $00, $C7, $99, $53, $74, $65, $72, $6C, $69, $6E, $65, $00, $08
+    db $9A, $59, $65, $6E, $00, $12, $20, $20, $4D, $61, $72, $63, $68, $69, $20, $20
+    db $54, $65, $64, $65, $73, $63, $68, $69, $20, $20, $09, $20, $20, $20, $20, $20
+    db $20, $44, $6F, $6C, $6C, $61, $72, $69, $20, $20, $20, $20, $20, $20, $20, $09
+    db $20, $20, $20, $20, $20, $20, $46, $72, $61, $6E, $63, $68, $69, $20, $20, $20
+    db $20, $20, $20, $20, $06, $20, $20, $20, $20, $20, $20, $20, $20, $4C, $69, $72
+    db $65, $20, $20, $20, $20, $20, $20, $20, $20, $08, $20, $20, $20, $20, $20, $20
+    db $20, $50, $65, $73, $65, $74, $61, $20, $20, $20, $20, $20, $20, $20, $0A, $20
+    db $20, $20, $20, $20, $20, $53, $74, $65, $72, $6C, $69, $6E, $65, $20, $20, $20
+    db $20, $20, $20, $05, $20, $20, $20, $20, $20, $20, $20, $20, $59, $65, $6E
+    ds 9, $20
+    db $04, $4D, $61, $72, $63, $68, $69, $20, $54, $65, $64, $65, $73, $63, $68, $69
+    db $00, $06, $44, $6F, $6C, $6C, $61, $72, $69, $00, $07, $46, $72, $61, $6E, $63
+    db $68, $69, $00, $08, $4C, $69, $72, $65, $00, $06, $50, $65, $73, $65, $74, $61
+    db $00, $07, $53, $74, $65, $72, $6C, $69, $6E, $65, $00, $08, $59, $65, $6E, $00
+    db $43, $4F, $4E, $56, $45, $52, $54, $49, $52, $45, $20, $44, $41, $00, $43, $4F
+    db $4E, $56, $45, $52, $54, $49, $52, $45, $20, $41, $20, $00, $20, $49, $4D, $50
+    db $4F, $53, $54, $2E, $20, $20, $41, $4D, $4D, $4F, $4E, $54, $41, $52, $45, $20
+    db $20, $20, $20, $49, $4D, $50, $4F, $53, $54, $41, $52, $45, $20, $44, $41, $54
+    db $41, $20, $20, $20, $20, $41, $4D, $4D, $4F, $4E, $54, $41, $52, $45, $20, $20
+    db $44, $41, $54, $4F, $20, $49, $4E, $20, $20, $20, $20, $20, $4D, $45, $4E, $55
+    db $20, $43, $4F, $4D, $41, $4E, $44, $49, $20, $20, $20, $20, $20, $50, $45, $52
+    db $20, $20, $43, $41, $4E, $43, $20, $4F, $47, $4E, $49, $20, $52, $45, $47, $20
+    db $20, $50, $45, $52, $20, $53, $45, $54, $54, $41, $52, $45, $20, $41, $20, $48
+    db $4F, $4D, $45, $20, $50, $52, $45, $4D, $20, $53, $20, $41, $20, $43, $4F, $4E
+    db $46, $45, $52, $4D, $41, $20, $00, $00, $51, $55, $41, $4C, $53, $20, $54, $41
+    db $53, $54, $4F, $20, $41, $4E, $4E, $55, $4C, $4C, $20, $00, $20, $50, $45, $52
+    db $20, $42, $49, $4C, $41, $4E, $43, $49, $4F, $2F, $53, $41, $4C, $44, $4F, $20
+    db $20, $42, $49, $4C, $41, $4E, $43, $49, $4F, $20, $20, $43, $4F, $52, $52, $45
+    db $4E, $54, $45, $20, $20, $56, $49, $53, $55, $41, $4C, $49, $5A, $5A, $20, $20
+    db $52, $45, $47, $49, $53, $54, $52, $20, $20, $49, $4D, $50, $4F, $53, $54, $41
+    db $52, $45, $20, $20, $52, $45, $47, $49, $53, $54, $52, $20, $20, $4E, $45, $53
+    db $53, $55, $4E, $41, $20, $20, $52, $45, $47, $49, $53, $54, $52, $41, $5A
+    ds 19, $20
+    db $00, $20, $56, $49, $53, $55, $41, $4C, $49, $5A, $5A, $20, $20, $52, $45, $47
+    db $49, $53, $54, $52, $20, $20, $20, $20, $44, $49, $47, $49, $54, $41, $52, $45
+    db $20, $44, $41, $54, $41, $20, $20, $20, $20, $2F, $20, $20, $2F, $00, $49, $4D
+    db $50, $4F, $53, $54, $41, $52, $45, $20, $41, $4D, $4F, $4E, $54, $41, $52, $45
+    db $00, $20, $50, $45, $52, $20, $41, $43, $43, $52, $45, $44, $2F, $41, $44, $44
+    db $45, $42, $20, $00, $20, $20, $20, $20, $20, $41, $43, $43, $52, $45, $44, $49
+    db $54, $4F
+    ds 12, $20
+    db $41, $44, $44, $45, $42, $49, $54, $4F, $20, $20, $20, $20, $20, $20, $41, $44
+    db $44, $45, $42, $49, $54, $4F, $00, $8C, $8C, $8C, $8C, $8C, $8C, $8C, $8C, $00
+    db $20, $49, $4D, $50, $4F, $53, $54, $41, $52, $45, $20, $20, $44, $45, $53, $43
+    db $52, $20, $00, $8C, $8C, $50, $72, $6F, $73, $73, $8C, $70, $52, $65, $63, $8C
+    db $55, $73, $63, $00, $20, $20, $52, $65, $67, $69, $73, $74, $72, $20, $4E, $72
+    db $20, $20, $20, $20, $78, $78, $20, $20, $4E, $6F, $6D, $65, $20, $65, $20, $49
+    db $6E, $64, $69, $72, $69, $7A, $7A, $6F, $00, $4E, $75, $6D, $65, $72, $6F, $20
+    db $54, $65, $6C, $65, $66, $6F, $6E, $6F, $00, $49, $6D, $70, $6F, $73, $74, $20
+    db $6E, $72, $20, $64, $61, $20, $66, $61, $72, $65, $00, $20, $44, $69, $67, $69
+    db $74, $61, $72, $65, $20, $69, $6C, $20, $6E, $75, $6D, $65, $72, $6F, $20, $43
+    db $6F, $6D, $70, $6F, $73, $20, $6E, $72, $20, $61, $7A, $69, $6F, $6E, $61, $74
+    db $61, $00, $20, $45, $53, $43, $41, $50, $45, $20, $20, $50, $45, $52, $20, $55
+    db $53, $43, $49, $52, $45, $20, $20, $50, $52, $45, $4D, $20, $51, $55, $41, $4C
+    db $53, $20, $54, $41, $53, $54, $4F, $20, $00, $49, $6E, $67, $6C, $65, $73, $65
+    db $00, $54, $65, $64, $65, $73, $63, $6F, $00, $46, $72, $61, $6E, $63, $65, $73
+    db $65, $00, $53, $70, $61, $67, $6E, $6F, $6C, $6F, $00, $49, $74, $61, $6C, $69
+    db $61, $6E, $6F, $00, $20, $47, $45, $4E, $4E, $41, $49, $4F, $20, $1F, $46, $45
+    db $42, $42, $52, $41, $49, $4F, $20, $1C, $20, $20, $4D, $41, $52, $5A, $4F, $20
+    db $20, $1F, $20, $41, $50, $52, $49, $4C, $45, $20, $20, $1E, $20, $4D, $41, $47
+    db $47, $49, $4F, $20, $20, $1F, $20, $47, $49, $55, $47, $4E, $4F, $20, $20, $1E
+    db $20, $4C, $55, $47, $4C, $49, $4F, $20, $20, $1F, $20, $41, $47, $4F, $53, $54
+    db $4F, $20, $20, $1F, $53, $45, $54, $54, $45, $4D, $42, $52, $45, $1E, $20, $4F
+    db $54, $54, $4F, $42, $52, $45, $20, $1F, $20, $4E, $4F, $56, $45, $4D, $42, $52
+    db $45, $1E, $20, $44, $49, $43, $45, $4D, $42, $52, $45, $1F, $4C, $55, $4E, $4D
+    db $41, $52, $4D, $45, $52, $47, $49, $4F, $56, $45, $4E, $53, $41, $42, $44, $4F
+    db $4D, $4C, $55, $4E, $42, $3D, $50, $72, $6F, $73, $73, $69, $6D, $6F, $20, $20
+    db $41, $3D, $55, $73, $63, $69, $74, $61, $00, $20, $53, $65, $6C, $65, $63, $74
+    db $3D, $50, $72, $65, $63, $65, $64, $65, $6E, $74, $65, $20, $20, $00, $46, $61
+    db $72, $65, $2E, $20, $20, $43, $61, $6E, $63, $2E, $20, $20, $52, $65, $76, $69
+    db $73, $2E, $00, $50, $52, $45, $4D, $45, $52, $45, $20, $53, $20, $41, $20, $43
+    db $4F, $4E, $46, $45, $52, $4D, $41, $00, $41, $4C, $54, $52, $4F, $20, $54, $41
+    db $53, $54, $4F, $20, $46, $41, $4C, $4C, $49, $53, $43, $45, $00, $2A, $43, $4F
+    db $4E, $54, $52, $4F, $4C, $4C, $2E, $41, $50, $50, $55, $4E, $54, $41, $4D, $2E
+    db $2A, $00, $20, $20, $53, $43, $45, $47, $4C, $49, $45, $52, $45, $20, $4C, $49
+    db $4E, $47, $55, $41, $20, $20, $20, $20, $53, $43, $45, $4C, $54, $41, $20, $20
+    db $41, $50, $50, $4F, $47, $47, $49, $4F, $20, $20, $20, $20, $43, $41, $52, $49
+    db $43, $4F, $20, $20, $47, $49, $55, $20, $41, $20, $50, $43, $20, $20, $20, $20
+    db $43, $41, $52, $49, $43, $4F, $20, $20, $53, $55, $20, $44, $41, $20, $50, $43
+    db $20, $20, $20, $20, $20, $4D, $45, $4E, $55, $20, $43, $4F, $4E, $54, $52, $4F
+    db $4C, $4C, $4F, $20, $20, $20, $20, $20, $4C, $49, $42, $52, $4F, $20, $20, $49
+    db $4E, $44, $49, $52, $49, $5A, $5A, $49, $20, $20, $20, $20, $20, $20, $41, $50
+    db $50, $55, $4E, $54, $41, $4D, $45, $4E, $54, $49, $20, $20, $20, $20, $20, $20
+    db $20, $20, $43, $41, $4C, $43, $4F, $4C, $45, $52, $52, $49, $43, $41, $20, $20
+    db $20, $20, $20, $20, $20, $20, $42, $41, $53, $45, $20, $44, $49, $20, $44, $41
+    db $54, $49, $20, $20, $20, $20, $43, $61, $72, $63, $61, $72, $65, $20, $61, $6C
+    db $6C, $61, $20, $66, $69, $6E, $65, $20, $64, $69, $00, $44, $61, $74, $69, $20
+    db $70, $72, $6D, $2E, $71, $75, $61, $6C, $73, $2E, $74, $61, $73, $74, $6F, $00
+    db $20, $20, $20, $53, $43, $45, $4C, $54, $45, $20, $52, $49, $43, $45, $52, $43
+    db $41, $20, $20, $20, $20, $20, $52, $49, $43, $45, $52, $43, $41, $20, $20, $47
+    db $4C, $4F, $42, $41, $4C, $45, $20, $20, $20, $52, $49, $43, $45, $52, $43, $41
+    db $20, $20, $53, $50, $45, $43, $49, $46, $49, $43, $41, $20, $4F, $72, $61, $2F
+    db $44, $61, $74, $61, $20, $45, $72, $72, $61, $74, $61, $00, $42, $61, $74, $74
+    db $65, $72, $69, $65, $20, $44, $65, $62, $6F, $6C, $74, $3F, $00, $20, $20, $20
+ENDC
 ; BEGIN: Looks like misc UI Italian text?: 0x100F8 - 0x10E6F  (Bank 4 0x40F8->0x4E6F)
 
 
