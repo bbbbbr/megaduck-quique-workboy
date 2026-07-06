@@ -174,6 +174,13 @@ duck_io_get_rtc::
 
         ; [F] = Year, decimal (same for Megaduck RTC)
         ld   a, [duck_rtc_year]
+        ; MegaDuck RTC stores year as BCD since 2000 (if >= 2000) or since 1900 (if < 2000)
+        ; Workboy stores year as DEC since 1900
+        ; So convert and add 100 years
+        ; (Don't support years < 2000)
+        ; (Also duck system rom doesn't support setting year > 2011 due to missing leap year tables)
+        call bcd2dec_result_in_A
+        add  a, 100
         ld   [sioxfer_time__year__RAM_C2BD], a
 
     .return_success
@@ -194,8 +201,14 @@ duck_io_get_rtc::
 ; Regs: Does not preserve F
 duck_io_set_rtc::
 
-    ; Year is not in BCD, it's decimal value since 1900
     ld   a, [duck_rtc_year]
+    ; MegaDuck RTC stores year as BCD since 2000 (if >= 2000) or since 1900 (if < 2000)
+    ; Workboy stores year as DEC since 1900
+    ; So subtract 100 years and convert
+    ; (Don't support years < 2000)
+    ; (Also duck system rom doesn't support setting year > 2011 due to missing leap year tables)
+    sub  a, 100
+    call dec2bcd_result_in_A
     ld  [duck_io_tx_buf + DUCK_IO_RTC_YEAR], a
 
     ; All the remaining values are BCD (Weekday only has range of 7 values)
