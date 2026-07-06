@@ -20,6 +20,11 @@ duck_io_tx_buf:: ds DUCK_IO_LEN_TX_MAX
 duck_mbc_last_written_rom_bank:: db
 duck_mbc_saved_rom_bank:: db
 
+; This location doesn't seem to conflict with
+; *currently known* workboy HRAM usage
+SECTION "hram_ff90", HRAM[$FF90]
+duck_keyboard_safe_poll_interval_count_hram:: db
+
 
 ; Expects BUILD_USE_DUCK_LAPTOP_HARDWARE to be defined in order
 ; to free up data that is normally located at the serial link ISR vector at 0x0058
@@ -583,6 +588,8 @@ duck_io_laptop_init::
     ; Ignore the RTC init check for now
 
     ; Return Success
+    ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
+    ldh  [duck_keyboard_safe_poll_interval_count_hram], a
     ld   c, KYBD_STATUS__OK ; Modified for Workboy ROM ; DUCK_IO_OK
 
     ; Restore saved interrupt enables and turn them on

@@ -252,13 +252,19 @@ set_keycode_lut_ptr__altmap_ON__002B:
 db $06, $26, $06, $00, $06, $26, $06, $00, $06, $26
 
 INT_VBL__RST_40:
-	jp   vblank__handler__25CC
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        jp duck_keyboard_safe_poll_update__vbl_handler
+        ; Now called after the duck handler
+        ; jp   vblank__handler__25CC
+    ELSE
+       jp   vblank__handler__25CC
+    ENDC
 
 ; Data from 43 to 47 (5 bytes)
 db $26, $0E, $00, $12, $26
 
-_LABEL_48_:
-	jp   _LABEL_2F64_
+INT_STAT__RST_48_:  ; STAT interrupt
+	jp   stat_interrupt__handler__2F64
 
 
 IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -389,7 +395,7 @@ startup_init__0150:
     ; Set up VBlank interrupt
 	ld   a, IEF_VBLANK  ; $01
 	ldh  [rIE], a
-	ldh  [_RAM_FF8C_], a
+	ldh  [_HRAM_FF8C_], a
     ;
 	call gfx__clear_shadow_oam__275B
     ; Fill RAM at _RAM_C19C_ every 5 bytes for 30 times with 0xFF
@@ -6182,7 +6188,7 @@ vblank__handler__25CC:
     	xor  $0F
     .todo_skip_something__25E0:
 
-	call gfx__oam_dma__RAM_FF80	; Code is loaded from gfx__oam_dma_in_ROM__2751
+	call gfx__oam_dma__HRAM_FF80	; Code is loaded from gfx__oam_dma_in_ROM__2751
     ; Update Y scroll
 	ld   a, [gfx__shadow_y_scroll__RAM_C102]
 	ldh  [rSCY], a
@@ -6396,7 +6402,7 @@ gfx__copy_oam_dma_to_RAM__2743:
     ; Destination Address
     ; Num Bytes to copy
     ; Source Address
-	ld   c, LOW(gfx__oam_dma__RAM_FF80)
+	ld   c, LOW(gfx__oam_dma__HRAM_FF80)
 	ld   b, (gfx__oam_dma_in_ROM_end__275B - gfx__oam_dma_in_ROM__2751) ; $0A
 	ld   hl, gfx__oam_dma_in_ROM__2751	; Loading Code into RAM
     .oam_dma_copy_loop__274A:
@@ -6559,7 +6565,7 @@ gfx__turn_off_screen_2827:
 
     ; Save IE state and turn OFF VBlank interrupt
 	ldh  a, [rIE]
-	ldh  [ie_reg_cache__RAM_FF8A], a
+	ldh  [ie_reg_cache__HRAM_FF8A], a
 	and  ~IEF_VBLANK ; $FE
 	ldh  [rIE], a
 
@@ -6575,7 +6581,7 @@ gfx__turn_off_screen_2827:
 	ldh  [rLCDC], a
 
     ; Restore Previous IE state
-	ldh  a, [ie_reg_cache__RAM_FF8A]
+	ldh  a, [ie_reg_cache__HRAM_FF8A]
 	ldh  [rIE], a
 	ret
 
@@ -8012,7 +8018,7 @@ _LABEL_2F41_:
     ; Source is RAM because it copies there in order to patch the displayed version text
 	jp   gfx__title_screen_copy_text_D6D6_
 
-_LABEL_2F64_:
+stat_interrupt__handler__2F64:
 	push af
 	push bc
 	ldh  a, [rLYC]
@@ -8495,7 +8501,7 @@ serial_io__poll_keyboard__3278:
         ; here, it happens in the wrapper call instead
         nop
         nop
-        call duck_keyboard_read_wrapper
+        call duck_keyboard_read_wrapper_bank_0
         ; The keyboard read wrapper is expected to parse and translate
         ; the returned keyboard data into a format the workboy ROM expects
     ELSE
@@ -11703,7 +11709,7 @@ _LABEL_9CE3_:
 	sub  l
 	sbc  a, b
 	sbc  a, c
-	ldh  [_RAM_FFE1_], a
+	ldh  [_HRAM_FFE1_], a
 	add  h
 	adc  b
 	ld   l, e

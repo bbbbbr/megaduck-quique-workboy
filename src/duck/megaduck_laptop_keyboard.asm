@@ -22,10 +22,17 @@ SECTION "Duck Laptop Keyboard", ROMX, BANK[$4]
 ; Regs: Does not preserve F
 duck_io_keyboard_poll_and_translate:
 
-    ; TODO, build the hardware required keyboard poll delay in here?
-    ; call wait_next_frame_start
-    ; call wait_next_frame_start
+    ; Have to wait 2 frames between polling to prevent
+    ; duck laptop io controller from freezing up
+    ldh  a, [duck_keyboard_safe_poll_interval_count_hram]
+    cp   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_OK
+    jr   nz, .key_read_hardware_not_ready_to_poll
+    ;
+    ; Ok to read, reload safe read counter for next time
+    ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
+    ldh  [duck_keyboard_safe_poll_interval_count_hram], a
 
+    ; Poll the duck hardware keyboard
     ld   a, DUCK_IO_CMD_GET_KEYS
     call duck_io_send_cmd_and_receive_buffer
 
@@ -46,6 +53,19 @@ duck_io_keyboard_poll_and_translate:
 
         call duck_io_keyboard_recode_duck_to_workboy
         ret
+
+    .key_read_hardware_not_ready_to_poll
+    ; Not sure this is required, but there may be
+    ; some expectation in the code that polling
+    ; the keyboard always takes at least the following
+    ; delay time, since that's part of the poll function
+    ; in the original code.
+    ;
+    ; So add that delay even when skipping polling
+    ; every N frames for megaduck safe keyboard read timing
+    call delay_2_94msec__334A
+    ld    a, WORKBOY_SCAN_KEY_NONE
+    ret
 
     .key_read_failure
     ; ld   a, DUCK_IO_FAIL
