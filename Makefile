@@ -38,13 +38,12 @@ cleangb:
 
 $(DIRGB)/$(ROMNAME_BASE).gb: gbgfx $(SRCDIR)/$(SRCNAME)
 	rgbasm -Wno-obsolete --preserve-ld --halt-without-nop -i $(INCPATH) -o $(DIRGB)/$(ROMNAME_BASE).o $(SRCDIR)/$(SRCNAME)
-	rgblink -n $(DIRGB)/$(ROMNAME_BASE).sym -m $(DIRGB)/$(ROMNAME_BASE).map -n $(DIRGB)/$(ROMNAME_BASE).sym -o $(DIRGB)/$(ROMNAME_BASE).gb $(DIRGB)/$(ROMNAME_BASE).o
+	rgblink -n $(DIRGB)/$(ROMNAME_BASE).sym -m $(DIRGB)/$(ROMNAME_BASE).map -o $(DIRGB)/$(ROMNAME_BASE).gb $(DIRGB)/$(ROMNAME_BASE).o
 #	rgbfix ..TODO..	(is rom header region free of code, or is there any to relocate?)
 	@if which md5sum &>/dev/null; then md5sum $@; else md5 $@; fi
 	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
 #   Overwrite save to ensure it has a working one with some data (sometimes gets reset)
 	cp -f $(TEST_SAV) $(DIRGB)/$(TEST_SAVE_NAME)
-	cp -f $(TEST_SAV) $(DIRDUCK)/$(TEST_SAVE_NAME)
 
 gbgfx:
 #	rgbgfx $(GFXDIR)/megaduck_logo_9x_8x8.png -o src/megaduck_logo_9_tiles.2bpp -c "#FFFFFF,#A0A0A0,#4E4E4E,#000000;"
@@ -61,11 +60,11 @@ cleanduck:
 
 $(DIRDUCK)/$(ROMNAME_BASE).md2: duckgfx $(SRCDIR)/$(SRCNAME)
 	rgbasm -Wno-obsolete -DTARGET_MEGADUCK --preserve-ld --halt-without-nop -i $(INCPATH) -o $(DIRDUCK)/$(ROMNAME_BASE).o $(SRCDIR)/$(SRCNAME)
-	rgblink -n $(DIRDUCK)/$(ROMNAME_BASE).sym -m $(DIRDUCK)/$(ROMNAME_BASE).map -n $(DIRGB)/$(ROMNAME_BASE).sym -o $(DIRDUCK)/$(ROMNAME_BASE).md2 $(DIRDUCK)/$(ROMNAME_BASE).o
+	rgblink -n $(DIRDUCK)/$(ROMNAME_BASE).sym -m $(DIRDUCK)/$(ROMNAME_BASE).map -o $(DIRDUCK)/$(ROMNAME_BASE).md2 $(DIRDUCK)/$(ROMNAME_BASE).o
 	@if which md5sum &>/dev/null; then md5sum $@; else md5 $@; fi
 	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
 #   Overwrite save to ensure it has a working one with some data (sometimes gets reset)
-	cp -f $(TEST_SAV) $(DIRGB)/$(TEST_SAVE_NAME)
+	cp -f $(TEST_SAV) $(DIRDUCK)/$(TEST_SAVE_NAME)
 
 duckgfx:
 #	rgbgfx $(GFXDIR)/megaduck_logo_9x_8x8.png -o src/megaduck_logo_9_tiles.2bpp -c "#FFFFFF,#A0A0A0,#4E4E4E,#000000;"
