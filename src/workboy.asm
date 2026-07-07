@@ -2778,6 +2778,9 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
     ; Not doing this foolishness on the MegaDuck
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
        ld   c, 0
+        REPT 9  ; Padding for unused space, to maintain code and data alignment
+            nop
+        ENDR
     ELSE
 	   ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	   and  $03
@@ -2821,8 +2824,11 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
     ; Why are 2 LSBits for Year are stored in 2 MSBits of Day further above???
     ; Not doing this foolishness on the MegaDuck
-    if (!(DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)))
-	   and  $FC
+    if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        nop ; Padding for unused space, to maintain code and data alignment
+        nop
+    ELSE
+        and  $FC
     ENDC
 
     ; This is equivalent to serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE[0xF]
@@ -6762,6 +6768,9 @@ ENDC ; End Workboy hardware version
         ; Not doing this foolishness on the MegaDuck
         IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
             ld   c, 0
+            REPT 11 ; Padding for unused space, to maintain code and data alignment
+                nop
+            ENDR
         ELSE
             ; ((sioxfer_time__days__RAM_C2B3 >> 6) & 0x03)
         	ld   a, [sioxfer_time__days__RAM_C2B3]

@@ -7,18 +7,18 @@
 
 duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first::
     push af
-    ld   a, [duck_mbc_last_written_rom_bank]
-    ld   [duck_mbc_saved_rom_bank], a
+    ldh   a, [duck_mbc_last_written_rom_bank]
+    ldh   [duck_mbc_saved_rom_bank], a
     pop  af
 duck_mbc_switch_bank_A_and_cache_banknum::
-    ld   [duck_mbc_last_written_rom_bank], a
+    ldh   [duck_mbc_last_written_rom_bank], a
     ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ret
 
 
 duck_mbc_restore_saved_bank::
-    ld   a, [duck_mbc_saved_rom_bank]
-    ld   [duck_mbc_last_written_rom_bank], a
+    ldh   a, [duck_mbc_saved_rom_bank]
+    ldh   [duck_mbc_last_written_rom_bank], a
     ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ret
 

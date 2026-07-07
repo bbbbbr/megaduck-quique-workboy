@@ -17,13 +17,13 @@ duck_io_rx_buf:: ds DUCK_IO_LEN_RX_MAX
 duck_io_tx_buf_len:: db
 duck_io_tx_buf:: ds DUCK_IO_LEN_TX_MAX
 
-duck_mbc_last_written_rom_bank:: db
-duck_mbc_saved_rom_bank:: db
 
 ; This location doesn't seem to conflict with
 ; *currently known* workboy HRAM usage
 SECTION "hram_ff90", HRAM[$FF90]
 duck_keyboard_safe_poll_interval_count_hram:: db
+duck_mbc_last_written_rom_bank:: db
+duck_mbc_saved_rom_bank:: db
 
 
 ; Expects BUILD_USE_DUCK_LAPTOP_HARDWARE to be defined in order
