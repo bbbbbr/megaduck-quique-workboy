@@ -201,12 +201,48 @@ duck_io_get_rtc::
 ; Regs: Does not preserve F
 duck_io_set_rtc::
 
-    ld   a, [duck_rtc_year]
+    ; First pick out the relevant workboy rtc bytes
+    ; and reformat them into the megaduck rtc buffer
+        ;
+        ; [2] = Seconds BCD
+        ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
+        ld   [duck_rtc_sec], a
+
+        ; [3] = Minutes BCD
+        ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
+        ld   [duck_rtc_min], a
+
+        ; [4] = Hours BCD
+        ; TODO: Megaduck RTC: [duck_rtc_ampm] need to be handled here?
+        ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
+        ld   [duck_rtc_hour], a
+
+        ; [5] = Day BCD
+        ; TODO: Megaduck RTC: does [duck_rtc_weekday] need to be handled here? (See shim below for current populated value)
+        ld   a, [sioxfer_time__days__RAM_C2B3]
+        ld   [duck_rtc_day], a
+
+        ; [6] = Month BCD
+        ld   a, [sioxfer_time__month__RAM_C2B4]
+        ld   [duck_rtc_mon], a
+
+        ; [F] = Year, decimal (same for Megaduck RTC)
+        ld   a, [sioxfer_time__year__RAM_C2BD]
+        ld   [duck_rtc_year], a
+
+        ; Some shim values (could be calculated, but won't get used)
+        ld  a, 1 ; Monday
+        ld  [duck_rtc_weekday], a
+
+
+    ; Now prepare the transfer buffer for sending to the Mega Duck RTC
+
     ; MegaDuck RTC stores year as BCD since 2000 (if >= 2000) or since 1900 (if < 2000)
     ; Workboy stores year as DEC since 1900
     ; So subtract 100 years and convert
     ; (Don't support years < 2000)
     ; (Also duck system rom doesn't support setting year > 2011 due to missing leap year tables)
+    ld   a, [duck_rtc_year]
     sub  a, 100
     call dec2bcd_result_in_A
     ld  [duck_io_tx_buf + DUCK_IO_RTC_YEAR], a

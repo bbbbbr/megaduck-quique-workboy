@@ -22,32 +22,22 @@ duck_mbc_restore_saved_bank::
     ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ret
 
-duck_keyboard_safe_poll_update__vbl_handler:
-    push af
-    ldh  a, [duck_keyboard_safe_poll_interval_count_hram]
-    ; If ready to read then leave alone and skip decrement
-    cp   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_OK
-    jr   z, .done
-        ; otherwise decrement
-        dec   a
-        ldh  [duck_keyboard_safe_poll_interval_count_hram], a
-
-    .done
-    pop af
-    ; ret
-    ; Instead of returning, reduce overhead by jumping next to the actual handler
-    jp   vblank__handler__25CC
-
 
 duck_keyboard_read_wrapper_bank_0::
-    ld   a, BANK(duck_io_keyboard_poll_and_translate)
-    call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
-    ; ld   [rMBC1_ROMBANK], BANK(duck_io_keyboard_poll)
+    ; Temporarily turn off other interrupts since vblank may attempt banked calls
+    ; with (incorrect) assumptions about which bank is active
+    call duck_io_save_and_clear_rIE
 
-    call duck_io_keyboard_poll_and_translate
+        ld   a, BANK(duck_io_keyboard_poll_and_translate)
+        call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
+        ; ld   [rMBC1_ROMBANK], BANK(duck_io_keyboard_poll)
 
-    push af
-    call duck_mbc_restore_saved_bank
-    pop  af
+            call duck_io_keyboard_poll_and_translate
+
+        push af
+        call duck_mbc_restore_saved_bank
+        pop  af
+
+    call duck_io_restore_rIE
 
     ret

@@ -327,39 +327,67 @@ gb_entry_point__0100:
 	nop
 	jp   startup_init__0150
 
-GBcartridgeHeader:
-; Nintendo Logo: OK
-db $CE, $ED, $66, $66, $CC, $0D, $00, $0B, $03, $73, $00, $83, $00, $0C, $00, $0D
-db $00, $08, $11, $1F, $88, $89, $00, $0E, $DC, $CC, $6E, $E6, $DD, $DD, $D9, $99
-db $BB, $BB, $67, $63, $6E, $0E, $EC, $CC, $DD, $DC, $99, $9F, $BB, $B9, $33, $3E
+GBcartridgeHeader__0104:
 
-db "WORKBOY", $00, $00, $00, $00 ; Title
-db $00, $00, $00, $00 ; Manufacturer Code / End of Title
-db $00      ; CGB Flag: Game does not support CGB functions.
-db $00, $00 ; New Licensee Code
-db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
-if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
-    IF DEF(DEBUG_USE_DUCK_MBC_MD2)
-        db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
+    GBcartridgeHeader_logo__0104:
+    ; 0104 -> 0133: Nintendo logo area
+    ;
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Megaduck doesn't need/use GB header, so it's a little  additional free space here
+
+    duck_keyboard_safe_poll_update__vbl_handler:
+        push af
+        ldh  a, [duck_keyboard_safe_poll_interval_count_hram]
+        ; If ready to read then leave alone and skip decrement
+        cp   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_OK
+        jr   z, .done
+            ; otherwise decrement
+            dec   a
+            ldh  [duck_keyboard_safe_poll_interval_count_hram], a
+        .done
+        pop af
+        ; ret
+        ; Instead of returning, reduce overhead by jumping next to the actual handler
+        jp   vblank__handler__25CC
+
+
     ELSE
-        db $03      ; Cartridge Type: MBC1+RAM+BATTERY
+        ; Nintendo Logo
+        db $CE, $ED, $66, $66, $CC, $0D, $00, $0B, $03, $73, $00, $83, $00, $0C, $00, $0D
+        db $00, $08, $11, $1F, $88, $89, $00, $0E, $DC, $CC, $6E, $E6, $DD, $DD, $D9, $99
+        db $BB, $BB, $67, $63, $6E, $0E, $EC, $CC, $DD, $DC, $99, $9F, $BB, $B9, $33, $3E
     ENDC
-    db $02      ; ROM Size: 128 KByte 	8 banks
-    db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
-ELSE
-    IF DEF(DEBUG_USE_DUCK_MBC_MD2)
-        db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
+
+    ; 0134: Title area, etc
+    SECTION "GBcartridgeHeader_title__0134", ROM0[$0134]
+    GBcartridgeHeader_title__0134:
+    db "WORKBOY", $00, $00, $00, $00 ; Title
+    db $00, $00, $00, $00 ; Manufacturer Code / End of Title
+    db $00      ; CGB Flag: Game does not support CGB functions.
+    db $00, $00 ; New Licensee Code
+    db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
+    if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
+        IF DEF(DEBUG_USE_DUCK_MBC_MD2)
+            db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
+        ELSE
+            db $03      ; Cartridge Type: MBC1+RAM+BATTERY
+        ENDC
+        db $02      ; ROM Size: 128 KByte 	8 banks
+        db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
     ELSE
-        db $01      ; Cartridge Type: MBC1 (no SRAM)
+        IF DEF(DEBUG_USE_DUCK_MBC_MD2)
+            db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
+        ELSE
+            db $01      ; Cartridge Type: MBC1 (no SRAM)
+        ENDC
+        db $02      ; ROM Size: 128 KByte   8 banks
+        db $00      ; No SRAM
     ENDC
-    db $02      ; ROM Size: 128 KByte   8 banks
-    db $00      ; No SRAM
-ENDC
-db $01      ; Destination Code: Non-Japanese
-db $48      ; Old Licensee Code
-db $00      ; Mask ROM Version number
-db $69      ; Header Checksum: OK
-dw $DC17    ; Global Checksum: OK
+    db $01      ; Destination Code: Non-Japanese
+    db $48      ; Old Licensee Code
+    db $00      ; Mask ROM Version number
+    db $69      ; Header Checksum: OK
+    dw $DC17    ; Global Checksum: OK
 
 startup_init__0150:
 	di
@@ -464,6 +492,7 @@ startup_init__0150:
 	ld   [_RAM_C3C6_], a
 	ld   [_RAM_C3D0_], a
 	call audio__todo__380D
+    ; TODO: Almost all of this below is likely not needed on the megaduck
 	halt
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	halt
@@ -927,7 +956,7 @@ _LABEL_450_:
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
         ld   [rMBC1_ROMBANK], a  ; [$3FFF]
-    ENDC    
+    ENDC
 
 	ld   hl, $8420
 	ld   de, _DATA_1CE92_
@@ -941,7 +970,7 @@ _LABEL_463_:
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
     	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
-    ENDC    
+    ENDC
 
 	ld   hl, $8420
 	ld   de, _DATA_1FD5A_
@@ -1075,7 +1104,7 @@ _LABEL_52A_:
 _LABEL_554_:
 	ld   a, [_RAM_C5F3_]
 	or   a
-	call nz, $667B	; Possibly invalid
+	call nz, $667B	; Possibly invalid  ; WARNING: Possible bank call without a bank switch
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
 	pop  af
@@ -1598,7 +1627,7 @@ _LABEL_882_:
     ELSE
     	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_C831_
+	jp   app_calendar__start__bank3_4831
 
 _LABEL_897_:
 	ld   a, $F2
@@ -2625,53 +2654,25 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
         ; ~57 bytes to work with here
         ;
         ; First call function to load RTC data to buffer
-        call rtc__load_data_to_rtc_transfer_buffer__0EB1    
+        call rtc__load_data_to_rtc_transfer_buffer__0EB1
 
-        ; Then pick out the relevant bytes and reformat them into the megaduck rtc buffer
-        ;
-        ; [2] = Seconds BCD
-        ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
-        ld   [duck_rtc_sec], a
+        ; Temporarily turn off other interrupts since vblank may attempt banked calls
+        ; with (incorrect) assumptions about which bank is active
+        call duck_io_save_and_clear_rIE
 
-        ; [3] = Minutes BCD
-        ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
-        ld   [duck_rtc_min], a
+            ; Now send the RTC data to the Megaduck laptop hardware
+            ld   a, BANK(duck_io_set_rtc)
+            call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
+            ; ld   [rMBC1_ROMBANK], BANK(duck_io_set_rtc)
 
-        ; [4] = Hours BCD
-        ; TODO: Megaduck RTC: [duck_rtc_ampm] need to be handled here?
-        ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
-        ld   [duck_rtc_hour], a
+                call duck_io_set_rtc
+                ; TODO: In theory we might care about whether the RTC write succeeded,
+                ;       but in practice it's not a big deal for the ROM hack right now.
+                ; cp   a, DUCK_IO_OK ...
 
-        ; [5] = Day BCD
-        ; TODO: Megaduck RTC: does [duck_rtc_weekday] need to be handled here?
-        ld   a, [sioxfer_time__days__RAM_C2B3]
-        ld   [duck_rtc_day], a
+            call duck_mbc_restore_saved_bank
 
-        ; [6] = Month BCD
-        ld   a, [sioxfer_time__month__RAM_C2B4]
-        ld   [duck_rtc_mon], a
-
-        ; [F] = Year, decimal (same for Megaduck RTC)
-        ld   a, [sioxfer_time__year__RAM_C2BD]
-        ld   [duck_rtc_year], a
-
-        ; Now send the RTC data to the Megaduck laptop hardware
-        ld   a, BANK(duck_io_set_rtc)
-        call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
-        ; ld   [rMBC1_ROMBANK], BANK(duck_io_set_rtc)
-        call duck_io_set_rtc
-        ; TODO: In theory we might care about whether the RTC write succeeded,
-        ;       but in practice it's not a big deal for the ROM hack right now.
-        ; cp   a, DUCK_IO_OK
-        ; jr   nz, .rtc_set_fail        
-        ;
-        ;     .rtc_set_ok
-        ;         ...
-        ; 
-        ;     .rtc_set_fail
-        ;         ...
-
-        call duck_mbc_restore_saved_bank
+        call duck_io_restore_rIE
 
         jr   megaduck__rtc_send_patch_done__0EA5
         SECTION "megaduck__rtc_send_patch_done__0EA5", ROM0[$0EA5]
@@ -6114,7 +6115,7 @@ vblank__dispatch_table__2557:
     dw vblank__cmd_default__25F7  ; VBL_CMD__DEFAULT__0x00
     dw vblank__cmd_01_TODO__LABEL_B973_  ; vblank__cmd_01
     dw vblank__cmd_02_TODO__LABEL_26C6_  ; vblank__cmd_02
-    dw $2694         ; vblank__cmd_03
+    dw vblank__cmd_03_TODO__LABEL_2694_  ; vblank__cmd_03
     dw vblank__cmd_04_TODO__LABEL_2667_  ; vblank__cmd_04
     dw vblank__cmd_05_TODO__LABEL_7FC_   ; vblank__cmd_05
     dw vblank__cmd_06_TODO__LABEL_7E9_   ; vblank__cmd_06
@@ -6134,7 +6135,7 @@ vblank__dispatch_table__2557:
     dw vblank__cmd_14_TODO__LABEL_2591_  ; vblank__cmd_14
     dw vblank__cmd_15_TODO__LABEL_13E2_  ; vblank__cmd_15
     dw vblank__cmd_16_TODO__LABEL_2BCF_  ; vblank__cmd_16
-    dw $4C44         ; vblank__cmd_17
+    dw $4C44         ; vblank__cmd_17  ; WARNING: Possible bank call without a bank switch (from VBlank)
     dw vblank__cmd_18_TODO__LABEL_238F_  ; vblank__cmd_18
 
 
@@ -6313,10 +6314,38 @@ _LABEL_2689_:
 	jp   vblank__cmd_default__25F7
 
 ; Data from 2694 to 26C5 (50 bytes)
-db $FA, $7E, $C2, $3D, $28, $06, $EA, $7E, $C2, $C3, $F7, $25, $3E, $14, $EA, $7E
-db $C2, $FA, $3B, $C1, $6F, $FA, $3C, $C1, $67, $FA, $7F, $C2, $EE, $01, $EA, $7F
-db $C2, $28, $08, $FA, $52, $C1, $CD, $90, $49, $18, $DE, $AF, $22, $3E, $C2, $77
-db $18, $D7
+vblank__cmd_03_TODO__LABEL_2694_:
+    ld   a, [_RAM_C27E_]    ; _RAM_C27E_ = $C27E
+    dec  a
+    jr   z, _LABEL_26A0_
+        ld   [_RAM_C27E_], a    ; _RAM_C27E_ = $C27E
+
+    _LABEL_269D_:
+        jp   vblank__cmd_default__25F7
+
+    _LABEL_26A0_:
+        ld   a, $14
+        ld   [_RAM_C27E_], a    ; _RAM_C27E_ = $C27E
+        ld   a, [_RAM_C13B_]    ; _RAM_C13B_ = $C13B
+        ld   l, a
+        ld   a, [_RAM_C13C_]    ; _RAM_C13C_ = $C13C
+        ld   h, a
+        ld   a, [_RAM_C27F_]    ; _RAM_C27F_ = $C27F
+        xor  $01
+        ld   [_RAM_C27F_], a    ; _RAM_C27F_ = $C27F
+        jr   z, _LABEL_26BF_
+            ld   a, [_RAM_C152_]    ; _RAM_C152_ = $C152
+            ; WARNING: Risky banked call with no bank switch that ASSUMES bank 3 is mapped in here!
+            call some_calendar_func__bank3_4990
+            jr   _LABEL_269D_
+
+    _LABEL_26BF_:
+        xor  a
+        ldi  [hl], a
+        ld   a, $C2
+        ld   [hl], a
+        jr   _LABEL_269D_
+
 
 ; 3rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_02_TODO__LABEL_26C6_:
@@ -6697,7 +6726,7 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
             ; Load the Megaduck rtc data into the expected Workboy BCD formatted RTC buffer
             ;
             ; Handling code here moved into "duck_io_get_rtc" due to space constraints
-            
+
     call duck_mbc_restore_saved_bank
     ; ld   [rMBC1_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
 
@@ -16993,7 +17022,7 @@ _LABEL_C815_:
 ds 20, $2D
 db $00
 
-_LABEL_C831_:
+app_calendar__start__bank3_4831:  ; Former label C831
 	ld   hl, $00C2
 	ld   d, h
 	ld   e, l
@@ -17076,7 +17105,7 @@ _LABEL_C89A_:
 	ld   [_RAM_C13C_], a
 	pop  af
 _LABEL_C8AB_:
-	call _LABEL_C990_
+	call some_calendar_func__bank3_4990
 	pop  hl
 	inc  hl
 	inc  hl
@@ -17097,12 +17126,13 @@ _LABEL_C8BE_:
 	call gfx__turn_on_screen_bg_obj__2540
 	ld   a, $03
 	ld   [vblank__dispatch_select__RAM_C27C], a
-_LABEL_C8CC_:
+
+app_calendar__keyboard_poll_loop__bank3_48CC:
 	call serial_io__poll_keyboard__3278
 	or   a
 	jp   z, _LABEL_200_  ; Why does it jump back to init here when keyboard poll returns 0x00?
 	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-	jr   z, _LABEL_C8CC_
+	jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
 	cp   $0F
 	jr   z, _LABEL_C8FD_
 	cp   $12
@@ -17113,7 +17143,7 @@ _LABEL_C8CC_:
 	ld   a, [_RAM_C155_]
 	dec  a
 	cp   $FF
-	jr   z, _LABEL_C8CC_
+	jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
 	ld   [_RAM_C155_], a
 	ld   a, $0C
 _LABEL_C8F2_:
@@ -17129,7 +17159,7 @@ _LABEL_C8FD_:
 	jr   nz, _LABEL_C910_
 	ld   a, [_RAM_C155_]
 	inc  a
-	jr   z, _LABEL_C8CC_
+	jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
 	ld   [_RAM_C155_], a
 	ld   a, $01
 _LABEL_C910_:
@@ -17183,7 +17213,13 @@ _LABEL_C95D_:
 	call _LABEL_C9FB_
 	jp   _LABEL_839_
 
-_LABEL_C990_:
+; This gets called from at least two places:
+; * Earlier above in the calendar app
+; * And from the cmd 3 vblank handler at 00:26BA
+;   WITHOUT a bank switch, so it's assuming the bank never
+;   never gets switched while the calendar (or other) apps
+;   are running
+some_calendar_func__bank3_4990:  ; Formerly _C990_
 	ld   b, $00
 _LABEL_C992_:
 	cp   $0A
@@ -22586,7 +22622,7 @@ IF DEF(OVERWRITE_ITALIAN_UI_TRANSLATION)
         include "duck/duck_to_workboy_keyboard_recode_table.asm"
 
         include "duck/megaduck_laptop_keyboard.asm"
-        include "duck/megaduck_laptop_rtc.asm"        
+        include "duck/megaduck_laptop_rtc.asm"
     ENDC
 
 

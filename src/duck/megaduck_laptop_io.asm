@@ -24,6 +24,7 @@ SECTION "hram_ff90", HRAM[$FF90]
 duck_keyboard_safe_poll_interval_count_hram:: db
 duck_mbc_last_written_rom_bank:: db
 duck_mbc_saved_rom_bank:: db
+duck_cached_rIE:: db
 
 
 ; Expects BUILD_USE_DUCK_LAPTOP_HARDWARE to be defined in order
@@ -49,6 +50,32 @@ duck_io_sio_isr::
     pop af
     reti
 
+; These are squeezed into some empty space after the sio isr
+
+; Helpers for turning off other interrupts while performing
+; banked megaduck io calls. The ROM's vblank handler sometimes
+; assumes NO bank switching happens AT ALL while some apps
+; are running (such as calendar), and so blindly makes banked
+; calls during vblank WITHOUT the required bank switch
+duck_io_save_and_clear_rIE:
+    push af
+
+    ldh  a, [rIE]
+    ldh  [duck_cached_rIE], a
+    xor  a
+    ldh  [rIE], a
+
+    pop  af
+    ret
+
+duck_io_restore_rIE:
+    push af
+
+    ldh  a, [duck_cached_rIE]
+    ldh  [rIE], a
+
+    pop  af
+    ret
 
 ; SECTION "Duck Laptop IO", ROM0
 ;
