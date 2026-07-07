@@ -85,7 +85,12 @@ duck_io_keyboard_poll_and_translate:
 ;
 ;
 ; Returns: translated Workboy keycode data in A
+;
+; Regs: Does not preserve F
 duck_io_keyboard_recode_duck_to_workboy:
+
+    push hl
+    push bc
 
     ld   a, [duck_key_scancode]
     ld   c, a
@@ -113,7 +118,10 @@ duck_io_keyboard_recode_duck_to_workboy:
     add  hl, bc
 
     ; Load resulting workboy key
-    ld  a, [hl]
+    ld   a, [hl]
+
+    pop  bc
+    pop  hl
     ret
 
 
