@@ -56,6 +56,8 @@ DEF DUCK_IO_RTC_HOUR         EQU 5
 DEF DUCK_IO_RTC_MIN          EQU 6
 DEF DUCK_IO_RTC_SEC          EQU 7
 
+DEF DUCK_RTC_AM              EQU 0
+DEF DUCK_RTC_PM              EQU 1
 
 ; Keyboard packet byte ordering (all in BCD format)
 DEF DUCK_IO_KBD_FLAGS        EQU 0

@@ -14,7 +14,7 @@ DEF IDX_RTC_MIN     = 6
 DEF IDX_RTC_SEC     = 7
 
 
-; TODO: Need to 
+; TODO: Need to
 ; This location doesn't seem to conflict with
 ; *currently known* workboy WRAM usage.
 ; Placed after main duck laptop control vars
@@ -160,7 +160,17 @@ duck_io_get_rtc::
 
         ; [4] = Hours BCD
         ; TODO: Megaduck RTC: [duck_rtc_ampm] need to be handled here?
-        ld   a, [duck_rtc_hour]
+        ; Translate MegaDuck AM/PM style to Workboy 24 hour style
+        ld   a, [duck_rtc_ampm]
+        jr   z, .am
+        .pm
+            ld   a, [duck_rtc_hour]
+            add  a, $12
+            daa  ; BCD add correction
+            jr   .ampmdone
+        .am
+            ld   a, [duck_rtc_hour]
+        .ampmdone
         ld   [sioxfer_time__hours__BCD__RAM_C2B2], a
 
         ; [5] = Day BCD
@@ -213,9 +223,22 @@ duck_io_set_rtc::
         ld   [duck_rtc_min], a
 
         ; [4] = Hours BCD
-        ; TODO: Megaduck RTC: [duck_rtc_ampm] need to be handled here?
+        ; Translate Workboy 24 hour style -> MegaDuck AM/PM style
         ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
-        ld   [duck_rtc_hour], a
+        cp   $12   ; if (hour < 12) then -> AM
+        jr   c, .am
+        .pm
+            sub  a, $12
+            daa  ; BCD sub correction
+            ld   [duck_rtc_hour], a
+
+            ld   a, DUCK_RTC_PM
+            jr .ampmload
+        .am
+            ld   [duck_rtc_hour], a
+            ld   a, DUCK_RTC_AM
+        .ampmload
+        ld   [duck_rtc_ampm], a
 
         ; [5] = Day BCD
         ; TODO: Megaduck RTC: does [duck_rtc_weekday] need to be handled here? (See shim below for current populated value)
