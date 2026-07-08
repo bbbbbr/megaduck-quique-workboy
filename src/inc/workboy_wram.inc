@@ -46,7 +46,7 @@ gfx__dest_addr_hi__RAM_C134_maybe: db
 gfx__src_addr_lo__RAM_C135_maybe: db
 gfx__src_addr_hi__RAM_C136_maybe: db
 _RAM_C137_: db
-date__month__high_digit_decimal__maybe__RAM_C138: db
+date__month__decimal__maybe__RAM_C138: db
 date__days__decimal__maybe__RAM_C139: db
 date__year__digit_decimal__maybe__RAM_C13A: db
 _RAM_C13B_: db
@@ -62,7 +62,7 @@ _RAM_C14C_: db
 
 SECTION "wram_c152", WRAM0[$C152]
 _RAM_C152_: db
-_RAM_C153_: db
+maybe_date_related_to__dayofweek_0_to_6__RAM_C153: db
 _RAM_C154_: db
 _RAM_C155_: db
 _RAM_C156_: db
@@ -192,7 +192,7 @@ serial__transfer_buffer_21_bytes__RAM_C2A9: db
         sioxfer_time__year__RAM_C2BD: db
 
 SECTION "wram_c304", WRAM0[$C304]
-date__month__low_digit_decimal__maybe__RAM_C304: db
+date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304: db
 _RAM_C305_: db
 _RAM_C306_: db
 _RAM_C307_: db

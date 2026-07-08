@@ -514,11 +514,11 @@ startup_init__0150:
     call savedata__maybe_some_sram_init__E42E
 	ld   a, $01
 	ld   [_RAM_C10F_], a
-	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
+	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
 	push af
 	call _LABEL_2B7D_
 	pop  af
-	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
+	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
 	call _LABEL_D58_
 	xor  a
 	ld   [_RAM_C10F_], a
@@ -1559,12 +1559,12 @@ app_calendar__launch__0819:
 	call mbc_sram_ON_set_srambank_to_A__0BB1
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 	ld   a, [_RAM_C137_]
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 _LABEL_839_:
 	xor  a
 	ld   [vblank__dispatch_select__RAM_C27C], a
@@ -1699,16 +1699,16 @@ _LABEL_8E3_:
 db $2A, $EA, $52, $C1, $2A, $EA, $54, $C1, $2A, $EA, $55, $C1, $18, $18
 
 _LABEL_914_:
-	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
-	ld   [_RAM_C153_], a
+	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
 _LABEL_92C_:
-	ld   a, [_RAM_C153_]
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 	ld   c, a
 	add  a
 	add  c
@@ -1806,10 +1806,10 @@ _LABEL_991_:
 
 	ld   a, [_RAM_C152_]
 	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   a, [_RAM_C153_]
-	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
 	ld   a, [_RAM_C154_]
-	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__month__decimal__maybe__RAM_C138], a
 
 	ld   de, $2150
 	ld   hl, $99E0
@@ -1840,9 +1840,9 @@ _LABEL_991_:
 _LABEL_9CE_:
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ld   [_RAM_C152_], a
-	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
-	ld   [_RAM_C153_], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ld   [_RAM_C154_], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C155_], a
@@ -2471,7 +2471,7 @@ _LABEL_D73_:
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	cp   [hl]
 	jr   nz, _LABEL_D97_
 	inc  hl
@@ -2608,7 +2608,7 @@ _LABEL_E38_:
 	call util__upshift_A_by_4__0F2C
 	add  c
 	ldi  [hl], a
-	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
+	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
 	inc  a
 	call util__upshift_A_by_4__0F2C
 	add  a
@@ -2806,12 +2806,14 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
 	add  c
 	ldi  [hl], a
 
-    ; [6] = Month? BCD?
-	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
+    ; [6] = Month + day of week
+    ; Day of Week in upper 3 bits (& 0xE0) (0 to 6 as Sun to Mon)
+    ; Month       in lower 5 bits (& 0x1F)
+	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
 	call util__upshift_A_by_4__0F2C
-	add  a ; *= 2 -> C
+	add  a
 	ld   c, a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ld   b, $00
 	cp   $0A
 	jr   c, .modulo_10_loop__0F20
@@ -3419,7 +3421,7 @@ _LABEL_1273_:
 	or   a
 	ret  z
 	ld   a, $02
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 	ld   a, [_RAM_C155_]
 	cp   $5B
 	jr   z, _LABEL_12DC_
@@ -3450,7 +3452,7 @@ _LABEL_12A4_:
 	cp   b
 	jr   nz, _LABEL_128D_
 	ld   a, c
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 	jr   _LABEL_12DC_
 
 _LABEL_12B1_:
@@ -3482,7 +3484,7 @@ _LABEL_12D1_:
 	cp   b
 	jr   nz, _LABEL_12B8_
 	ld   a, c
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 _LABEL_12DC_:
 	ld   a, [_RAM_C154_]
 	ld   [_RAM_C5C5_], a
@@ -6836,16 +6838,17 @@ ENDC ; End Workboy hardware version
     	add  e
     	ld   [date__days__decimal__maybe__RAM_C139], a
 
-        ; Load Month from sioxfer buffer
+        ; Load Month + Day of Week from sioxfer buffer
         ; Convert from BCD to Decimal
     	ld   a, [sioxfer_time__month__RAM_C2B4]
+        ; Mask to only Month data (0x1F) and convert bit 4 BCD style
     	ld   e, a
     	and  $0F
     	bit  4, e
     	jr   z, _LABEL_28C6_
     	add  $0A
     _LABEL_28C6_:
-    	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+    	ld   [date__month__decimal__maybe__RAM_C138], a
         ; TODO: Whatever is going on here
     	ld   a, [sioxfer_time__month__RAM_C2B4]
     	and  $E0
@@ -6853,7 +6856,7 @@ ENDC ; End Workboy hardware version
     	rr   a
     	call util__rr_downshift_A_by_4__2909
     	ld   [_RAM_C137_], a
-    	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
+    	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
     	ld   a, [date__days__decimal__maybe__RAM_C139]
     	ld   e, a
     	ld   a, [_RAM_C137_]
@@ -6873,7 +6876,7 @@ ENDC ; End Workboy hardware version
     	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $20
     	jp   nc, time__handle_reset_invalid_RTC_data__2D4E
-    	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+    	ld   a, [date__month__decimal__maybe__RAM_C138]
     	or   a
     	jp   z, time__handle_reset_invalid_RTC_data__2D4E
     	cp   $0D
@@ -7790,7 +7793,7 @@ time__handle_reset_invalid_RTC_data__2D4E:
 	ld   a, $5C
 	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, $01
-	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__month__decimal__maybe__RAM_C138], a
 	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   a, $03
 	ld   [_RAM_C137_], a
@@ -13485,7 +13488,7 @@ _LABEL_AE77_:
 	cp   d
 	jr   c, _LABEL_AE8F_
 	jr   nz, _LABEL_AE91_
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	cp   c
 	jr   c, _LABEL_AE8F_
 	jr   nz, _LABEL_AE91_
@@ -13521,7 +13524,7 @@ _LABEL_AEAE_:
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	cp   b
 	jr   nz, _LABEL_AEC2_
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	cp   c
 	jr   nz, _LABEL_AEC2_
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
@@ -13539,14 +13542,14 @@ _DATA_AEC5_:
 db $1F, $1C, $1F, $1E, $1F, $1E, $1F, $1F, $1E, $1F, $1E, $1F
 
 _LABEL_AED1_:
-	ld   a, [date__month__low_digit_decimal__maybe__RAM_C304]
+	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
 	inc  a
 	cp   $07
 	jr   nz, _LABEL_AEDA_
 	xor  a
 _LABEL_AEDA_:
-	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ld   hl, _DATA_AEC5_ - 1
 	add  l
 	ld   l, a
@@ -13568,7 +13571,7 @@ _LABEL_AEDA_:
 _LABEL_AEFB_:
 	ld   a, $01
 	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	inc  a
 	cp   $0D
 	jr   nz, _LABEL_AF11_
@@ -13577,7 +13580,7 @@ _LABEL_AEFB_:
 	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, $01
 _LABEL_AF11_:
-	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__month__decimal__maybe__RAM_C138], a
 	ret
 
 _LABEL_AF15_:
@@ -13599,13 +13602,13 @@ _LABEL_AF25_:
 	ret
 
 _LABEL_AF32_:
-	ld   a, [_RAM_C153_]
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 	inc  a
 	cp   $07
 	jr   nz, _LABEL_AF3B_
 	xor  a
 _LABEL_AF3B_:
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 	ld   a, [_RAM_C154_]
 	ld   hl, _DATA_AEC5_ - 1
 	add  l
@@ -13659,13 +13662,13 @@ _LABEL_AF86_:
 	ret
 
 _LABEL_AF93_:
-	ld   a, [_RAM_C153_]
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 	dec  a
 	cp   $FF
 	jr   nz, _LABEL_AF9D_
 	ld   a, $06
 _LABEL_AF9D_:
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 	ld   a, [_RAM_C152_]
 	dec  a
 	ld   [_RAM_C152_], a
@@ -13715,7 +13718,7 @@ _LABEL_AFE9_:
 	dec  a
 	ld   [date__days__decimal__maybe__RAM_C139], a
 	ret  nz
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	dec  a
 	jr   nz, _LABEL_B000_
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
@@ -13723,7 +13726,7 @@ _LABEL_AFE9_:
 	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, $0C
 _LABEL_B000_:
-	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__month__decimal__maybe__RAM_C138], a
 	ld   hl, _DATA_AEC5_ - 1
 	add  l
 	ld   l, a
@@ -13998,7 +14001,7 @@ _LABEL_B1CA_:
 	ld   hl, _RAM_C700_
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ldi  [hl], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ldi  [hl], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
@@ -14025,7 +14028,7 @@ _LABEL_B20C_:
 	ld   hl, _RAM_C700_
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ldi  [hl], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ldi  [hl], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
@@ -17082,7 +17085,7 @@ _LABEL_C880_:
 	jr   nz, _LABEL_C880_
 	pop  af
 	ld   c, a
-	ld   a, [_RAM_C153_]
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 	ld   e, a
 	ld   hl, $98E3
 	add  a
@@ -17209,7 +17212,7 @@ _LABEL_C95D_:
 	ld   a, [_RAM_C702_]
 	ld   [_RAM_C155_], a
 	call _LABEL_1273_
-	ld   a, [_RAM_C153_]
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 	call _LABEL_C9FB_
 	jp   _LABEL_839_
 
@@ -17245,7 +17248,7 @@ _LABEL_C9A7_:
 	ld   [_RAM_C5C6_], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ld   [_RAM_C5C4_], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ld   [_RAM_C5C5_], a
 	call _LABEL_CA12_
 	ld   a, [_RAM_C700_]
@@ -17253,19 +17256,19 @@ _LABEL_C9A7_:
 	ld   [_RAM_C152_], a
 	ld   a, [_RAM_C701_]
 	ld   [_RAM_C154_], a
-	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__month__decimal__maybe__RAM_C138], a
 	ld   a, [_RAM_C702_]
 	ld   [_RAM_C155_], a
 	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	call _LABEL_1273_
-	ld   a, [_RAM_C153_]
-	ld   [date__month__low_digit_decimal__maybe__RAM_C304], a
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
 	ld   a, [_RAM_C152_]
 	ld   [date__days__decimal__maybe__RAM_C139], a
 	ld   a, [_RAM_C155_]
 	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 	ld   a, [_RAM_C154_]
-	ld   [date__month__high_digit_decimal__maybe__RAM_C138], a
+	ld   [date__month__decimal__maybe__RAM_C138], a
 	call _LABEL_C5F3_
 	call date__convert_from_bcd_to_decimal_maybe__288F_
 	jp   _LABEL_C91B_
@@ -17273,7 +17276,7 @@ _LABEL_C9A7_:
 _LABEL_C9FB_:
 	ld   a, [_RAM_C152_]
 	ld   e, a
-	ld   a, [_RAM_C153_]
+	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 _LABEL_CA02_:
 	dec  e
 	jr   z, _LABEL_CA0E_
@@ -17284,7 +17287,7 @@ _LABEL_CA02_:
 	jr   _LABEL_CA02_
 
 _LABEL_CA0E_:
-	ld   [_RAM_C153_], a
+	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 	ret
 
 _LABEL_CA12_:
@@ -20379,7 +20382,7 @@ _LABEL_E1DA_:
 	ld   hl, _RAM_C700_
 	ld   a, [date__days__decimal__maybe__RAM_C139]
 	ldi  [hl], a
-	ld   a, [date__month__high_digit_decimal__maybe__RAM_C138]
+	ld   a, [date__month__decimal__maybe__RAM_C138]
 	ldi  [hl], a
 	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
 	ldi  [hl], a
