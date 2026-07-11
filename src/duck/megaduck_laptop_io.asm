@@ -58,7 +58,7 @@ duck_io_sio_isr::
 ; assumes NO bank switching happens AT ALL while some apps
 ; are running (such as calendar), and so blindly makes banked
 ; calls during vblank WITHOUT the required bank switch
-duck_io_save_and_clear_rIE:
+duck_io_save_and_clear_rIE::
     push af
 
     ldh  a, [rIE]
@@ -69,7 +69,7 @@ duck_io_save_and_clear_rIE:
     pop  af
     ret
 
-duck_io_restore_rIE:
+duck_io_restore_rIE::
     push af
 
     ldh  a, [duck_cached_rIE]
@@ -609,77 +609,3 @@ duck_io_set_laptop_sysrom_rtc_wram_valid_keys::
     pop  hl
     pop  af
     ret
-
-
-; TODO: Move this to compat file
-; Performs MegaDuck laptop IO init
-;
-; Returns: Status in:  A (DUCK_IO_OK or DUCK_IO_FAIL)
-;
-; Regs: Does not preserve F
-duck_io_laptop_init::
-
-    ; Refresh the MegaDuck laptop rtc valid key in WRAM in case it's been overwritten
-    ; to try and avoid causing the system rom to reset the RTC
-    call duck_io_set_laptop_sysrom_rtc_wram_valid_keys
-
-    push bc
-
-    ; Save interrupt enables state
-    di
-    ldh  a, [rIE]
-    ld   b, a
-
-    ; Don't re-init if init has been already been performed
-    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-    cp   a, KYBD_STATUS__OK
-    jr   z, .duck_init_ok
-
-    ; Clear Serial IO registers
-    xor  a
-    ldh  [rSC], a
-    ldh  [rSB], a
-
-    ; Initialize serially attached peripheral
-    call duck_io_controller_init
-    cp   a, DUCK_IO_OK
-    jr   nz, .return_failure
-
-    ; Save response from some unknown command
-    ld   a, DUCK_IO_CMD_INIT_UNKNOWN_0x09
-    call duck_io_send_byte
-    ; TODO: This wait with no timeout is how the System ROM does it,
-    ;       but it can probably be changed to a long delay and
-    ;       attempt to fail somewhat gracefully.
-    call duck_io_read_byte_no_timeout
-    ; Discard the reply data (from DUCK_IO_CMD_INIT_UNKNOWN_0x09)
-    ; since at present it doesn't get used and the purpose isn't known
-    ;; ld   a, [duck_io_rx_byte]
-
-    ; Ignore the RTC init check for now
-
-    ; Return Success (and save in status var)
-    .duck_init_ok
-    ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
-    ldh  [duck_keyboard_safe_poll_interval_count_hram], a
-    ld   c, KYBD_STATUS__OK ; Modified for Workboy ROM ; DUCK_IO_OK
-
-    ; Restore saved interrupt enables and turn them on
-    .status_in_C__return
-        ld   a, b   ; B has cached rIE
-        ldh  [rIE], a
-        ; C has Return Status
-        ld   a, c
-        ; Version modified for Workboy ROM
-        ; Store result in serial_io__keyboard_detected_status__RAM_C10A
-        ; since that's where the original ROM expects to find it.
-        ; KYBD_STATUS__OK or KYBD_STATUS__NOT_FOUND
-        ld [serial_io__keyboard_detected_status__RAM_C10A], a
-        pop  bc
-        ei
-        ret
-
-    .return_failure
-        ld   c, KYBD_STATUS__NOT_FOUND ; Modified for Workboy ROM 
-        jr   .status_in_C__return
-

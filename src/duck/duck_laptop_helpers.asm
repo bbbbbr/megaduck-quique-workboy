@@ -28,11 +28,11 @@ duck_keyboard_read_wrapper_bank_0::
     ; with (incorrect) assumptions about which bank is active
     call duck_io_save_and_clear_rIE
 
-        ld   a, BANK(duck_io_keyboard_poll_and_translate)
+        ld   a, BANK(duck_keyboard_poll_and_translate)
         call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
         ; ld   [rMBC1_ROMBANK], BANK(duck_io_keyboard_poll)
 
-            call duck_io_keyboard_poll_and_translate
+            call duck_keyboard_poll_and_translate
 
         push af
         call duck_mbc_restore_saved_bank

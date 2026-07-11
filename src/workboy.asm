@@ -6728,11 +6728,11 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     ;
     ; Probably don't really need to restore ROM bank here since
     ; it will get overwritten shortly after returning, but just in case.
-    ; ld   [rMBC1_ROMBANK], BANK(duck_io_laptop_init)
-    ld   a, BANK(duck_io_laptop_init)
+    ; ld   [rMBC1_ROMBANK], BANK(duck_laptop_hardware_init)
+    ld   a, BANK(duck_laptop_hardware_init)
     call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
 
-    call duck_io_laptop_init
+    call duck_laptop_hardware_init
     cp   a, KYBD_STATUS__OK
     jr   z, .duck_laptop_init_ok
 
