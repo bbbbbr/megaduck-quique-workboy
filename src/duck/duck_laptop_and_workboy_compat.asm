@@ -1,4 +1,9 @@
 
+; Compatibility functions to translate between Workboy IO commands
+; and MegaDuck laptop IO commands
+
+
+
 ; Performs MegaDuck laptop IO init
 ;
 ; Returns: Status in:  A (DUCK_IO_OK or DUCK_IO_FAIL)
