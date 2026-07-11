@@ -524,8 +524,21 @@ _RAM_D09E_: db
 SECTION "wram_d0d0", WRAMX[$D0D0]
 _RAM_D0D0_: db
 
+; WARNING 
+;
+; This area and beyond will get wiped at least two times
+; if not more.
+; Once at startup (clear wram), and another time when 
+; lots of tiles get loaded into wram.
+; So beware using this area for any variables that 
+; need to persist.
 
 ; See:
 ;  SECTION "Duck Laptop IO WRAM",       WRAMX[$D100]
 ;  SECTION "Duck Laptop Keyboard WRAM", WRAMX[$D130] 
 ;  SECTION "Duck Laptop IO WRAM",       WRAMX[$D140]
+
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    SECTION "wram__duck_laptop_rtc_sysrom_validate_key_start__dbfc", WRAMX[$DBFC]
+    duck_laptop_rtc_sysrom_validate_key_start__RAM_DBFC: ds 4
+ENDC

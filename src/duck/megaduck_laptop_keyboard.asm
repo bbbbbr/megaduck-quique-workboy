@@ -4,6 +4,9 @@
 ; include "../inc/megaduck_laptop_io.inc"
 
 
+; This location doesn't seem to conflict with
+; *currently known* workboy WRAM usage (aside
+; from transitory tile, etc loading)
 SECTION "Duck Laptop Keyboard WRAM", WRAMX[$D130]
 duck_key_scancode:: db
 duck_key_flags:: db
@@ -15,6 +18,8 @@ duck_key_flags:: db
 ; Italian Translation section in Bank 4
 SECTION "Duck Laptop Keyboard", ROMX, BANK[$4]
 
+
+; TODO: move to compat file
 ; Request Keyboard data and handle the response
 ;
 ; Returns: translated Workboy keycode data in A

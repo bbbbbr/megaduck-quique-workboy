@@ -7,7 +7,8 @@
 ; include "inc/workboy_wram.inc"
 
 ; This location doesn't seem to conflict with
-; *currently known* workboy WRAM usage
+; *currently known* workboy WRAM usage (aside
+; from transitory tile, etc loading)
 SECTION "Duck Laptop IO WRAM", WRAMX[$D100]
 duck_io_rx_byte_done:: db
 duck_io_rx_byte:: db
@@ -476,7 +477,6 @@ duck_io_send_cmd_and_receive_buffer::
         jr   .reply_cmd_in_A__status_in_D__restore_ie_and_return
 
 
-
 ; Performs init sequence over serial with the MegaDuck laptop peripheral
 ;
 ; Needs to be done *just once* any time system is powered
@@ -576,7 +576,42 @@ duck_io_controller_init::
         ld   a, 4
         jr .return_failure
 
+; Spanish model System ROM only, the RTC reset behavior is not present
+; in the German model System ROM.
+;
+; These values in WRAM at 0xDBFC -> 0xDBFE **MUST** be preserved or
+; restored otherwise the system ROM may reset the RTC date on startup.
+; (Yes, preserved even after soft-power off)
+;
+; This is SUCH a terrible, evil system design. Total madness.
+; Found the answer the hard way.
+;
+; See this fine block of code in the system rom for the culprit:
+; https://github.com/bbbbbr/megaduck-quique-disasm/blob/4f13e459170b4a1b644f43dd4ff3ad7f01eb1dd5/src/sysrom_bank_0_32k.asm#L241
+; 
+; This restores them to the expected state, since they may get
+; wiped on startup when WRAM is cleared
+;
+; Preserves all registers
+duck_io_set_laptop_sysrom_rtc_wram_valid_keys::
+    push af
+    push hl
 
+    ld   hl, duck_laptop_rtc_sysrom_validate_key_start__RAM_DBFC
+
+    ld   a, DUCK_IO_WRAM_SYSROM_RTC_VALID_KEY_1  ; $AA
+    ldi  [hl], a
+    ld   a, DUCK_IO_WRAM_SYSROM_RTC_VALID_KEY_2  ; $E4
+    ldi  [hl], a
+    ld   a, DUCK_IO_WRAM_SYSROM_RTC_VALID_KEY_3  ; $55
+    ldi  [hl], a
+
+    pop  hl
+    pop  af
+    ret
+
+
+; TODO: Move this to compat file
 ; Performs MegaDuck laptop IO init
 ;
 ; Returns: Status in:  A (DUCK_IO_OK or DUCK_IO_FAIL)
@@ -584,12 +619,21 @@ duck_io_controller_init::
 ; Regs: Does not preserve F
 duck_io_laptop_init::
 
+    ; Refresh the MegaDuck laptop rtc valid key in WRAM in case it's been overwritten
+    ; to try and avoid causing the system rom to reset the RTC
+    call duck_io_set_laptop_sysrom_rtc_wram_valid_keys
+
     push bc
 
     ; Save interrupt enables state
     di
     ldh  a, [rIE]
     ld   b, a
+
+    ; Don't re-init if init has been already been performed
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    cp   a, KYBD_STATUS__OK
+    jr   z, .duck_init_ok
 
     ; Clear Serial IO registers
     xor  a
@@ -614,7 +658,8 @@ duck_io_laptop_init::
 
     ; Ignore the RTC init check for now
 
-    ; Return Success
+    ; Return Success (and save in status var)
+    .duck_init_ok
     ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
     ldh  [duck_keyboard_safe_poll_interval_count_hram], a
     ld   c, KYBD_STATUS__OK ; Modified for Workboy ROM ; DUCK_IO_OK

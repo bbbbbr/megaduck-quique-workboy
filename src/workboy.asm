@@ -395,6 +395,16 @@ startup_init__0150:
 	ld   sp, hl
 	call gfx__copy_oam_dma_to_RAM__2743
 
+    ; Spanish model System ROM only, the RTC reset behavior is not present
+    ; in the German model System ROM.
+    ;
+    ; Warning! Clearing WRAM resets the RTC on the Mega Duck Laptop!
+    ; 
+    ; See the following function which repairs the expected
+    ; RTC valid keys in WRAM at 0xDBFC -> 0xDBFE so that the laptop
+    ; system rom does not reset the RTC on startup
+    ;  -> duck_io_set_laptop_sysrom_rtc_wram_valid_keys
+    ;
     ; Clear WRAM
 	ld   hl, _RAM
 	ld   bc, $2000
@@ -444,7 +454,9 @@ startup_init__0150:
 	call mbc_sram_ON_rombank_1_srambank_0__0AFD
 	ld   a, [_DATA_0003_ - 2]
 	ld   [_RAM_C10E_], a
-	call _LABEL_2F41_
+
+    ; Draw the startup title screen
+    call gfx__startup_title_screen_setup_and_draw__2F41
 
     IF DEF(DEBUG_SKIP_WORKBOY_STARTUP_DELAY)
         ; Skip startup delay when running on MegaDuck laptop hardware and without hardware (i.e. GB or Duck with no workboy connected)
@@ -492,25 +504,34 @@ startup_init__0150:
 	ld   [_RAM_C3C6_], a
 	ld   [_RAM_C3D0_], a
 	call audio__todo__380D
-    ; TODO: Almost all of this below is likely not needed on the megaduck
-	halt
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	halt
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	halt
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	halt
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	halt
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	halt
+    ; Most likely These are not needed megaduck
+    ; Seems related to some quirks of their MBC cart
+    ; perhaps needing repeated writes to "take"
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        REPT 21
+            nop
+        ENDR
+    ELSE
+    	halt
+    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    	halt
+    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    	halt
+    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    	halt
+    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    	halt
+    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    	halt
+    ENDC
+
 	ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
 	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-    ; TODO: Needs SRAM support if it's going to run on the MegaDuck, or move SRAM data to WRAM
+    ; Needs SRAM support if it's going to run on the MegaDuck
     call savedata__maybe_some_sram_init__E42E
 	ld   a, $01
 	ld   [_RAM_C10F_], a
@@ -1828,14 +1849,21 @@ _LABEL_991_:
     ; 6. _LABEL_200_+$067 ($00:$0267)
     .loop_serial_command_until_valid_reply_byte__09C3:
     	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
-        ; Check returned serial byte, return if zero
-        ; also return if blank/unset (0xFF)
-    	or   a
-    	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
-    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-    	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
-    	ret
-
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            ; TODO: Always succeed on Mega Duck Hardware?
+            REPT 7
+                nop
+            ENDR
+            ret
+        ELSE
+            ; Check returned serial byte, return if zero
+            ; also return if blank/unset (0xFF)
+        	or   a
+        	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
+        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
+        	ret
+        ENDC
 
 _LABEL_9CE_:
 	ld   a, [date__days__decimal__maybe__RAM_C139]
@@ -2563,10 +2591,19 @@ _LABEL_DE6_:
 	call _LABEL_E05_
 _LABEL_DF3_:
 	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
-	or   a
-	jr   z, _LABEL_DF3_
-	cp   $FF
-	jr   z, _LABEL_DF3_
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; TODO: Always succeed on Mega Duck Hardware?
+        REPT 7
+            nop
+        ENDR
+    ELSE    
+        ; Check returned serial byte, return if zero
+        ; also return if blank/unset (0xFF)
+        or   a
+        jr   z, _LABEL_DF3_
+        cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        jr   z, _LABEL_DF3_
+    ENDC
 	ld   de, $2150
 	ld   hl, $98A0
 	rst  $20	; GFX_COPY_STRING__RST_20
@@ -2643,8 +2680,11 @@ _LABEL_E65_:
 
 
 ; ### MEGADUCK-HARDWARE-PATCHING: RTC-WRITE
-; So far have only seen this called when setting the "Home" city/country location
-; Main Menu -> S icon (middle of bottom row) -> Set Home -> Select country -> press "S" key to save
+; Called at least from:
+; - From Calendar "Set Date"
+; - From Clock    "Set Time"
+; - When setting the "Home" city/country location
+;   Main Menu -> S icon (middle of bottom row) -> Set Home -> Select country -> press "S" key to save
 ;
 ; Original version: trashes A, DE, (and HL, C when it calls rtc__load_data_to_rtc_transfer_buffer__0EB1)
 serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
@@ -2665,10 +2705,7 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
             call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
             ; ld   [rMBC1_ROMBANK], BANK(duck_io_set_rtc)
 
-                call duck_io_set_rtc
-                ; TODO: In theory we might care about whether the RTC write succeeded,
-                ;       but in practice it's not a big deal for the ROM hack right now.
-                ; cp   a, DUCK_IO_OK ...
+                call duck_rtc_write__translate_from_workboy_siobuffer
 
             call duck_mbc_restore_saved_bank
 
@@ -6696,7 +6733,7 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
 
     call duck_io_laptop_init
-    cp   a, DUCK_IO_OK
+    cp   a, KYBD_STATUS__OK
     jr   z, .duck_laptop_init_ok
 
     ; Handle failure to init duck laptop hardware
@@ -6714,23 +6751,20 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
 
         ; Read the  RTC data from the Megaduck
         ; Expected ROM bank is restored below
+        ; ld   [rMBC1_ROMBANK], BANK(duck_io_get_rtc)
         ld   a, BANK(duck_io_get_rtc)
         call duck_mbc_switch_bank_A_and_cache_banknum
-        ; ld   [rMBC1_ROMBANK], BANK(duck_io_get_rtc)
-        call duck_io_get_rtc
-        cp   a, DUCK_IO_OK
-        jr   z, .rtc_ok
 
-        .rtc_fail
-            jr .duck_laptop_init_fail
+            call duck_rtc_read__translate_to_workboy_siobuffer
+            cp   a, DUCK_IO_OK
+            jr   z, .rtc_ok
 
-        .rtc_ok
-            ; Load the Megaduck rtc data into the expected Workboy BCD formatted RTC buffer
-            ;
-            ; Handling code here moved into "duck_io_get_rtc" due to space constraints
+            .rtc_fail
+                jr .duck_laptop_init_fail
+            .rtc_ok
 
-    call duck_mbc_restore_saved_bank
-    ; ld   [rMBC1_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
+        call duck_mbc_restore_saved_bank
+        ; ld   [rMBC1_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
 
     jr   megaduck__resume__serial_io__startup_check_and_read_rtc__2883
     SECTION "megaduck__resume__serial_io__startup_check_and_read_rtc__2883", ROM0[$2883]
@@ -6849,7 +6883,7 @@ ENDC ; End Workboy hardware version
     	add  $0A
     _LABEL_28C6_:
     	ld   [date__month__decimal__maybe__RAM_C138], a
-        ; TODO: Whatever is going on here
+        ; Extract Day of Week from upper 3 bits of Month byte
     	ld   a, [sioxfer_time__month__RAM_C2B4]
     	and  $E0
     	or   a
@@ -8033,7 +8067,7 @@ db $2F, $00, $30, $00, $31, $00, $30, $80, $02, $02, $32, $00, $33, $00, $34, $0
 db $33, $80, $02, $02, $35, $00, $36, $00, $37, $00, $38, $00, $02, $02, $39, $00
 db $3A, $00, $3B, $00, $3C, $00
 
-_LABEL_2F41_:
+gfx__startup_title_screen_setup_and_draw__2F41:
 	call gfx__turn_off_screen_2827
 	ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -16902,11 +16936,17 @@ _LABEL_C5F3_:
 
     .loop__LABEL_C601_:
     	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
-    	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
-    	jr   z, .loop__LABEL_C601_
-    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-    	jr   z, .loop__LABEL_C601_
-
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            ; TODO: Always succeed on Mega Duck Hardware?
+            REPT 7
+                nop
+            ENDR
+        ELSE
+        	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+        	jr   z, .loop__LABEL_C601_
+        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        	jr   z, .loop__LABEL_C601_
+        ENDC
 	call gfx__turn_off_screen_2827
 	jp   gfx__clear_tilemap_0__2722
 
@@ -19099,7 +19139,7 @@ gfx__title_screen_copy_text_D6D6_:
 	rst  $28	; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Nintendo"
-	ld   de, $000E
+    ld   de, $000E
 	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 15)) ; $992E ; Row 15
 	rst  $28	; COPY_STRING_VRAM__RST_28
 	jp   gfx__turn_on_screen_bg_obj__2540
@@ -22626,6 +22666,8 @@ IF DEF(OVERWRITE_ITALIAN_UI_TRANSLATION)
 
         include "duck/megaduck_laptop_keyboard.asm"
         include "duck/megaduck_laptop_rtc.asm"
+        
+        include "duck/duck_laptop_and_workboy_compat.asm"
     ENDC
 
 
