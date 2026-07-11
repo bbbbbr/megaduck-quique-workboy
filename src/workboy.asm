@@ -196,7 +196,7 @@ include "inc/workboy_sram.inc"
 
 SECTION "rom0", ROM0
 _LABEL_0_:
-	jp   startup_init__0150
+    jp   startup_init__0150
 
 ; Data from 3 to 6 (4 bytes)
 _DATA_0003_:
@@ -211,42 +211,42 @@ db $25
 ; - Resulting key returned in A
 ; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
 SERIAL_POLL_KEYBOARD__RST_8:
-	jp   serial_io__poll_keyboard__3278
+    jp   serial_io__poll_keyboard__3278
 ; SECTION "reset_vectors__rst_8_done_000B", ROM0[$000B]
 
 ; Data from B to F (5 bytes)
 db $25, $06, $00, $D5, $25
 
 _LABEL_10_:
-	jp   _LABEL_1D0D_
+    jp   _LABEL_1D0D_
 
 ; Data from 13 to 17 (5 bytes)
 _DATA_13_:
 db $25, $04, $00, $F4, $25
 
 VSYNC__RST_18:
-	jp   gfx__vsync__2548
+    jp   gfx__vsync__2548
 
 ; Data from 1B to 1F (5 bytes)
 db $25, $04, $00, $F4, $25
 
 GFX_COPY_STRING__RST_20:
-	jp   gfx__copy_string_to_vram__0FEE
+    jp   gfx__copy_string_to_vram__0FEE
 
 ; Data from 23 to 27 (5 bytes)
 db $25, $0E, $00, $F5, $25
 
 ; _RST_28:
 COPY_STRING_VRAM__RST_28:
-	jp   gfx__copy_string_to_vram_centered__1019
+    jp   gfx__copy_string_to_vram_centered__1019
 
 set_keycode_lut_ptr__altmap_ON__002B:
     ; Load 0x315D into keycode lut pointer
-	ld   a, LOW(keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D) ; $5D
-	ld   [keycode_to_ascii_lut_ptr_lo__C3AC], a
-	ld   a, HIGH(keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D) ; $31
-	ld   [keycode_to_ascii_lut_ptr_hi__C3AD], a
-	ret
+    ld   a, LOW(keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D) ; $5D
+    ld   [keycode_to_ascii_lut_ptr_lo__C3AC], a
+    ld   a, HIGH(keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D) ; $31
+    ld   [keycode_to_ascii_lut_ptr_hi__C3AD], a
+    ret
 
 ; Data from 36 to 3F (10 bytes)
 db $06, $26, $06, $00, $06, $26, $06, $00, $06, $26
@@ -264,7 +264,7 @@ INT_VBL__RST_40:
 db $26, $0E, $00, $12, $26
 
 INT_STAT__RST_48_:  ; STAT interrupt
-	jp   stat_interrupt__handler__2F64
+    jp   stat_interrupt__handler__2F64
 
 
 IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -311,21 +311,21 @@ db $0F, $00, $10, $00, $11, $00, $12, $00, $00, $00, $02, $02, $13, $00, $14, $0
 db $15, $00, $16, $00
 
 _LABEL_F0_:
-	ld   b, $26
+    ld   b, $26
 _LABEL_F2_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_F2_
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_F2_
+    ret
 
 ; Data from F9 to FF (7 bytes)
 db $00, $4C, $27, $0E, $00, $84, $27
 
 gb_entry_point__0100:
-	nop
-	jp   startup_init__0150
+    nop
+    jp   startup_init__0150
 
 GBcartridgeHeader__0104:
 
@@ -372,7 +372,7 @@ GBcartridgeHeader__0104:
         ELSE
             db $03      ; Cartridge Type: MBC1+RAM+BATTERY
         ENDC
-        db $02      ; ROM Size: 128 KByte 	8 banks
+        db $02      ; ROM Size: 128 KByte   8 banks
         db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
     ELSE
         IF DEF(DEBUG_USE_DUCK_MBC_MD2)
@@ -390,10 +390,10 @@ GBcartridgeHeader__0104:
     dw $DC17    ; Global Checksum: OK
 
 startup_init__0150:
-	di
-	ld   hl, $FFFE
-	ld   sp, hl
-	call gfx__copy_oam_dma_to_RAM__2743
+    di
+    ld   hl, $FFFE
+    ld   sp, hl
+    call gfx__copy_oam_dma_to_RAM__2743
 
     ; Spanish model System ROM only, the RTC reset behavior is not present
     ; in the German model System ROM.
@@ -406,54 +406,54 @@ startup_init__0150:
     ;  -> duck_io_set_laptop_sysrom_rtc_wram_valid_keys
     ;
     ; Clear WRAM
-	ld   hl, _RAM
-	ld   bc, $2000
+    ld   hl, _RAM
+    ld   bc, $2000
     .startup__clear_wram_loop__015E:
-    	xor  a
-    	ldi  [hl], a
-    	dec  bc
-    	ld   a, b
-    	or   c
-    	jr   nz, .startup__clear_wram_loop__015E
+        xor  a
+        ldi  [hl], a
+        dec  bc
+        ld   a, b
+        or   c
+        jr   nz, .startup__clear_wram_loop__015E
 
     ; Init gfx & interrupt  registers
-	ld   a, STATF_LYCF  ; $04
-	ldh  [rSTAT], a
-	ld   [_RAM_C110_], a
+    ld   a, STATF_LYCF  ; $04
+    ldh  [rSTAT], a
+    ld   [_RAM_C110_], a
     ; Set up some BG and OBJ palettes
-	ld   a, $1B
-	ldh  [rBGP], a
-	ld   [gfx__rBGP_cache__RAM_C27D], a
-	ld   a, $D2
-	ldh  [rOBP0], a
-	ldh  [rOBP1], a
+    ld   a, $1B
+    ldh  [rBGP], a
+    ld   [gfx__rBGP_cache__RAM_C27D], a
+    ld   a, $D2
+    ldh  [rOBP0], a
+    ldh  [rOBP1], a
     ;
-	ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
-	ldh  [rLCDC], a
+    ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
+    ldh  [rLCDC], a
     ; Set up VBlank interrupt
-	ld   a, IEF_VBLANK  ; $01
-	ldh  [rIE], a
-	ldh  [_HRAM_FF8C_], a
+    ld   a, IEF_VBLANK  ; $01
+    ldh  [rIE], a
+    ldh  [_HRAM_FF8C_], a
     ;
-	call gfx__clear_shadow_oam__275B
+    call gfx__clear_shadow_oam__275B
     ; Fill RAM at _RAM_C19C_ every 5 bytes for 30 times with 0xFF
-	ld   hl, _RAM_C19C_
-	ld   a, 30  ; $1E
-	ld   de, $0005
+    ld   hl, _RAM_C19C_
+    ld   a, 30  ; $1E
+    ld   de, $0005
     .memset_loop__018E:
-    	ld   [hl], $FF
-    	add  hl, de
-    	dec  a
-    	jr   nz, .memset_loop__018E
+        ld   [hl], $FF
+        add  hl, de
+        dec  a
+        jr   nz, .memset_loop__018E
     ; Turn on interrupts
-	ei
+    ei
     ; Reset scroll
-	xor  a
-	ldh  [rSCX], a
-	ldh  [rSCY], a
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	ld   a, [_DATA_0003_ - 2]
-	ld   [_RAM_C10E_], a
+    xor  a
+    ldh  [rSCX], a
+    ldh  [rSCY], a
+    call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    ld   a, [_DATA_0003_ - 2]
+    ld   [_RAM_C10E_], a
 
     ; Draw the startup title screen
     call gfx__startup_title_screen_setup_and_draw__2F41
@@ -465,19 +465,19 @@ startup_init__0150:
         ; Maybe startup delay for the *Workboy* keyboard accessory hardware
         ; Calls vsync() 75 times in a row, ~1250 msec
         ;
-    	ld   b, 75 ; Wait ~75 frames $4B
+        ld   b, 75 ; Wait ~75 frames $4B
         .startup_wait_loop__01A8:
-        	rst  $18	; Call VSYNC__RST_18
-        	dec  b
-        	jr   nz, .startup_wait_loop__01A8
+            rst  $18    ; Call VSYNC__RST_18
+            dec  b
+            jr   nz, .startup_wait_loop__01A8
     ENDC
     SECTION "startup__skip_power_up_delay_resume_01AC", ROM0[$01AC]
     startup__skip_power_up_delay_resume_01AC:
 
-	xor  a
-	ld   [_RAM_C10E_], a
-	ld   a, KYBD_STATUS__UNSET  ; $02
-	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+    xor  a
+    ld   [_RAM_C10E_], a
+    ld   a, KYBD_STATUS__UNSET  ; $02
+    ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 
     ; Skips the keyboard startup check which sets
     ; serial_io__keyboard_detected_status__RAM_C10A
@@ -495,15 +495,15 @@ startup_init__0150:
         ; The expected result status will still get stored
         ; in serial_io__keyboard_detected_status__RAM_C10A,
         ; and the RTC will still get set.
-   	    call serial_io__startup_check_and_read_rtc__2854
+        call serial_io__startup_check_and_read_rtc__2854
     ENDC
-	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-	ld   a, $FF
-	ld   [_RAM_C3B2_], a
-	ld   [_RAM_C3BC_], a
-	ld   [_RAM_C3C6_], a
-	ld   [_RAM_C3D0_], a
-	call audio__todo__380D
+    call mbc_sram_ON_rombank_1_srambank_0__0AFD
+    ld   a, $FF
+    ld   [_RAM_C3B2_], a
+    ld   [_RAM_C3BC_], a
+    ld   [_RAM_C3C6_], a
+    ld   [_RAM_C3D0_], a
+    call audio__todo__380D
     ; Most likely These are not needed megaduck
     ; Seems related to some quirks of their MBC cart
     ; perhaps needing repeated writes to "take"
@@ -512,352 +512,352 @@ startup_init__0150:
             nop
         ENDR
     ELSE
-    	halt
-    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-    	halt
-    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-    	halt
-    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-    	halt
-    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-    	halt
-    	call mbc_sram_ON_rombank_1_srambank_0__0AFD
-    	halt
+        halt
+        call mbc_sram_ON_rombank_1_srambank_0__0AFD
+        halt
+        call mbc_sram_ON_rombank_1_srambank_0__0AFD
+        halt
+        call mbc_sram_ON_rombank_1_srambank_0__0AFD
+        halt
+        call mbc_sram_ON_rombank_1_srambank_0__0AFD
+        halt
+        call mbc_sram_ON_rombank_1_srambank_0__0AFD
+        halt
     ENDC
 
-	ld   a, $03
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
     ; Needs SRAM support if it's going to run on the MegaDuck
     call savedata__maybe_some_sram_init__E42E
-	ld   a, $01
-	ld   [_RAM_C10F_], a
-	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
-	push af
-	call _LABEL_2B7D_
-	pop  af
-	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
-	call _LABEL_D58_
-	xor  a
-	ld   [_RAM_C10F_], a
+    ld   a, $01
+    ld   [_RAM_C10F_], a
+    ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+    push af
+    call _LABEL_2B7D_
+    pop  af
+    ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
+    call _LABEL_D58_
+    xor  a
+    ld   [_RAM_C10F_], a
 
 _LABEL_200_:
-	ld   a, $03
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   hl, _RAM_C700_
-	ld   de, _SRAM_6006_
-	call _LABEL_F0_
-	xor  a
-	ld   [_RAM_C5F3_], a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   hl, _SRAM_6_
-	ld   de, _RAM_C700_
-	call _LABEL_F0_
-	call audio__todo__380D
-	call gfx__clear_shadow_oam__275B
-	ld   a, $01
-	ld   [_RAM_C110_], a
+    ld   a, $03
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   hl, _RAM_C700_
+    ld   de, _SRAM_6006_
+    call _LABEL_F0_
+    xor  a
+    ld   [_RAM_C5F3_], a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   hl, _SRAM_6_
+    ld   de, _RAM_C700_
+    call _LABEL_F0_
+    call audio__todo__380D
+    call gfx__clear_shadow_oam__275B
+    ld   a, $01
+    ld   [_RAM_C110_], a
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	xor  a
-	ld   [_RAM_C595_], a
-	ld   [_RAM_C19A_], a
-	ld   [_RAM_C23F_], a
-	ld   [_RAM_C117_], a
-	ld   [_RAM_C260_], a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ldh  [rSCX], a
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	ld   hl, $FFFE
-	ld   sp, hl
-	ld   a, $1B
-	ldh  [rBGP], a
-	ld   [gfx__rBGP_cache__RAM_C27D], a
+    xor  a
+    ld   [_RAM_C595_], a
+    ld   [_RAM_C19A_], a
+    ld   [_RAM_C23F_], a
+    ld   [_RAM_C117_], a
+    ld   [_RAM_C260_], a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ldh  [rSCX], a
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    di
+    ld   a, $04
+    ldh  [rSTAT], a
+    ld   a, $01
+    ldh  [rIE], a
+    ei
+    ld   hl, $FFFE
+    ld   sp, hl
+    ld   a, $1B
+    ldh  [rBGP], a
+    ld   [gfx__rBGP_cache__RAM_C27D], a
 
     ; If the keyboard is not connected then show the alternate menu
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; == KYBD_STATUS__NOT_FOUND
-	jp   z, alt_menu__show_when_no_keyboard_found__10C3
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; == KYBD_STATUS__NOT_FOUND
+    jp   z, alt_menu__show_when_no_keyboard_found__10C3
 
-	ld   a, $D2
-	ldh  [rOBP0], a
-	call _LABEL_277_
-	jr   _LABEL_200_
+    ld   a, $D2
+    ldh  [rOBP0], a
+    call _LABEL_277_
+    jr   _LABEL_200_
 
 set_keycode_lut_ptr__altmap_OFF__026C:
     ; Load 0x3128 into keycode lut pointer
-	ld   a, LOW(keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128) ; $28
-	ld   [keycode_to_ascii_lut_ptr_lo__C3AC], a
-	ld   a, HIGH(keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128) ; $31
-	ld   [keycode_to_ascii_lut_ptr_hi__C3AD], a
-	ret
+    ld   a, LOW(keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128) ; $28
+    ld   [keycode_to_ascii_lut_ptr_lo__C3AC], a
+    ld   a, HIGH(keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128) ; $31
+    ld   [keycode_to_ascii_lut_ptr_hi__C3AD], a
+    ret
 
 _LABEL_277_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call gfx__turn_off_screen_2827
-	ld   hl, (_TILEDATA8000 + $10)
-	ld   a, $FF
-	ld   b, $10
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call gfx__turn_off_screen_2827
+    ld   hl, (_TILEDATA8000 + $10)
+    ld   a, $FF
+    ld   b, $10
 _LABEL_285_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_285_
-	ld   a, $07
-	call _LABEL_3918_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_285_
+    ld   a, $07
+    call _LABEL_3918_
     ; Zero-init some vars
-	xor  a
-	ld   [main_menu__gamepad_polling_counter__C115], a
-	ld   [_RAM_C113_], a
-	ld   a, $0A
-	ld   [_RAM_C114_], a
+    xor  a
+    ld   [main_menu__gamepad_polling_counter__C115], a
+    ld   [_RAM_C113_], a
+    ld   a, $0A
+    ld   [_RAM_C114_], a
 
 main_menu__loop_start__029A:
-	rst  $18	; Call VSYNC__RST_18
-	call gfx__clear_shadow_oam__275B
+    rst  $18    ; Call VSYNC__RST_18
+    call gfx__clear_shadow_oam__275B
 
     ; Check to see if a cursor move update is Queued
-	ld   a, [_RAM_C113_]
-	or   a
-	jr   z, _LABEL_2C2_
+    ld   a, [_RAM_C113_]
+    or   a
+    jr   z, _LABEL_2C2_
 
     ; Main Menu Icon Current Row range: 0 - 2
     ;
     ; ((ROW x 64) - (ROW x 8)) - 20 == (ROW x 56) - 20
     ; So: 0 -> 20, 1 -> 36, 2 -> 92
-	ld   a, [main_menu__icon_cur_column__C111]
-	add  a
-	add  a
-	add  a
-	ld   c, a
-	add  a
-	add  a
-	add  a
-	sub  c
-	add  20 ; $14
-	ld   c, a
+    ld   a, [main_menu__icon_cur_column__C111]
+    add  a
+    add  a
+    add  a
+    ld   c, a
+    add  a
+    add  a
+    add  a
+    sub  c
+    add  20 ; $14
+    ld   c, a
     ; (Column x 32) + 28
     ; So: 0 -> 28, 1 -> 60, 2 -> 92, 3 -> 124
-	ld   a, [main_menu__icon_cur_row__C112]
-	add  a
-	add  a
-	add  a
-	add  a
-	add  a
-	add  28 ; $1C
-	ld   b, a
-	ld   e, $00
+    ld   a, [main_menu__icon_cur_row__C112]
+    add  a
+    add  a
+    add  a
+    add  a
+    add  a
+    add  28 ; $1C
+    ld   b, a
+    ld   e, $00
     ; B: (Column x 32) + 28
     ; C: (Row    x 56) - 20
     ; E: 0x00
-	call _LABEL_1504_
+    call _LABEL_1504_
 
     _LABEL_2C2_:
         ; TODO: Decrements C114 until 0, then: wraps it around to 0x19, and inverts C113 (which iirc usually set to 0 or 1)
-    	ld   a, [_RAM_C114_]
-    	dec  a
-    	jr   nz, _LABEL_2D2_
-    	ld   a, [_RAM_C113_]
-    	xor  $01
-    	ld   [_RAM_C113_], a
-    	ld   a, $19
+        ld   a, [_RAM_C114_]
+        dec  a
+        jr   nz, _LABEL_2D2_
+        ld   a, [_RAM_C113_]
+        xor  $01
+        ld   [_RAM_C113_], a
+        ld   a, $19
 
     _LABEL_2D2_:
-    	ld   [_RAM_C114_], a
-    	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-    	jp   nz, main_menu__keyboard_handle_result__034F
+        ld   [_RAM_C114_], a
+        rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+        cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        jp   nz, main_menu__keyboard_handle_result__034F
 
         ; Check whether it's time to poll the Gamepad for input
-    	ld   a, [main_menu__gamepad_polling_counter__C115]
-    	or   a
-    	jr   z, main_menu__gamepad_check__02E7
+        ld   a, [main_menu__gamepad_polling_counter__C115]
+        or   a
+        jr   z, main_menu__gamepad_check__02E7
         ; If not, decrement the counter and continue to main loop
-    	dec  a
-    	ld   [main_menu__gamepad_polling_counter__C115], a
-    	jr   main_menu__loop_start__029A
+        dec  a
+        ld   [main_menu__gamepad_polling_counter__C115], a
+        jr   main_menu__loop_start__029A
 
     main_menu__gamepad_check__02E7:
-    	ld   a, [gamepad_buttons__RAM_C103]
-    	or   a
-    	jr   z, main_menu__loop_start__029A
+        ld   a, [gamepad_buttons__RAM_C103]
+        or   a
+        jr   z, main_menu__loop_start__029A
 
         ; Skip to next if not pressed
-    	bit  GAMEPAD_B_LEFT, a  ; 5
-    	jr   z, main_menu__gamepad_test_right__030A
+        bit  GAMEPAD_B_LEFT, a  ; 5
+        jr   z, main_menu__gamepad_test_right__030A
 
         ; Triggered by Gamepad LEFT or Keyboard LEFT
         main_menu__nav_col_left__02F1:
             ; Move icon highlight cursor LEFT
-        	ld   a, [main_menu__icon_cur_column__C111]
-        	dec  a
+            ld   a, [main_menu__icon_cur_column__C111]
+            dec  a
             ; Handle < 0 wraparound, reset to 0x02 (right-most column)
-        	cp   $FF
-        	jr   nz, mainmenu__nav_col_update__02FB__MAYBE
-        	ld   a, $02
+            cp   $FF
+            jr   nz, mainmenu__nav_col_update__02FB__MAYBE
+            ld   a, $02
 
     mainmenu__nav_col_update__02FB__MAYBE:
         ; Save updated column position
-    	ld   [main_menu__icon_cur_column__C111], a
-    	ld   a, $01
-    	ld   [_RAM_C113_], a  ; TODO: is this enqueuing an update? (it gets toggled every other frame on no activity though?)
-    	ld   a, MAIN_MENU__GAMEPAD_POLLTIME_RESET  ; $14
-    	ld   [main_menu__gamepad_polling_counter__C115], a
-    	jr   main_menu__loop_start__029A
+        ld   [main_menu__icon_cur_column__C111], a
+        ld   a, $01
+        ld   [_RAM_C113_], a  ; TODO: is this enqueuing an update? (it gets toggled every other frame on no activity though?)
+        ld   a, MAIN_MENU__GAMEPAD_POLLTIME_RESET  ; $14
+        ld   [main_menu__gamepad_polling_counter__C115], a
+        jr   main_menu__loop_start__029A
 
     main_menu__gamepad_test_right__030A:
         ; Skip to next if not pressed
-    	bit  GAMEPAD_B_RIGHT, a  ; 4
-    	jr   z, main_menu__gamepad_test_down__0319
+        bit  GAMEPAD_B_RIGHT, a  ; 4
+        jr   z, main_menu__gamepad_test_down__0319
 
         ; Triggered by Gamepad RIGHT or Keyboard RIGHT
         main_menu__nav_col_right__030E:
             ; Move icon highlight cursor RIGHT
-        	ld   a, [main_menu__icon_cur_column__C111]
-        	inc  a
+            ld   a, [main_menu__icon_cur_column__C111]
+            inc  a
             ; Handle > 2 wraparound, reset to 0x00 (left-most column)
-        	cp   $03
-        	jr   nz, mainmenu__nav_col_update__02FB__MAYBE
-        	xor  a
-        	jr   mainmenu__nav_col_update__02FB__MAYBE
+            cp   $03
+            jr   nz, mainmenu__nav_col_update__02FB__MAYBE
+            xor  a
+            jr   mainmenu__nav_col_update__02FB__MAYBE
 
 
     main_menu__gamepad_test_down__0319:
         ; Skip to next if not pressed
-    	bit  GAMEPAD_B_DOWN, a  ; 7
-    	jr   z, main_menu__gamepad_test_up__0333
+        bit  GAMEPAD_B_DOWN, a  ; 7
+        jr   z, main_menu__gamepad_test_up__0333
 
         ; Triggered by Gamepad DOWN or Keyboard DOWN
         main_menu__nav_row_down_031D:
-        	ld   a, [main_menu__icon_cur_row__C112]
-        	inc  a
+            ld   a, [main_menu__icon_cur_row__C112]
+            inc  a
 
     mainmenu__nav_row_update__0321:
         ; Handle < 0 and > 3 wraparound, clamp to 0 - 3
-    	and  $03
-    	ld   [main_menu__icon_cur_row__C112], a
-    	ld   a, $01
-    	ld   [_RAM_C113_], a
-    	ld   a, MAIN_MENU__GAMEPAD_POLLTIME_RESET  ; $14
-    	ld   [main_menu__gamepad_polling_counter__C115], a
-    	jp   main_menu__loop_start__029A
+        and  $03
+        ld   [main_menu__icon_cur_row__C112], a
+        ld   a, $01
+        ld   [_RAM_C113_], a
+        ld   a, MAIN_MENU__GAMEPAD_POLLTIME_RESET  ; $14
+        ld   [main_menu__gamepad_polling_counter__C115], a
+        jp   main_menu__loop_start__029A
 
 
     main_menu__gamepad_test_up__0333:
         ; Skip to next if not pressed
-    	bit  GAMEPAD_B_UP, a  ; 6
-    	jr   z, main_menu__gamepad_test_select__033D
+        bit  GAMEPAD_B_UP, a  ; 6
+        jr   z, main_menu__gamepad_test_select__033D
 
         ; Triggered by Gamepad UP or Keyboard UP
         main_menu__nav_row_up__0337:
-        	ld   a, [main_menu__icon_cur_row__C112]
-        	dec  a
-        	jr   mainmenu__nav_row_update__0321
+            ld   a, [main_menu__icon_cur_row__C112]
+            dec  a
+            jr   mainmenu__nav_row_update__0321
 
 
     main_menu__gamepad_test_select__033D:
         ; Restart main menu loop if not pressed
-    	bit  GAMEPAD_B_SELECT, a  ; 2
-    	jp   z, main_menu__loop_start__029A
+        bit  GAMEPAD_B_SELECT, a  ; 2
+        jp   z, main_menu__loop_start__029A
 
         ; Triggered by Gamepad SELECT or Keyboard ENTER
         main_menu__nav_do_launch__0342:
             ; Calculate linear index from menu row and column
             ; TODO : then launch program (?)
-        	ld   a, [main_menu__icon_cur_row__C112]
-        	ld   c, a
-        	add  a
-        	add  c
-        	ld   c, a
-        	ld   a, [main_menu__icon_cur_column__C111]
-        	add  c
+            ld   a, [main_menu__icon_cur_row__C112]
+            ld   c, a
+            add  a
+            add  c
+            ld   c, a
+            ld   a, [main_menu__icon_cur_column__C111]
+            add  c
             ; A has: (row x 3) + column
-        	jr   main_menu__launch_app__0376 ; TODO: Maybe this launches program?
+            jr   main_menu__launch_app__0376 ; TODO: Maybe this launches program?
 
     main_menu__keyboard_handle_result__034F:
-    	cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
-    	jr   z, main_menu__nav_row_up__0337
+        cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
+        jr   z, main_menu__nav_row_up__0337
 
-    	cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
-    	jr   z, main_menu__nav_row_down_031D
+        cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
+        jr   z, main_menu__nav_row_down_031D
 
-    	cp   WORKBOY_SYS_KEY_ARROW_LEFT  ; $10
-    	jr   z, main_menu__nav_col_left__02F1
+        cp   WORKBOY_SYS_KEY_ARROW_LEFT  ; $10
+        jr   z, main_menu__nav_col_left__02F1
 
-    	cp   WORKBOY_SYS_KEY_ARROW_RIGHT  ; $11
-    	jr   z, main_menu__nav_col_right__030E
+        cp   WORKBOY_SYS_KEY_ARROW_RIGHT  ; $11
+        jr   z, main_menu__nav_col_right__030E
 
-    	cp   WORKBOY_SYS_KEY_RETURN  ; $0D
-    	jr   z, main_menu__nav_do_launch__0342
+        cp   WORKBOY_SYS_KEY_RETURN  ; $0D
+        jr   z, main_menu__nav_do_launch__0342
 
         ; If zero, return to main menu loop
-    	or   a
-    	jp   z, main_menu__loop_start__029A
+        or   a
+        jp   z, main_menu__loop_start__029A
 
         ; If in the range of the App Shortcuts (1 - 9). So: (N > 0) && (N < 10)
-    	cp   WORKBOY_SYS_KEY_APPS_AFTER  ; 10  ; $0A
-    	jp   nc, main_menu__loop_start__029A
+        cp   WORKBOY_SYS_KEY_APPS_AFTER  ; 10  ; $0A
+        jp   nc, main_menu__loop_start__029A
 
         ; Use the sys key to index into a lookup table which
         ; maps the key to the app to launch
-    	ld   hl, main_menu__lookup_table__app_key_to_app_index__399_ - 1
-    	ld   d, $00
-    	ld   e, a
-    	add  hl, de
-    	ld   a, [hl]
-    	jr   main_menu__launch_app__0376
+        ld   hl, main_menu__lookup_table__app_key_to_app_index__399_ - 1
+        ld   d, $00
+        ld   e, a
+        add  hl, de
+        ld   a, [hl]
+        jr   main_menu__launch_app__0376
 
 
 ; Expects index of the app to launch in A (0 - 11)
 main_menu__launch_app__0376:
         ; Save 0 - 11 indexed version of App Number
-    	push af
-    	ld   b, $00
+        push af
+        ld   b, $00
     ; And... Re-Convert back to Column (A) and Row (B) indexing
     .loop_convert_to_row_and_col__0379:
         ; If Column (A) is < 3 then proceed with launching the app
-    	cp   3  ; $03
-    	jr   c, .done_converting_to_row_and_col__0382
+        cp   3  ; $03
+        jr   c, .done_converting_to_row_and_col__0382
         ; Otherwise subtract 3 and increment the Row (B)
-    	sub  3  ; $03
-    	inc  b
-    	jr   .loop_convert_to_row_and_col__0379
+        sub  3  ; $03
+        inc  b
+        jr   .loop_convert_to_row_and_col__0379
 
     ; Column (A) 0-2 and Row (B) 0-3
     .done_converting_to_row_and_col__0382:
         ; Save the current Row and Column indexes
-    	ld   [main_menu__icon_cur_column__C111], a
-    	ld   a, b
-    	ld   [main_menu__icon_cur_row__C112], a
+        ld   [main_menu__icon_cur_column__C111], a
+        ld   a, b
+        ld   [main_menu__icon_cur_row__C112], a
 
         ; Clear all sprites
-    	call gfx__clear_shadow_oam__275B
+        call gfx__clear_shadow_oam__275B
 
         ; Restore 0 - 11 indexed version of App Number
-    	pop  af
+        pop  af
         ; Use App number x 2 to index into a jump table for launching the apps
-    	add  a
-    	ld   hl, main_menu__app_launch_jump_table__03A2
-    	ld   d, $00
-    	ld   e, a
-    	add  hl, de
-    	ldi  a, [hl]
-    	ld   h, [hl]
-    	ld   l, a
-    	jp   hl
+        add  a
+        ld   hl, main_menu__app_launch_jump_table__03A2
+        ld   d, $00
+        ld   e, a
+        add  hl, de
+        ldi  a, [hl]
+        ld   h, [hl]
+        ld   l, a
+        jp   hl
 
 
 ; Data from 399 to 3A1 (9 bytes)
@@ -894,351 +894,351 @@ dw app_phone__launch__0BA2        ; APP_B_PHONE
 
 
 app_submenu__money__03BA:
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00E6
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $00E7
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	call _LABEL_BC3_
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jp   z, app_currency__launch__2845
-	jp   app_checkbook__launch__0AF1
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00E6
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $00E7
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    call _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jp   z, app_currency__launch__2845
+    jp   app_checkbook__launch__0AF1
 
 _LABEL_3EF_:
-	ld   a, $65
-	ld   [_RAM_C198_], a
-	ld   a, $66
-	ld   [_RAM_C199_], a
-	ld   a, $1B
-	ldh  [rBGP], a
-	ld   [gfx__rBGP_cache__RAM_C27D], a
-	call gfx__turn_off_screen_2827
-	ld   bc, $1008
-	call _LABEL_27DD_
-	call _LABEL_450_
+    ld   a, $65
+    ld   [_RAM_C198_], a
+    ld   a, $66
+    ld   [_RAM_C199_], a
+    ld   a, $1B
+    ldh  [rBGP], a
+    ld   [gfx__rBGP_cache__RAM_C27D], a
+    call gfx__turn_off_screen_2827
+    ld   bc, $1008
+    call _LABEL_27DD_
+    call _LABEL_450_
 
-	ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
+    ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-	    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   hl, _TILEDATA9000
-	ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
-	xor  a ; Copy 256 tiles
-	jp   gfx__copy_tile_patterns__1437
+    ld   hl, _TILEDATA9000
+    ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
+    xor  a ; Copy 256 tiles
+    jp   gfx__copy_tile_patterns__1437
 
 _LABEL_41B_:
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   a, $03
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 gfx__copy_some_tile_patterns_todo__0424:
-	ld   a, $6A
-	ld   [_RAM_C198_], a
-	ld   a, $6B
-	ld   [_RAM_C199_], a
-	ld   a, $1B
-	ldh  [rBGP], a
-	ld   [gfx__rBGP_cache__RAM_C27D], a
-	call gfx__turn_off_screen_2827
-	ld   bc, $1008
-	call _LABEL_27DD_
-	call _LABEL_450_
+    ld   a, $6A
+    ld   [_RAM_C198_], a
+    ld   a, $6B
+    ld   [_RAM_C199_], a
+    ld   a, $1B
+    ldh  [rBGP], a
+    ld   [gfx__rBGP_cache__RAM_C27D], a
+    call gfx__turn_off_screen_2827
+    ld   bc, $1008
+    call _LABEL_27DD_
+    call _LABEL_450_
 
     ld   a, BANK(gfx__tile_patterns_250_font_thermometer_etc__5000) ; $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   hl, _TILEDATA9000
-	ld   bc, gfx__tile_patterns_250_font_thermometer_etc__5000
-	xor  a ; Copy 256 tiles
-	jp   gfx__copy_tile_patterns__1437
+    ld   hl, _TILEDATA9000
+    ld   bc, gfx__tile_patterns_250_font_thermometer_etc__5000
+    xor  a ; Copy 256 tiles
+    jp   gfx__copy_tile_patterns__1437
 
 _LABEL_450_:
-	ld   a, $07
+    ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
         ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, $8420
-	ld   de, _DATA_1CE92_
-	ld   bc, _DATA_1CE9A_
-	ld   a, 60; $3C ; Copy 60 tiles
-	jp   gfx__interleave_copy_tile_patterns__144C
+    ld   hl, $8420
+    ld   de, _DATA_1CE92_
+    ld   bc, _DATA_1CE9A_
+    ld   a, 60; $3C ; Copy 60 tiles
+    jp   gfx__interleave_copy_tile_patterns__144C
 
 _LABEL_463_:
-	ld   a, $07
+    ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, $8420
-	ld   de, _DATA_1FD5A_
-	ld   bc, _DATA_1FD62_
-	ld   a, 18 ; $12 ; Copy 18 tiles
-	call gfx__interleave_copy_tile_patterns__144C
+    ld   hl, $8420
+    ld   de, _DATA_1FD5A_
+    ld   bc, _DATA_1FD62_
+    ld   a, 18 ; $12 ; Copy 18 tiles
+    call gfx__interleave_copy_tile_patterns__144C
 
-	ld   hl, $8540
-	ld   bc, _DATA_1FE76_
-	ld   a, $04 ; Copy 4 tiles
-	jp   gfx__copy_tile_patterns__1437
+    ld   hl, $8540
+    ld   bc, _DATA_1FE76_
+    ld   a, $04 ; Copy 4 tiles
+    jp   gfx__copy_tile_patterns__1437
 
 _LABEL_481_:
-	xor  a
-	ld   [_RAM_C116_], a
-	ld   a, $07
+    xor  a
+    ld   [_RAM_C116_], a
+    ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, $8420
-	ld   de, _DATA_1FEB1_
-	ld   bc, _DATA_1FEB9_
-	ld   a, 8 ; $08 ; Copy 8 tiles
-	jp   gfx__interleave_copy_tile_patterns__144C
+    ld   hl, $8420
+    ld   de, _DATA_1FEB1_
+    ld   bc, _DATA_1FEB9_
+    ld   a, 8 ; $08 ; Copy 8 tiles
+    jp   gfx__interleave_copy_tile_patterns__144C
 
 _LABEL_498_:
-	ld   a, $02
-	ld   [_RAM_C5F3_], a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   [_RAM_C23B_], a
-	ld   a, $F2
-	ldh  [rOBP0], a
-	ld   a, $01
-	ld   [_RAM_C117_], a
-	call _LABEL_3EF_
-	call gfx__clear_tilemap_0__2722
-	call _LABEL_64E_
-	ld   bc, $FFE4
-	ld   e, $70
-	call _LABEL_1CF6_
-	ld   a, $03
+    ld   a, $02
+    ld   [_RAM_C5F3_], a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   [_RAM_C23B_], a
+    ld   a, $F2
+    ldh  [rOBP0], a
+    ld   a, $01
+    ld   [_RAM_C117_], a
+    call _LABEL_3EF_
+    call gfx__clear_tilemap_0__2722
+    call _LABEL_64E_
+    ld   bc, $FFE4
+    ld   e, $70
+    call _LABEL_1CF6_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_E4D0_
+    jp   _LABEL_E4D0_
 
 _LABEL_4C9_:
-	xor  a
-	ld   [_RAM_C474_], a
-	ld   a, [_RAM_C281_]
-	push af
-	ld   a, [_RAM_C282_]
-	push af
-	ld   a, $88
-	ld   [_RAM_C282_], a
-	ld   a, $88
-	ld   [_RAM_C281_], a
-	ld   hl, _RAM_C118_
-	ld   a, $20
-	ldi  [hl], a
-	ldi  [hl], a
-	ldi  [hl], a
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, $09
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    xor  a
+    ld   [_RAM_C474_], a
+    ld   a, [_RAM_C281_]
+    push af
+    ld   a, [_RAM_C282_]
+    push af
+    ld   a, $88
+    ld   [_RAM_C282_], a
+    ld   a, $88
+    ld   [_RAM_C281_], a
+    ld   hl, _RAM_C118_
+    ld   a, $20
+    ldi  [hl], a
+    ldi  [hl], a
+    ldi  [hl], a
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, $09
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_4F4_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
     ; Read keyboard
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-	jr   z, _LABEL_4F4_
-	or   a
-	jr   nz, _LABEL_509_
-	pop  af
-	ld   [_RAM_C282_], a
-	pop  af
-	ld   [_RAM_C281_], a
-	ret
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    jr   z, _LABEL_4F4_
+    or   a
+    jr   nz, _LABEL_509_
+    pop  af
+    ld   [_RAM_C282_], a
+    pop  af
+    ld   [_RAM_C281_], a
+    ret
 
 _LABEL_509_:
-	cp   $80
-	jr   nz, _LABEL_52A_
-	ld   a, [_RAM_C474_]
-	or   a
-	jr   z, _LABEL_4F4_
-	dec  a
-	ld   [_RAM_C474_], a
-	ld   hl, $C118
-	ld   e, a
-	ld   d, $00
-	add  hl, de
-	ld   [hl], $20
-	ld   a, [_RAM_C281_]
-	sub  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_4F4_
+    cp   $80
+    jr   nz, _LABEL_52A_
+    ld   a, [_RAM_C474_]
+    or   a
+    jr   z, _LABEL_4F4_
+    dec  a
+    ld   [_RAM_C474_], a
+    ld   hl, $C118
+    ld   e, a
+    ld   d, $00
+    add  hl, de
+    ld   [hl], $20
+    ld   a, [_RAM_C281_]
+    sub  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_4F4_
 
 _LABEL_52A_:
-	cp   $0D
-	jr   z, _LABEL_554_
-	cp   $30
-	jr   c, _LABEL_4F4_
-	cp   $3A
-	jr   nc, _LABEL_4F4_
-	ld   c, a
-	ld   a, [_RAM_C474_]
-	cp   $03
-	jr   z, _LABEL_4F4_
-	ld   hl, $C118
-	ld   d, $00
-	ld   e, a
-	add  hl, de
-	ld   [hl], c
-	ld   hl, _RAM_C474_
-	inc  [hl]
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_4F4_
+    cp   $0D
+    jr   z, _LABEL_554_
+    cp   $30
+    jr   c, _LABEL_4F4_
+    cp   $3A
+    jr   nc, _LABEL_4F4_
+    ld   c, a
+    ld   a, [_RAM_C474_]
+    cp   $03
+    jr   z, _LABEL_4F4_
+    ld   hl, $C118
+    ld   d, $00
+    ld   e, a
+    add  hl, de
+    ld   [hl], c
+    ld   hl, _RAM_C474_
+    inc  [hl]
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_4F4_
 
 _LABEL_554_:
-	ld   a, [_RAM_C5F3_]
-	or   a
-	call nz, $667B	; Possibly invalid  ; WARNING: Possible bank call without a bank switch
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	pop  af
-	ld   [_RAM_C282_], a
-	pop  af
-	ld   [_RAM_C281_], a
-	ld   a, [_RAM_C474_]
-	or   a
-	ret  z
-	cp   $03
-	jp   z, _LABEL_596_
-	cp   $02
-	jr   nz, _LABEL_588_
-	ld   a, [_RAM_C119_]
-	ld   [_RAM_C11A_], a
-	ld   a, [_RAM_C118_]
-	ld   [_RAM_C119_], a
-	ld   a, $30
-	ld   [_RAM_C118_], a
-	jr   _LABEL_596_
+    ld   a, [_RAM_C5F3_]
+    or   a
+    call nz, $667B  ; Possibly invalid  ; WARNING: Possible bank call without a bank switch
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    pop  af
+    ld   [_RAM_C282_], a
+    pop  af
+    ld   [_RAM_C281_], a
+    ld   a, [_RAM_C474_]
+    or   a
+    ret  z
+    cp   $03
+    jp   z, _LABEL_596_
+    cp   $02
+    jr   nz, _LABEL_588_
+    ld   a, [_RAM_C119_]
+    ld   [_RAM_C11A_], a
+    ld   a, [_RAM_C118_]
+    ld   [_RAM_C119_], a
+    ld   a, $30
+    ld   [_RAM_C118_], a
+    jr   _LABEL_596_
 
 _LABEL_588_:
-	ld   a, [_RAM_C118_]
-	ld   [_RAM_C11A_], a
-	ld   a, $30
-	ld   [_RAM_C118_], a
-	ld   [_RAM_C119_], a
+    ld   a, [_RAM_C118_]
+    ld   [_RAM_C11A_], a
+    ld   a, $30
+    ld   [_RAM_C118_], a
+    ld   [_RAM_C119_], a
 _LABEL_596_:
-	ld   bc, $0064
-	ld   hl, $0000
-	ld   a, [_RAM_C118_]
-	sub  $30
+    ld   bc, $0064
+    ld   hl, $0000
+    ld   a, [_RAM_C118_]
+    sub  $30
 _LABEL_5A1_:
-	or   a
-	jr   z, _LABEL_5A8_
-	add  hl, bc
-	dec  a
-	jr   nz, _LABEL_5A1_
+    or   a
+    jr   z, _LABEL_5A8_
+    add  hl, bc
+    dec  a
+    jr   nz, _LABEL_5A1_
 _LABEL_5A8_:
-	ld   c, $0A
-	ld   a, [_RAM_C119_]
-	sub  $30
+    ld   c, $0A
+    ld   a, [_RAM_C119_]
+    sub  $30
 _LABEL_5AF_:
-	or   a
-	jr   z, _LABEL_5B6_
-	add  hl, bc
-	dec  a
-	jr   nz, _LABEL_5AF_
+    or   a
+    jr   z, _LABEL_5B6_
+    add  hl, bc
+    dec  a
+    jr   nz, _LABEL_5AF_
 _LABEL_5B6_:
-	ld   a, [_RAM_C11A_]
-	sub  $30
+    ld   a, [_RAM_C11A_]
+    sub  $30
 _LABEL_5BB_:
-	or   a
-	jr   z, _LABEL_5C2_
-	inc  hl
-	dec  a
-	jr   nz, _LABEL_5BB_
+    or   a
+    jr   z, _LABEL_5C2_
+    inc  hl
+    dec  a
+    jr   nz, _LABEL_5BB_
 _LABEL_5C2_:
-	ld   a, h
-	or   a
-	ret  nz
-	ld   a, [_RAM_C19A_]
-	or   a
-	jr   z, _LABEL_5D5_
-	ld   a, [_SRAM_1_]
-	cp   l
-	ret  c
-	ld   a, l
-	ld   [_RAM_C10C_], a
-	ret
+    ld   a, h
+    or   a
+    ret  nz
+    ld   a, [_RAM_C19A_]
+    or   a
+    jr   z, _LABEL_5D5_
+    ld   a, [_SRAM_1_]
+    cp   l
+    ret  c
+    ld   a, l
+    ld   [_RAM_C10C_], a
+    ret
 
 _LABEL_5D5_:
-	ld   a, [_RAM_C260_]
-	or   a
-	jr   z, _LABEL_5E9_
-	ld   a, [_SRAM_231_]
-	cp   l
-	ret  c
-	ld   a, l
-	or   a
-	ret  z
-	ld   [_RAM_C10B_], a
-	jp   _LABEL_B765_
+    ld   a, [_RAM_C260_]
+    or   a
+    jr   z, _LABEL_5E9_
+    ld   a, [_SRAM_231_]
+    cp   l
+    ret  c
+    ld   a, l
+    or   a
+    ret  z
+    ld   [_RAM_C10B_], a
+    jp   _LABEL_B765_
 
 _LABEL_5E9_:
-	ld   a, [_SRAM_0_]
-	cp   l
-	ret  c
-	ld   a, l
-	or   a
-	ret  z
-	ld   [_RAM_C10D_], a
-	call _LABEL_680_
-	call _LABEL_6D0_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	add  a
-	ld   [_RAM_C282_], a
-	ret
+    ld   a, [_SRAM_0_]
+    cp   l
+    ret  c
+    ld   a, l
+    or   a
+    ret  z
+    ld   [_RAM_C10D_], a
+    call _LABEL_680_
+    call _LABEL_6D0_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    add  a
+    ld   [_RAM_C282_], a
+    ret
 
 ; 10th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_09_TODO__LABEL_604_:
-	ld   de, _RAM_C118_
-	ld   hl, $99F0
-	ld   b, $03
+    ld   de, _RAM_C118_
+    ld   hl, $99F0
+    ld   b, $03
 _LABEL_60C_:
-	ld   a, [de]
-	sub  $20
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_60C_
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    sub  $20
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_60C_
+    jp   vblank__cmd_default__25F7
 
 ; Data from 617 to 62B (21 bytes)
 _DATA_617_:
@@ -1246,558 +1246,558 @@ ds 20, $2A
 db $00
 
 _LABEL_62C_:
-	ld   de, $0617
-	ld   hl, $99C0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0001
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0004
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0005
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, [_RAM_C10C_]
-	jp   _LABEL_7B6_
+    ld   de, $0617
+    ld   hl, $99C0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0001
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0004
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0005
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C10C_]
+    jp   _LABEL_7B6_
 
 _LABEL_64E_:
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
 _LABEL_654_:
-	call _LABEL_65D_
-	call _LABEL_680_
-	jp   _LABEL_6D0_
+    call _LABEL_65D_
+    call _LABEL_680_
+    jp   _LABEL_6D0_
 
 _LABEL_65D_:
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $0003
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $0003
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_667_:
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   hl, $99C0
-	ld   de, $0617
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, $9A00
-	ld   de, $0004
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, $9A20
-	ld   de, $0005
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   hl, $99C0
+    ld   de, $0617
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, $9A00
+    ld   de, $0004
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, $9A20
+    ld   de, $0005
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_680_:
-	ld   a, [_RAM_C10D_]
-	or   a
-	ret  z
-	call _LABEL_7B3_
-	ld   hl, _SRAM_4002_
-	ld   a, [_RAM_C10D_]
-	ld   b, a
+    ld   a, [_RAM_C10D_]
+    or   a
+    ret  z
+    call _LABEL_7B3_
+    ld   hl, _SRAM_4002_
+    ld   a, [_RAM_C10D_]
+    ld   b, a
 _LABEL_68F_:
-	dec  b
-	jr   z, _LABEL_699_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	dec  hl
-	add  hl, de
-	jr   _LABEL_68F_
+    dec  b
+    jr   z, _LABEL_699_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    dec  hl
+    add  hl, de
+    jr   _LABEL_68F_
 
 _LABEL_699_:
-	inc  hl
-	inc  hl
-	ld   de, _RAM_C700_
-	ld   b, $0E
+    inc  hl
+    inc  hl
+    ld   de, _RAM_C700_
+    ld   b, $0E
 _LABEL_6A0_:
-	push bc
-	ld   b, $14
+    push bc
+    ld   b, $14
 _LABEL_6A3_:
-	ldi  a, [hl]
-	cp   $0D
-	jr   z, _LABEL_6C4_
-	bit  7, a
-	jr   z, _LABEL_6BD_
-	and  $7F
-	ld   c, a
-	ld   a, $20
+    ldi  a, [hl]
+    cp   $0D
+    jr   z, _LABEL_6C4_
+    bit  7, a
+    jr   z, _LABEL_6BD_
+    and  $7F
+    ld   c, a
+    ld   a, $20
 _LABEL_6B1_:
-	ld   [de], a
-	inc  de
-	dec  b
-	dec  c
-	jr   nz, _LABEL_6B1_
-	ld   a, b
-	or   a
-	jr   nz, _LABEL_6A3_
-	jr   _LABEL_6CB_
+    ld   [de], a
+    inc  de
+    dec  b
+    dec  c
+    jr   nz, _LABEL_6B1_
+    ld   a, b
+    or   a
+    jr   nz, _LABEL_6A3_
+    jr   _LABEL_6CB_
 
 _LABEL_6BD_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_6A3_
-	jr   _LABEL_6CB_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_6A3_
+    jr   _LABEL_6CB_
 
 _LABEL_6C4_:
-	ld   a, $20
+    ld   a, $20
 _LABEL_6C6_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_6C6_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_6C6_
 _LABEL_6CB_:
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_6A0_
-	ret
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_6A0_
+    ret
 
 _LABEL_6D0_:
-	ld   a, [_RAM_C10D_]
-	or   a
-	ret  z
-	call _LABEL_7B3_
-	rst  $18	; Call VSYNC__RST_18
-	ld   de, _TILEMAP0
-	ld   hl, _RAM_C700_
-	ld   b, $0E
-	ld   a, $05
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [_RAM_C10D_]
+    or   a
+    ret  z
+    call _LABEL_7B3_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   de, _TILEMAP0
+    ld   hl, _RAM_C700_
+    ld   b, $0E
+    ld   a, $05
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_6E6_:
-	push bc
-	push de
-	push hl
-	ld   a, e
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, d
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, l
-	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
-	ld   a, h
-	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
-	rst  $18	; Call VSYNC__RST_18
-	pop  hl
-	ld   bc, $0014
-	add  hl, bc
-	pop  de
-	ld   a, $20
-	add  e
-	ld   e, a
-	ld   a, d
-	adc  $00
-	ld   d, a
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_6E6_
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    push bc
+    push de
+    push hl
+    ld   a, e
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, d
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, l
+    ld   [gfx__src_addr_lo__RAM_C135_maybe], a
+    ld   a, h
+    ld   [gfx__src_addr_hi__RAM_C136_maybe], a
+    rst  $18    ; Call VSYNC__RST_18
+    pop  hl
+    ld   bc, $0014
+    add  hl, bc
+    pop  de
+    ld   a, $20
+    add  e
+    ld   e, a
+    ld   a, d
+    adc  $00
+    ld   d, a
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_6E6_
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 _LABEL_711_:
-	push af
-	ld   a, [_RAM_C282_]
-	ld   hl, $C700
-	ld   bc, $0014
-	sub  $10
-	jr   z, _LABEL_724_
+    push af
+    ld   a, [_RAM_C282_]
+    ld   hl, $C700
+    ld   bc, $0014
+    sub  $10
+    jr   z, _LABEL_724_
 _LABEL_71F_:
-	add  hl, bc
-	sub  $08
-	jr   nz, _LABEL_71F_
+    add  hl, bc
+    sub  $08
+    jr   nz, _LABEL_71F_
 _LABEL_724_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	pop  af
-	ld   [hl], a
+    ld   a, [_RAM_C281_]
+    sub  $08
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    pop  af
+    ld   [hl], a
 _LABEL_73A_:
-	push af
-	ld   hl, _TILEMAP0
-	ld   a, [_RAM_C282_]
-	ld   bc, $0020
-	sub  $10
-	jr   z, _LABEL_74D_
+    push af
+    ld   hl, _TILEMAP0
+    ld   a, [_RAM_C282_]
+    ld   bc, $0020
+    sub  $10
+    jr   z, _LABEL_74D_
 _LABEL_748_:
-	add  hl, bc
-	sub  $08
-	jr   nz, _LABEL_748_
+    add  hl, bc
+    sub  $08
+    jr   nz, _LABEL_748_
 _LABEL_74D_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	add  l
-	ld   [_RAM_C131_], a
-	ld   a, h
-	adc  $00
-	ld   [_RAM_C132_], a
-	pop  af
-	ld   [_RAM_C130_], a
-	ret
+    ld   a, [_RAM_C281_]
+    sub  $08
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    add  l
+    ld   [_RAM_C131_], a
+    ld   a, h
+    adc  $00
+    ld   [_RAM_C132_], a
+    pop  af
+    ld   [_RAM_C130_], a
+    ret
 
 _LABEL_76A_:
-	push af
-	ld   a, [_RAM_C281_]
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $C119
-	add  hl, de
-	pop  af
-	ld   [hl], a
-	jr   _LABEL_73A_
+    push af
+    ld   a, [_RAM_C281_]
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $C119
+    add  hl, de
+    pop  af
+    ld   [hl], a
+    jr   _LABEL_73A_
 
 _LABEL_782_:
-	push af
-	ld   a, [_RAM_C281_]
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $C11A
-	add  hl, de
-	pop  af
-	ld   [hl], a
-	jr   _LABEL_73A_
+    push af
+    ld   a, [_RAM_C281_]
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $C11A
+    add  hl, de
+    pop  af
+    ld   [hl], a
+    jr   _LABEL_73A_
 
 ; 8th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_07_TODO__LABEL_79A_:
-	ld   a, [_RAM_C130_]
-	or   a
-	jr   z, _LABEL_7B0_
-	sub  $20
-	ld   c, a
-	ld   a, [_RAM_C131_]
-	ld   l, a
-	ld   a, [_RAM_C132_]
-	ld   h, a
-	ld   [hl], c
-	xor  a
-	ld   [_RAM_C130_], a
+    ld   a, [_RAM_C130_]
+    or   a
+    jr   z, _LABEL_7B0_
+    sub  $20
+    ld   c, a
+    ld   a, [_RAM_C131_]
+    ld   l, a
+    ld   a, [_RAM_C132_]
+    ld   h, a
+    ld   [hl], c
+    xor  a
+    ld   [_RAM_C130_], a
 _LABEL_7B0_:
-	jp   vblank__cmd_default__25F7
+    jp   vblank__cmd_default__25F7
 
 _LABEL_7B3_:
-	ld   a, [_RAM_C10D_]
+    ld   a, [_RAM_C10D_]
 _LABEL_7B6_:
-	or   a
-	ret  z
-	ld   bc, $0000
+    or   a
+    ret  z
+    ld   bc, $0000
 _LABEL_7BB_:
-	cp   $64
-	jr   c, _LABEL_7C4_
-	sub  $64
-	inc  b
-	jr   _LABEL_7BB_
+    cp   $64
+    jr   c, _LABEL_7C4_
+    sub  $64
+    inc  b
+    jr   _LABEL_7BB_
 
 _LABEL_7C4_:
-	cp   $0A
-	jr   c, _LABEL_7CD_
-	sub  $0A
-	inc  c
-	jr   _LABEL_7C4_
+    cp   $0A
+    jr   c, _LABEL_7CD_
+    sub  $0A
+    inc  c
+    jr   _LABEL_7C4_
 
 _LABEL_7CD_:
-	add  $30
-	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
-	ld   a, b
-	add  $30
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, c
-	add  $30
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, $06
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
+    add  $30
+    ld   [gfx__src_addr_lo__RAM_C135_maybe], a
+    ld   a, b
+    add  $30
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, c
+    add  $30
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, $06
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 ; 7th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_06_TODO__LABEL_7E9_:
-	ld   hl, $99F0
-	ld   de, gfx__dest_addr_lo__RAM_C133_maybe
-	ld   b, $03
+    ld   hl, $99F0
+    ld   de, gfx__dest_addr_lo__RAM_C133_maybe
+    ld   b, $03
 _LABEL_7F1_:
-	ld   a, [de]
-	sub  $20
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_7F1_
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    sub  $20
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_7F1_
+    jp   vblank__cmd_default__25F7
 
 ; 6th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_05_TODO__LABEL_7FC_:
-	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
-	ld   e, a
-	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
-	ld   d, a
-	ld   a, [gfx__src_addr_lo__RAM_C135_maybe]
-	ld   l, a
-	ld   a, [gfx__src_addr_hi__RAM_C136_maybe]
-	ld   h, a
-	ld   b, $14
+    ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
+    ld   e, a
+    ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
+    ld   d, a
+    ld   a, [gfx__src_addr_lo__RAM_C135_maybe]
+    ld   l, a
+    ld   a, [gfx__src_addr_hi__RAM_C136_maybe]
+    ld   h, a
+    ld   b, $14
 _LABEL_80E_:
-	ldi  a, [hl]
-	sub  $20
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_80E_
-	jp   vblank__cmd_default__25F7
+    ldi  a, [hl]
+    sub  $20
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_80E_
+    jp   vblank__cmd_default__25F7
 
 ; 5th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_calendar__launch__0819:
-	ld   a, $FE
-	ldh  [rOBP0], a
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ld   [_RAM_C152_], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ld   [_RAM_C154_], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ld   [_RAM_C155_], a
-	ld   a, [_RAM_C137_]
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   a, $FE
+    ldh  [rOBP0], a
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ld   [_RAM_C152_], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ld   [_RAM_C154_], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ld   [_RAM_C155_], a
+    ld   a, [_RAM_C137_]
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 _LABEL_839_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, [_RAM_C152_]
-	push af
-	ld   a, $01
-	ld   [_RAM_C152_], a
-	call _LABEL_1273_
-	pop  af
-	ld   [_RAM_C152_], a
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	ld   a, $0A
-	ld   [_RAM_C27E_], a
-	xor  a
-	ld   [_RAM_C27F_], a
-	call gfx__turn_off_screen_2827
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [_RAM_C152_]
+    push af
+    ld   a, $01
+    ld   [_RAM_C152_], a
+    call _LABEL_1273_
+    pop  af
+    ld   [_RAM_C152_], a
+    di
+    ld   a, $04
+    ldh  [rSTAT], a
+    ld   a, $01
+    ldh  [rIE], a
+    ei
+    ld   a, $0A
+    ld   [_RAM_C27E_], a
+    xor  a
+    ld   [_RAM_C27F_], a
+    call gfx__turn_off_screen_2827
 
-	ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
+    ld   a, BANK(gfx__tile_patterns_256_font_clock_etc__4000) ; $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
-	ld   hl, _TILEDATA9000
-	xor  a ; Copy 256 tiles
-	call gfx__copy_tile_patterns__1437
+    ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
+    ld   hl, _TILEDATA9000
+    xor  a ; Copy 256 tiles
+    call gfx__copy_tile_patterns__1437
 
-	ld   a, $02
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   de, _DATA_9E17_
-	ld   hl, _TILEMAP0
-	ld   b, $12
+    ld   de, _DATA_9E17_
+    ld   hl, _TILEMAP0
+    ld   b, $12
 _LABEL_87F_:
-	push bc
-	ld   b, $14
+    push bc
+    ld   b, $14
 _LABEL_882_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_882_
-	ld   c, $0C
-	add  hl, bc
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_87F_
-	ld   a, $03
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_882_
+    ld   c, $0C
+    add  hl, bc
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_87F_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   app_calendar__start__bank3_4831
+    jp   app_calendar__start__bank3_4831
 
 _LABEL_897_:
-	ld   a, $F2
-	ldh  [rOBP0], a
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   [_RAM_C23E_], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_27DD_
-	call _LABEL_481_
-	call _LABEL_B45_
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_8C5_
-	ld   a, $03
+    ld   a, $F2
+    ldh  [rOBP0], a
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   [_RAM_C23E_], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_27DD_
+    call _LABEL_481_
+    call _LABEL_B45_
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_8C5_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_C154_
+    jp   _LABEL_C154_
 
 _LABEL_8BC_:
-	call _LABEL_8E3_
-	ld   a, $03
+    call _LABEL_8E3_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 _LABEL_8C5_:
-	ld   a, [$0000]
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, $03
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, $05
+    ld   a, [$0000]
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, $03
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, $05
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   hl, $4E5C
-	ld   de, _SRAM_6100_
-	call _LABEL_17CAD_
-	ld   a, $03
-	jp   mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   hl, $4E5C
+    ld   de, _SRAM_6100_
+    call _LABEL_17CAD_
+    ld   a, $03
+    jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
 _LABEL_8E3_:
-	ld   a, $D2
-	ldh  [rOBP0], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_27DD_
-	call _LABEL_481_
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	call _LABEL_B45_
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_8C5_
-	ld   a, $03
+    ld   a, $D2
+    ldh  [rOBP0], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_27DD_
+    call _LABEL_481_
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    call _LABEL_B45_
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_8C5_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_C047_
+    jp   _LABEL_C047_
 
 ; Data from 906 to 913 (14 bytes)
 db $2A, $EA, $52, $C1, $2A, $EA, $54, $C1, $2A, $EA, $55, $C1, $18, $18
 
 _LABEL_914_:
-	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ld   [_RAM_C152_], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ld   [_RAM_C154_], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ld   [_RAM_C155_], a
+    ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ld   [_RAM_C152_], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ld   [_RAM_C154_], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ld   [_RAM_C155_], a
 _LABEL_92C_:
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	ld   c, a
-	add  a
-	add  c
-	ld   hl, _RAM_D09E_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	add  e
-	ld   e, a
-	ld   a, d
-	adc  $00
-	ld   d, a
-	ld   hl, _RAM_C13D_
-	ld   b, $03
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    ld   c, a
+    add  a
+    add  c
+    ld   hl, _RAM_D09E_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    add  e
+    ld   e, a
+    ld   a, d
+    adc  $00
+    ld   d, a
+    ld   hl, _RAM_C13D_
+    ld   b, $03
 _LABEL_943_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_943_
-	ld   a, [_SRAM_2A_]
-	or   a
-	jr   z, _LABEL_966_
-	ld   a, [_RAM_C154_]
-	call _LABEL_974_
-	ld   a, $2F
-	ldi  [hl], a
-	ld   a, [_RAM_C152_]
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_943_
+    ld   a, [_SRAM_2A_]
+    or   a
+    jr   z, _LABEL_966_
+    ld   a, [_RAM_C154_]
+    call _LABEL_974_
+    ld   a, $2F
+    ldi  [hl], a
+    ld   a, [_RAM_C152_]
 _LABEL_95B_:
-	call _LABEL_974_
-	ld   a, $2F
-	ldi  [hl], a
-	ld   a, [_RAM_C155_]
-	jr   _LABEL_974_
+    call _LABEL_974_
+    ld   a, $2F
+    ldi  [hl], a
+    ld   a, [_RAM_C155_]
+    jr   _LABEL_974_
 
 _LABEL_966_:
-	ld   a, [_RAM_C152_]
-	call _LABEL_974_
-	ld   a, $2F
-	ldi  [hl], a
-	ld   a, [_RAM_C154_]
-	jr   _LABEL_95B_
+    ld   a, [_RAM_C152_]
+    call _LABEL_974_
+    ld   a, $2F
+    ldi  [hl], a
+    ld   a, [_RAM_C154_]
+    jr   _LABEL_95B_
 
 _LABEL_974_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_976_:
-	cp   $0A
-	jr   c, _LABEL_97F_
-	sub  $0A
-	inc  b
-	jr   _LABEL_976_
+    cp   $0A
+    jr   c, _LABEL_97F_
+    sub  $0A
+    inc  b
+    jr   _LABEL_976_
 
 _LABEL_97F_:
-	ld   c, a
-	ld   a, b
-	add  $30
+    ld   c, a
+    ld   a, b
+    add  $30
 _LABEL_983_:
-	cp   $3A
-	jr   c, _LABEL_98B_
-	sub  $0A
-	jr   _LABEL_983_
+    cp   $3A
+    jr   c, _LABEL_98B_
+    sub  $0A
+    jr   _LABEL_983_
 
 _LABEL_98B_:
-	ldi  [hl], a
-	ld   a, c
-	add  $30
-	ldi  [hl], a
-	ret
+    ldi  [hl], a
+    ld   a, c
+    add  $30
+    ldi  [hl], a
+    ret
 
 ; TODO: Maybe this is:
 ; - lookup + display city/country location
@@ -1807,38 +1807,38 @@ _LABEL_98B_:
 _LABEL_991_:
     ; HL: Source
     ; DE: Dest
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   hl, _RAM_C149_
-	ldi  a, [hl]
-	ld   [de], a
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   hl, _RAM_C149_
+    ldi  a, [hl]
+    ld   [de], a
 
-	inc  de     ; Move DE to: time__hours__low_digit_ascii__RAM_C39C
-	ldi  a, [hl]
-	ld   [de], a
+    inc  de     ; Move DE to: time__hours__low_digit_ascii__RAM_C39C
+    ldi  a, [hl]
+    ld   [de], a
 
-	inc  de     ; Move DE to: time__minutes__high_digit_ascii__RAM_C39D
-	inc  hl
-	ldi  a, [hl]
-	ld   [de], a
+    inc  de     ; Move DE to: time__minutes__high_digit_ascii__RAM_C39D
+    inc  hl
+    ldi  a, [hl]
+    ld   [de], a
 
-	inc  de     ; Move DE to: time__minutes__low_digit_ascii__RAM_C39E
-	ldi  a, [hl]
-	ld   [de], a
+    inc  de     ; Move DE to: time__minutes__low_digit_ascii__RAM_C39E
+    ldi  a, [hl]
+    ld   [de], a
 
-	ld   a, [_RAM_C152_]
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
-	ld   a, [_RAM_C154_]
-	ld   [date__month__decimal__maybe__RAM_C138], a
+    ld   a, [_RAM_C152_]
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
+    ld   a, [_RAM_C154_]
+    ld   [date__month__decimal__maybe__RAM_C138], a
 
-	ld   de, $2150
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 
-	ld   de, $0006
-	ld   hl, $99E3
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $0006
+    ld   hl, $99E3
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Call stack to get here is:
     ; --> calls 1. $60:$0e6c
@@ -1848,7 +1848,7 @@ _LABEL_991_:
     ; 5. _LABEL_D714_+$05d ($03:$5771)
     ; 6. _LABEL_200_+$067 ($00:$0267)
     .loop_serial_command_until_valid_reply_byte__09C3:
-    	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
+        call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
         IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
             ; TODO: Always succeed on Mega Duck Hardware?
             REPT 7
@@ -1858,217 +1858,217 @@ _LABEL_991_:
         ELSE
             ; Check returned serial byte, return if zero
             ; also return if blank/unset (0xFF)
-        	or   a
-        	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
-        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-        	jr   z, .loop_serial_command_until_valid_reply_byte__09C3
-        	ret
+            or   a
+            jr   z, .loop_serial_command_until_valid_reply_byte__09C3
+            cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+            jr   z, .loop_serial_command_until_valid_reply_byte__09C3
+            ret
         ENDC
 
 _LABEL_9CE_:
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ld   [_RAM_C152_], a
-	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ld   [_RAM_C154_], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ld   [_RAM_C155_], a
-	ld   hl, _RAM_C13D_
-	ld   a, $20
-	ld   b, $14
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ld   [_RAM_C152_], a
+    ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ld   [_RAM_C154_], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ld   [_RAM_C155_], a
+    ld   hl, _RAM_C13D_
+    ld   a, $20
+    ld   b, $14
 _LABEL_9ED_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_9ED_
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   hl, _RAM_C149_
-	ld   b, $03
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_9ED_
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   hl, _RAM_C149_
+    ld   b, $03
 _LABEL_9F9_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	ld   a, $3A
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_9F9_
-	call _LABEL_A1C_
-	ld   a, [_RAM_C305_]
-	push af
-	ld   a, [_SRAM_602C_]
-	xor  $80
-	ld   [_RAM_C305_], a
-	call _LABEL_A1C_
-	pop  af
-	ld   [_RAM_C305_], a
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    ld   a, $3A
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_9F9_
+    call _LABEL_A1C_
+    ld   a, [_RAM_C305_]
+    push af
+    ld   a, [_SRAM_602C_]
+    xor  $80
+    ld   [_RAM_C305_], a
+    call _LABEL_A1C_
+    pop  af
+    ld   [_RAM_C305_], a
+    ret
 
 _LABEL_A1C_:
-	xor  a
-	ld   [_RAM_C3A7_], a
-	ld   a, [_RAM_C305_]
-	bit  7, a
-	jr   z, _LABEL_A84_
-	ld   c, $00
-	bit  6, a
-	jr   z, _LABEL_A3D_
-	ld   a, [_RAM_C14C_]
-	sub  $03
-	cp   $30
-	jr   nc, _LABEL_A3A_
-	add  $06
-	ld   c, $01
+    xor  a
+    ld   [_RAM_C3A7_], a
+    ld   a, [_RAM_C305_]
+    bit  7, a
+    jr   z, _LABEL_A84_
+    ld   c, $00
+    bit  6, a
+    jr   z, _LABEL_A3D_
+    ld   a, [_RAM_C14C_]
+    sub  $03
+    cp   $30
+    jr   nc, _LABEL_A3A_
+    add  $06
+    ld   c, $01
 _LABEL_A3A_:
-	ld   [_RAM_C14C_], a
+    ld   [_RAM_C14C_], a
 _LABEL_A3D_:
-	ld   a, [_RAM_C305_]
-	and  $1F
-	add  c
-	ld   c, a
-	ld   a, [_RAM_C149_]
-	sub  $30
-	add  a
-	ld   e, a
-	add  a
-	add  a
-	add  e
-	ld   e, a
-	ld   d, $00
-	ld   a, [_RAM_C14A_]
-	sub  $30
-	add  e
-	sub  c
-	jr   nc, _LABEL_A5E_
-	add  $18
-	ld   d, $01
+    ld   a, [_RAM_C305_]
+    and  $1F
+    add  c
+    ld   c, a
+    ld   a, [_RAM_C149_]
+    sub  $30
+    add  a
+    ld   e, a
+    add  a
+    add  a
+    add  e
+    ld   e, a
+    ld   d, $00
+    ld   a, [_RAM_C14A_]
+    sub  $30
+    add  e
+    sub  c
+    jr   nc, _LABEL_A5E_
+    add  $18
+    ld   d, $01
 _LABEL_A5E_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_A60_:
-	cp   $0A
-	jr   c, _LABEL_A69_
-	sub  $0A
-	inc  b
-	jr   _LABEL_A60_
+    cp   $0A
+    jr   c, _LABEL_A69_
+    sub  $0A
+    inc  b
+    jr   _LABEL_A60_
 
 _LABEL_A69_:
-	add  $30
-	ld   [_RAM_C14A_], a
-	ld   a, b
-	add  $30
-	ld   [_RAM_C149_], a
-	dec  d
-	ret  nz
-	ld   a, $02
+    add  $30
+    ld   [_RAM_C14A_], a
+    ld   a, b
+    add  $30
+    ld   [_RAM_C149_], a
+    dec  d
+    ret  nz
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_AF93_
-	ld   a, $03
+    call _LABEL_AF93_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 _LABEL_A84_:
-	ld   c, $00
-	bit  6, a
-	jr   z, _LABEL_A9A_
-	ld   a, [_RAM_C14C_]
-	add  $03
-	cp   $36
-	jr   c, _LABEL_A97_
-	sub  $06
-	ld   c, $01
+    ld   c, $00
+    bit  6, a
+    jr   z, _LABEL_A9A_
+    ld   a, [_RAM_C14C_]
+    add  $03
+    cp   $36
+    jr   c, _LABEL_A97_
+    sub  $06
+    ld   c, $01
 _LABEL_A97_:
-	ld   [_RAM_C14C_], a
+    ld   [_RAM_C14C_], a
 _LABEL_A9A_:
-	ld   a, [_RAM_C305_]
-	and  $1F
-	add  c
-	ld   c, a
-	ld   a, [_RAM_C149_]
-	sub  $30
-	add  a
-	ld   e, a
-	add  a
-	add  a
-	add  e
-	ld   e, a
-	ld   d, $00
-	ld   a, [_RAM_C14A_]
-	sub  $30
-	add  e
-	add  c
-	cp   $18
-	jr   c, _LABEL_ABD_
-	sub  $18
-	ld   d, $01
+    ld   a, [_RAM_C305_]
+    and  $1F
+    add  c
+    ld   c, a
+    ld   a, [_RAM_C149_]
+    sub  $30
+    add  a
+    ld   e, a
+    add  a
+    add  a
+    add  e
+    ld   e, a
+    ld   d, $00
+    ld   a, [_RAM_C14A_]
+    sub  $30
+    add  e
+    add  c
+    cp   $18
+    jr   c, _LABEL_ABD_
+    sub  $18
+    ld   d, $01
 _LABEL_ABD_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_ABF_:
-	cp   $0A
-	jr   c, _LABEL_AC8_
-	sub  $0A
-	inc  b
-	jr   _LABEL_ABF_
+    cp   $0A
+    jr   c, _LABEL_AC8_
+    sub  $0A
+    inc  b
+    jr   _LABEL_ABF_
 
 _LABEL_AC8_:
-	add  $30
-	ld   [_RAM_C14A_], a
-	ld   a, b
-	add  $30
-	ld   [_RAM_C149_], a
-	dec  d
-	ret  nz
-	ld   a, $02
+    add  $30
+    ld   [_RAM_C14A_], a
+    ld   a, b
+    add  $30
+    ld   [_RAM_C149_], a
+    dec  d
+    ret  nz
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_AF32_
-	ld   a, $03
+    call _LABEL_AF32_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 _LABEL_AE3_:
-	ld   a, $02
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_AF32_
-	ld   a, $03
+    call _LABEL_AF32_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 ; 9th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_checkbook__launch__0AF1:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, $03
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_DDD9_
+    jp   _LABEL_DDD9_
 
 
 ; Sets MBC1 to the following
@@ -2079,107 +2079,107 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
     ; Writing 1 to ROM bank select
     ; Select SRAM Bank switch mode and then
     ; write 0 to the SRAM Bank select
-	ld   a, MBC1_RAM_ON          ; $0A
-	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+    ld   a, MBC1_RAM_ON          ; $0A
+    ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
 
-	ld   a, $01
+    ld   a, $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a      ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a      ; [$3FFF]
     ENDC
 
-	ld   a, MBC1_MODE_RAMBANKED  ; $01
-	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+    ld   a, MBC1_MODE_RAMBANKED  ; $01
+    ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
 
-	xor  a
-	ld   [rRAMB_ALT], a          ; [$5FFF]
-	ret
+    xor  a
+    ld   [rRAMB_ALT], a          ; [$5FFF]
+    ret
 
 
 ; Sends byte in A over Serial IO and waits ~3msec, then turns Serial RX OFF
 ;
 ; Preserves AF
 serial_io__send_byte_and_wait_3msec__0B11:
-	ldh  [rSB], a
-	push af
-	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-	ldh  [rSC], a
-	call delay_2_94msec__334A
-	ld   a, ( SERIAL_XFER_OFF ) ; $00
-	ldh  [rSC], a
-	pop  af
-	ret
+    ldh  [rSB], a
+    push af
+    ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+    ldh  [rSC], a
+    call delay_2_94msec__334A
+    ld   a, ( SERIAL_XFER_OFF ) ; $00
+    ldh  [rSC], a
+    pop  af
+    ret
 
 
 _LABEL_B21_:
-	ld   a, $03
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, $01
+    ld   a, $03
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_7D28_
+    call _LABEL_7D28_
 _LABEL_B2E_:
-	push af
-	ld   a, $03
+    push af
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	pop  af
-	ret
+    pop  af
+    ret
 
 _LABEL_B36_:
-	ld   a, $03
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, $05
+    ld   a, $03
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, $05
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_2A05_
-	jr   _LABEL_B2E_
+    call _LABEL_2A05_
+    jr   _LABEL_B2E_
 
 _LABEL_B45_:
-	call gfx__turn_off_screen_2827
+    call gfx__turn_off_screen_2827
 
-	ld   bc, _DATA_15B4C_
-	ld   hl, _TILEDATA9000
-	ld   a, $05
+    ld   bc, _DATA_15B4C_
+    ld   hl, _TILEDATA9000
+    ld   a, $05
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	xor  a ; Copy 256 tiles
-	call gfx__copy_tile_patterns__1437
-	ld   a, $02
+    xor  a ; Copy 256 tiles
+    call gfx__copy_tile_patterns__1437
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_2735_
-	ld   de, _DATA_A524_
-	ld   hl, (_TILEMAP0 + $60)
-	ld   b, $0C
-	call gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E
-	jr   _LABEL_B2E_
+    call _LABEL_2735_
+    ld   de, _DATA_A524_
+    ld   hl, (_TILEMAP0 + $60)
+    ld   b, $0C
+    call gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E
+    jr   _LABEL_B2E_
 
 _LABEL_B6C_:
-	ld   a, $02
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_B160_
-	jr   _LABEL_B2E_
+    call _LABEL_B160_
+    jr   _LABEL_B2E_
 
 ; Data from B76 to B98 (35 bytes)
 db $04, $02, $01, $FC, $02, $01, $04, $02, $01, $FC, $02, $01, $04, $02, $01, $FC
@@ -2187,27 +2187,27 @@ db $02, $01, $04, $02, $01, $FC, $02, $01, $04, $02, $01, $FC, $02, $01, $63, $0
 db $01, $0A, $63
 
 _LABEL_B99_:
-	call _LABEL_3EF_
-	ld   a, $03
+    call _LABEL_3EF_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 ; 12th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_phone__launch__0BA2:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call _LABEL_3EF_
-	ld   a, $03
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call _LABEL_3EF_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_E7EC_
+    jp   _LABEL_E7EC_
 
 
 ; Sets MBC1 SRAM bank:
@@ -2217,380 +2217,380 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
     ; Enable SRAM
     ; Select SRAM Bank switch mode and then
     ; write value in C to SRAM Bank select
-	push bc
-	ld   c, a
-	ld   a, MBC1_RAM_ON          ; $0A
-	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+    push bc
+    ld   c, a
+    ld   a, MBC1_RAM_ON          ; $0A
+    ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
 
-	ld   a, MBC1_MODE_RAMBANKED  ; $01$01
-	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+    ld   a, MBC1_MODE_RAMBANKED  ; $01$01
+    ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
 
-	ld   a, c
-	ld   [rRAMB_ALT], a          ; [$5FFF]
-	pop  bc
-	ret
+    ld   a, c
+    ld   [rRAMB_ALT], a          ; [$5FFF]
+    pop  bc
+    ret
 
 
 _LABEL_BC3_:
-	ld   [_RAM_C156_], a
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, e
-	ld   [_RAM_C196_], a
-	ld   a, d
-	ld   [_RAM_C197_], a
-	ld   a, c
-	ld   [_RAM_C157_], a
-	ld   a, b
-	ld   [_RAM_C158_], a
-	add  a
-	add  a
-	ld   h, $00
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	ld   de, _TILEMAP0
-	add  hl, de
-	ld   a, l
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, h
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, $02
-	ld   [_RAM_C159_], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $16
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   [_RAM_C156_], a
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, e
+    ld   [_RAM_C196_], a
+    ld   a, d
+    ld   [_RAM_C197_], a
+    ld   a, c
+    ld   [_RAM_C157_], a
+    ld   a, b
+    ld   [_RAM_C158_], a
+    add  a
+    add  a
+    ld   h, $00
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    ld   de, _TILEMAP0
+    add  hl, de
+    ld   a, l
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, h
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, $02
+    ld   [_RAM_C159_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $16
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_BFA_:
-	ld   hl, _RAM_C15A_
-	ld   a, $FF
-	ld   b, $14
+    ld   hl, _RAM_C15A_
+    ld   a, $FF
+    ld   b, $14
 _LABEL_C01_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C01_
-	ld   hl, _RAM_C182_
-	ld   a, $FF
-	ld   b, $14
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C01_
+    ld   hl, _RAM_C182_
+    ld   a, $FF
+    ld   b, $14
 _LABEL_C0C_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C0C_
-	ld   hl, _RAM_C16E_
-	ld   a, [_RAM_C196_]
-	ld   e, a
-	ld   a, [_RAM_C197_]
-	ld   d, a
-	ld   b, $14
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C0C_
+    ld   hl, _RAM_C16E_
+    ld   a, [_RAM_C196_]
+    ld   e, a
+    ld   a, [_RAM_C197_]
+    ld   d, a
+    ld   b, $14
 _LABEL_C1D_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C1D_
-	ld   hl, $C15A
-	ld   a, [_RAM_C157_]
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   de, $0014
-	push hl
-	ld   [hl], $5F
-	add  hl, de
-	ld   a, [_RAM_C198_]
-	ld   [hl], a
-	add  hl, de
-	ld   [hl], $62
-	pop  hl
-	inc  hl
-	ld   a, [_RAM_C159_]
-	sub  $02
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C1D_
+    ld   hl, $C15A
+    ld   a, [_RAM_C157_]
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   de, $0014
+    push hl
+    ld   [hl], $5F
+    add  hl, de
+    ld   a, [_RAM_C198_]
+    ld   [hl], a
+    add  hl, de
+    ld   [hl], $62
+    pop  hl
+    inc  hl
+    ld   a, [_RAM_C159_]
+    sub  $02
 _LABEL_C46_:
-	or   a
-	jr   z, _LABEL_C55_
-	push hl
-	ld   [hl], $60
-	add  hl, de
-	add  hl, de
-	ld   [hl], $63
-	pop  hl
-	inc  hl
-	dec  a
-	jr   _LABEL_C46_
+    or   a
+    jr   z, _LABEL_C55_
+    push hl
+    ld   [hl], $60
+    add  hl, de
+    add  hl, de
+    ld   [hl], $63
+    pop  hl
+    inc  hl
+    dec  a
+    jr   _LABEL_C46_
 
 _LABEL_C55_:
-	ld   [hl], $61
-	add  hl, de
-	ld   a, [_RAM_C199_]
-	ld   [hl], a
-	add  hl, de
-	ld   [hl], $64
-	ld   hl, _RAM_C16E_
-	ld   a, [_RAM_C198_]
-	ld   c, a
+    ld   [hl], $61
+    add  hl, de
+    ld   a, [_RAM_C199_]
+    ld   [hl], a
+    add  hl, de
+    ld   [hl], $64
+    ld   hl, _RAM_C16E_
+    ld   a, [_RAM_C198_]
+    ld   c, a
 _LABEL_C66_:
-	ld   a, [hl]
-	cp   c
-	jr   z, _LABEL_C6F_
-	ld   [hl], $FF
-	inc  hl
-	jr   _LABEL_C66_
+    ld   a, [hl]
+    cp   c
+    jr   z, _LABEL_C6F_
+    ld   [hl], $FF
+    inc  hl
+    jr   _LABEL_C66_
 
 _LABEL_C6F_:
-	ld   hl, _RAM_C181_
-	ld   a, [_RAM_C199_]
-	ld   c, a
+    ld   hl, _RAM_C181_
+    ld   a, [_RAM_C199_]
+    ld   c, a
 _LABEL_C76_:
-	ld   a, [hl]
-	cp   c
-	jr   z, _LABEL_C7F_
-	ld   [hl], $FF
-	dec  hl
-	jr   _LABEL_C76_
+    ld   a, [hl]
+    cp   c
+    jr   z, _LABEL_C7F_
+    ld   [hl], $FF
+    dec  hl
+    jr   _LABEL_C76_
 
 _LABEL_C7F_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C156_]
-	ld   c, a
-	ld   a, [_RAM_C159_]
-	cp   c
-	jr   z, _LABEL_C9A_
-	inc  a
-	ld   [_RAM_C159_], a
-	bit  0, a
-	jp   z, _LABEL_BFA_
-	ld   hl, _RAM_C157_
-	dec  [hl]
-	jp   _LABEL_BFA_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C156_]
+    ld   c, a
+    ld   a, [_RAM_C159_]
+    cp   c
+    jr   z, _LABEL_C9A_
+    inc  a
+    ld   [_RAM_C159_], a
+    bit  0, a
+    jp   z, _LABEL_BFA_
+    ld   hl, _RAM_C157_
+    dec  [hl]
+    jp   _LABEL_BFA_
 
 _LABEL_C9A_:
-	rst  $18	; Call VSYNC__RST_18
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    rst  $18    ; Call VSYNC__RST_18
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 ; 3rd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_database__launch__0CA0:
     ; Maybe check database in SRAM for init?
-	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	or   a
-	jr   z, _LABEL_CAD_
-	ld   a, $01
+    ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    or   a
+    jr   z, _LABEL_CAD_
+    ld   a, $01
 _LABEL_CAD_:
-	ld   [_RAM_C10D_], a
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_1D5B_
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jp   z, _LABEL_498_
-	jp   _LABEL_CDA_
+    ld   [_RAM_C10D_], a
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_1D5B_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jp   z, _LABEL_498_
+    jp   _LABEL_CDA_
 
 _LABEL_CDA_:
-	ld   a, $F2
-	ldh  [rOBP0], a
-	ld   a, $01
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   [_RAM_C19A_], a
-	ld   a, [_SRAM_2001_]
-	or   a
-	jr   z, _LABEL_CEE_
-	ld   a, $01
+    ld   a, $F2
+    ldh  [rOBP0], a
+    ld   a, $01
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   [_RAM_C19A_], a
+    ld   a, [_SRAM_2001_]
+    or   a
+    jr   z, _LABEL_CEE_
+    ld   a, $01
 _LABEL_CEE_:
-	ld   [_RAM_C10C_], a
-	call _LABEL_3EF_
-	call gfx__clear_tilemap_0__2722
-	call _LABEL_62C_
-	ld   bc, $FFE4
-	ld   e, $70
-	call _LABEL_1CF6_
-	call _LABEL_1563_
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   a, $03
+    ld   [_RAM_C10C_], a
+    call _LABEL_3EF_
+    call gfx__clear_tilemap_0__2722
+    call _LABEL_62C_
+    ld   bc, $FFE4
+    ld   e, $70
+    call _LABEL_1CF6_
+    call _LABEL_1563_
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_CA9F_
+    jp   _LABEL_CA9F_
 
 _LABEL_D11_:
-	ld   a, $03
-	ld   [_RAM_C479_], a
+    ld   a, $03
+    ld   [_RAM_C479_], a
 _LABEL_D16_:
-	ld   a, [_RAM_C479_]
-	push af
-	ld   a, $02
+    ld   a, [_RAM_C479_]
+    push af
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   de, _RAM_C3E0_
-	ld   hl, _RAM_C3F9_
-	call _LABEL_AAA8_
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	call _LABEL_AAA8_
-	pop  af
-	ld   [_RAM_C479_], a
-	call _LABEL_BD22_
-	call _LABEL_AB74_
-	ld   a, $03
+    ld   de, _RAM_C3E0_
+    ld   hl, _RAM_C3F9_
+    call _LABEL_AAA8_
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    call _LABEL_AAA8_
+    pop  af
+    ld   [_RAM_C479_], a
+    call _LABEL_BD22_
+    call _LABEL_AB74_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ret
+    ret
 
 ; Data from D41 to D48 (8 bytes)
 db $3E, $03, $EA, $FF, $3F, $C3, $3E, $59
 
 ; 11th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_syscontrol__launch__0D49:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__clear_shadow_oam__275B
-	ld   a, $03
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__clear_shadow_oam__275B
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_D714_
+    jp   _LABEL_D714_
 
 _LABEL_D58_:
-	xor  a
-	ld   [_RAM_C19B_], a
-	ld   hl, _RAM_C19C_
-	ld   b, $1E
-	ld   de, $0005
-	ld   a, $FF
+    xor  a
+    ld   [_RAM_C19B_], a
+    ld   hl, _RAM_C19C_
+    ld   b, $1E
+    ld   de, $0005
+    ld   a, $FF
 _LABEL_D66_:
-	ld   [hl], a
-	add  hl, de
-	dec  b
-	jr   nz, _LABEL_D66_
-	ld   hl, $A233
-	ld   a, [_SRAM_231_]
-	or   a
-	ret  z
+    ld   [hl], a
+    add  hl, de
+    dec  b
+    jr   nz, _LABEL_D66_
+    ld   hl, $A233
+    ld   a, [_SRAM_231_]
+    or   a
+    ret  z
 _LABEL_D73_:
-	push af
-	push hl
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	cp   [hl]
-	jr   nz, _LABEL_D97_
-	inc  hl
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	cp   [hl]
-	jr   nz, _LABEL_D97_
-	inc  hl
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	cp   [hl]
-	jr   nz, _LABEL_D97_
-	inc  hl
-	ld   a, [hl]
-	cp   $63
-	jr   z, _LABEL_D97_
-	ld   d, a
-	inc  hl
-	ld   e, [hl]
-	inc  hl
-	ld   a, [hl]
-	call _LABEL_DA1_
+    push af
+    push hl
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    cp   [hl]
+    jr   nz, _LABEL_D97_
+    inc  hl
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    cp   [hl]
+    jr   nz, _LABEL_D97_
+    inc  hl
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    cp   [hl]
+    jr   nz, _LABEL_D97_
+    inc  hl
+    ld   a, [hl]
+    cp   $63
+    jr   z, _LABEL_D97_
+    ld   d, a
+    inc  hl
+    ld   e, [hl]
+    inc  hl
+    ld   a, [hl]
+    call _LABEL_DA1_
 _LABEL_D97_:
-	ld   de, $0042
-	pop  hl
-	add  hl, de
-	pop  af
-	dec  a
-	jr   nz, _LABEL_D73_
-	ret
+    ld   de, $0042
+    pop  hl
+    add  hl, de
+    pop  af
+    dec  a
+    jr   nz, _LABEL_D73_
+    ret
 
 _LABEL_DA1_:
-	cp   $04
-	jr   nz, _LABEL_DA7_
-	ld   a, $01
+    cp   $04
+    jr   nz, _LABEL_DA7_
+    ld   a, $01
 _LABEL_DA7_:
-	push af
-	ld   hl, _RAM_C19B_
-	inc  [hl]
-	ld   hl, _RAM_C19C_
-	ld   bc, $0005
+    push af
+    ld   hl, _RAM_C19B_
+    inc  [hl]
+    ld   hl, _RAM_C19C_
+    ld   bc, $0005
 _LABEL_DB2_:
-	ld   a, [hl]
-	inc  a
-	jr   z, _LABEL_DB9_
-	add  hl, bc
-	jr   _LABEL_DB2_
+    ld   a, [hl]
+    inc  a
+    jr   z, _LABEL_DB9_
+    add  hl, bc
+    jr   _LABEL_DB2_
 
 _LABEL_DB9_:
-	ld   b, $00
-	ld   a, d
+    ld   b, $00
+    ld   a, d
 _LABEL_DBC_:
-	cp   $0A
-	jr   c, _LABEL_DC5_
-	sub  $0A
-	inc  b
-	jr   _LABEL_DBC_
+    cp   $0A
+    jr   c, _LABEL_DC5_
+    sub  $0A
+    inc  b
+    jr   _LABEL_DBC_
 
 _LABEL_DC5_:
-	add  $30
-	ld   c, a
-	ld   a, b
-	add  $30
-	ldi  [hl], a
-	ld   [hl], c
-	inc  hl
-	ld   a, e
-	ld   b, $00
+    add  $30
+    ld   c, a
+    ld   a, b
+    add  $30
+    ldi  [hl], a
+    ld   [hl], c
+    inc  hl
+    ld   a, e
+    ld   b, $00
 _LABEL_DD1_:
-	cp   $0A
-	jr   c, _LABEL_DDA_
-	sub  $0A
-	inc  b
-	jr   _LABEL_DD1_
+    cp   $0A
+    jr   c, _LABEL_DDA_
+    sub  $0A
+    inc  b
+    jr   _LABEL_DD1_
 
 _LABEL_DDA_:
-	add  $30
-	ld   c, a
-	ld   a, b
-	add  $30
-	ldi  [hl], a
-	ld   [hl], c
-	inc  hl
-	pop  af
-	ld   [hl], a
-	ret
+    add  $30
+    ld   c, a
+    ld   a, b
+    add  $30
+    ldi  [hl], a
+    ld   [hl], c
+    inc  hl
+    pop  af
+    ld   [hl], a
+    ret
 
 _LABEL_DE6_:
-	call date__convert_from_bcd_to_decimal_maybe__288F_
+    call date__convert_from_bcd_to_decimal_maybe__288F_
 
-	ld   de, $0006
-	ld   hl, $98A3
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $0006
+    ld   hl, $98A3
+    rst  $20    ; GFX_COPY_STRING__RST_20
 
-	call _LABEL_E05_
+    call _LABEL_E05_
 _LABEL_DF3_:
-	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
+    call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         ; TODO: Always succeed on Mega Duck Hardware?
         REPT 7
@@ -2604,79 +2604,79 @@ _LABEL_DF3_:
         cp   WORKBOY_SCAN_KEY_NONE  ; $FF
         jr   z, _LABEL_DF3_
     ENDC
-	ld   de, $2150
-	ld   hl, $98A0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    ld   de, $2150
+    ld   hl, $98A0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_E05_:
-	ld   hl, _RAM_C2B6_
-	ld   [hl], $B0
-	inc  hl
-	ld   [hl], $00
-	inc  hl
-	ld   [hl], $00
-	inc  hl
-	ld   a, [_RAM_C704_]
-	call _LABEL_E5A_
-	ldi  [hl], a
-	ld   a, [_RAM_C703_]
-	call _LABEL_E5A_
-	ldi  [hl], a
-	ld   a, [_RAM_C702_]
-	and  $03
-	call util__upshift_A_by_4__0F2C
-	add  a
-	add  a
-	ld   c, a
-	ld   a, [_RAM_C700_]
-	ld   b, $00
+    ld   hl, _RAM_C2B6_
+    ld   [hl], $B0
+    inc  hl
+    ld   [hl], $00
+    inc  hl
+    ld   [hl], $00
+    inc  hl
+    ld   a, [_RAM_C704_]
+    call _LABEL_E5A_
+    ldi  [hl], a
+    ld   a, [_RAM_C703_]
+    call _LABEL_E5A_
+    ldi  [hl], a
+    ld   a, [_RAM_C702_]
+    and  $03
+    call util__upshift_A_by_4__0F2C
+    add  a
+    add  a
+    ld   c, a
+    ld   a, [_RAM_C700_]
+    ld   b, $00
 _LABEL_E2F_:
-	cp   $0A
-	jr   c, _LABEL_E38_
-	sub  $0A
-	inc  b
-	jr   _LABEL_E2F_
+    cp   $0A
+    jr   c, _LABEL_E38_
+    sub  $0A
+    inc  b
+    jr   _LABEL_E2F_
 
 _LABEL_E38_:
-	add  c
-	ld   c, a
-	ld   a, b
-	call util__upshift_A_by_4__0F2C
-	add  c
-	ldi  [hl], a
-	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
-	inc  a
-	call util__upshift_A_by_4__0F2C
-	add  a
-	ld   c, a
-	ld   a, [_RAM_C701_]
-	ld   b, $00
-	cp   $0A
-	jr   c, _LABEL_E56_
-	sub  $0A
-	ld   b, $10
+    add  c
+    ld   c, a
+    ld   a, b
+    call util__upshift_A_by_4__0F2C
+    add  c
+    ldi  [hl], a
+    ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+    inc  a
+    call util__upshift_A_by_4__0F2C
+    add  a
+    ld   c, a
+    ld   a, [_RAM_C701_]
+    ld   b, $00
+    cp   $0A
+    jr   c, _LABEL_E56_
+    sub  $0A
+    ld   b, $10
 _LABEL_E56_:
-	add  c
-	add  b
-	ldi  [hl], a
-	ret
+    add  c
+    add  b
+    ldi  [hl], a
+    ret
 
 _LABEL_E5A_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_E5C_:
-	cp   $0A
-	jr   c, _LABEL_E65_
-	sub  $0A
-	inc  b
-	jr   _LABEL_E5C_
+    cp   $0A
+    jr   c, _LABEL_E65_
+    sub  $0A
+    inc  b
+    jr   _LABEL_E5C_
 
 _LABEL_E65_:
-	ld   c, a
-	ld   a, b
-	call util__upshift_A_by_4__0F2C
-	add  c
-	ret
+    ld   c, a
+    ld   a, b
+    call util__upshift_A_by_4__0F2C
+    add  c
+    ret
 
 
 ; ### MEGADUCK-HARDWARE-PATCHING: RTC-WRITE
@@ -2716,100 +2716,100 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
         megaduck__rtc_send_patch_done__0EA5:
     ELSE
         ; Put Workboy hardware into WRITE mode
-    	ld   a, WORKBOY_CMD_W_TODO ; $57
-    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+        ld   a, WORKBOY_CMD_W_TODO ; $57
+        call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
         ; Check returned serial byte, return if zero
         ; also return if blank/unset (0xFF)
-    	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
-    	ret  z
-    	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-    	ret  z
+        or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+        ret  z
+        cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        ret  z
         ; Returned serial byte in A seems to get discarded here
 
         ; Loops sending the 0x00 command until reply is not WORKBOY_SCAN_KEY_NONE (0xFF) AND not null value (0x00)
         ; Polling for a "Ready" response
         .loop_request_serial_until_valid_reply_byte__0E76:
-        	ld   a, WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
-        	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-        	or   a
-        	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
-        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-        	jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+            ld   a, WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
+            call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+            or   a
+            jr   z, .loop_request_serial_until_valid_reply_byte__0E76
+            cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+            jr   z, .loop_request_serial_until_valid_reply_byte__0E76
 
         ; The value written to 0xC2AE below is ignored and overwritten
         ; shortly after the call below to 0x0EB1
-    	ld   a, [_DATA_84_]
-    	ld   [serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE], a
-    	call rtc__load_data_to_rtc_transfer_buffer__0EB1
+        ld   a, [_DATA_84_]
+        ld   [serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE], a
+        call rtc__load_data_to_rtc_transfer_buffer__0EB1
 
         ; Prepare to send 21 bytes of RTC data from a buffer
         ; Send 21 bytes starting at serial__transfer_buffer_21_bytes__RAM_C2A9 out over Serial IO
         ; 5 Byte gap between the start of the buffer and loaded RTC data at: serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
-    	ld   de, serial__transfer_buffer_21_bytes__RAM_C2A9
-    	ld   c, 21  ; $15
+        ld   de, serial__transfer_buffer_21_bytes__RAM_C2A9
+        ld   c, 21  ; $15
         .serial_send_loop__0E90:
-        	ld   a, [de]
-        	inc  de
-        	call serial_io__send_byte_and_wait_3msec__0B11
-        	call delay_2_94msec__334A
-        	dec  c
-        	jr   nz, .serial_send_loop__0E90
+            ld   a, [de]
+            inc  de
+            call serial_io__send_byte_and_wait_3msec__0B11
+            call delay_2_94msec__334A
+            dec  c
+            jr   nz, .serial_send_loop__0E90
 
         ; Send the last byte from above 21 bytes transfer starting at serial__transfer_buffer_21_bytes__RAM_C2A9 out over Serial IO
         ; Loop until serial reply byte is != 0 and != 0xFF
         .serial_send_wait_valid_reply_loop__0E9B:
-        	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-        	or   a ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
-        	jr   z, .serial_send_wait_valid_reply_loop__0E9B
-        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-        	jr   z, .serial_send_wait_valid_reply_loop__0E9B
+            call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+            or   a ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+            jr   z, .serial_send_wait_valid_reply_loop__0E9B
+            cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+            jr   z, .serial_send_wait_valid_reply_loop__0E9B
     ENDC
 
     ; TODO: Why converting time from BCD here when it just wrote the time and date out to the workboy hardware?
-	call time__convert_from_BCD__seconds__2916
-	call time__convert_from_BCD__minutes__2942
-	call time__convert_from_BCD_and_something_TODO__hours__296E
-	ld   a, $01
-	ret
+    call time__convert_from_BCD__seconds__2916
+    call time__convert_from_BCD__minutes__2942
+    call time__convert_from_BCD_and_something_TODO__hours__296E
+    ld   a, $01
+    ret
 
 rtc__load_data_to_rtc_transfer_buffer__0EB1:
-	ld   hl, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
+    ld   hl, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
     ; [0] = Header ?
-	ld   [hl], $04
-	inc  hl
+    ld   [hl], $04
+    inc  hl
     ; [1] = 0x00 ?
-	ld   [hl], $00
-	inc  hl
+    ld   [hl], $00
+    inc  hl
 
     ; [2] = Seconds BCD
-	ld   a, [time__seconds__low_digit_ascii__RAM_C3A0]
-	sub  $30  ; -= 48  ("0")
-	ld   c, a
-	ld   a, [time__seconds__high_digit_ascii__RAM_C39F]
-	sub  $30  ; -= 48  ("0")
-	call util__upshift_A_by_4__0F2C
-	add  c
-	ldi  [hl], a
+    ld   a, [time__seconds__low_digit_ascii__RAM_C3A0]
+    sub  $30  ; -= 48  ("0")
+    ld   c, a
+    ld   a, [time__seconds__high_digit_ascii__RAM_C39F]
+    sub  $30  ; -= 48  ("0")
+    call util__upshift_A_by_4__0F2C
+    add  c
+    ldi  [hl], a
 
     ; [3] = Minutes BCD
-	ld   a, [time__minutes__low_digit_ascii__RAM_C39E]
-	sub  $30  ; -= 48  ("0")
-	ld   c, a
-	ld   a, [time__minutes__high_digit_ascii__RAM_C39D]
-	sub  $30  ; -= 48  ("0")
-	call util__upshift_A_by_4__0F2C
-	add  c
-	ldi  [hl], a
+    ld   a, [time__minutes__low_digit_ascii__RAM_C39E]
+    sub  $30  ; -= 48  ("0")
+    ld   c, a
+    ld   a, [time__minutes__high_digit_ascii__RAM_C39D]
+    sub  $30  ; -= 48  ("0")
+    call util__upshift_A_by_4__0F2C
+    add  c
+    ldi  [hl], a
 
     ; [4] = Hours BCD
-	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
-	sub  $30  ; -= 48  ("0")
-	ld   c, a
-	ld   a, [time__hours__high_digit_ascii__RAM_C39B]
-	sub  $30  ; -= 48  ("0")
-	call util__upshift_A_by_4__0F2C
-	add  c
-	ldi  [hl], a
+    ld   a, [time__hours__low_digit_ascii__RAM_C39C]
+    sub  $30  ; -= 48  ("0")
+    ld   c, a
+    ld   a, [time__hours__high_digit_ascii__RAM_C39B]
+    sub  $30  ; -= 48  ("0")
+    call util__upshift_A_by_4__0F2C
+    add  c
+    ldi  [hl], a
 
     ; [5] = Day BCD
     ; They store the lower 2 bits of year in the Day field upper 2 bits for some reason
@@ -2820,48 +2820,48 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
             nop
         ENDR
     ELSE
-	   ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	   and  $03
-	   call util__upshift_A_by_4__0F2C
-	   add  a ; *= 4 -> C
-	   add  a
-	   ld   c, a
+       ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+       and  $03
+       call util__upshift_A_by_4__0F2C
+       add  a ; *= 4 -> C
+       add  a
+       ld   c, a
     ENDC
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ld   b, $00
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ld   b, $00
     .modulo_10_loop__0EFA:
-    	cp   $0A
-    	jr   c, .modulo_10_done__0F03
-    	sub  $0A ; -= 10
-    	inc  b
-    	jr   .modulo_10_loop__0EFA
+        cp   $0A
+        jr   c, .modulo_10_done__0F03
+        sub  $0A ; -= 10
+        inc  b
+        jr   .modulo_10_loop__0EFA
     .modulo_10_done__0F03:
-	add  c
-	ld   c, a
-	ld   a, b
-	call util__upshift_A_by_4__0F2C
-	add  c
-	ldi  [hl], a
+    add  c
+    ld   c, a
+    ld   a, b
+    call util__upshift_A_by_4__0F2C
+    add  c
+    ldi  [hl], a
 
     ; [6] = Month + day of week
     ; Day of Week in upper 3 bits (& 0xE0) (0 to 6 as Sun to Mon)
     ; Month       in lower 5 bits (& 0x1F)
-	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
-	call util__upshift_A_by_4__0F2C
-	add  a
-	ld   c, a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ld   b, $00
-	cp   $0A
-	jr   c, .modulo_10_loop__0F20
-    	sub  $0A  ; -= 10
-    	ld   b, $10
+    ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+    call util__upshift_A_by_4__0F2C
+    add  a
+    ld   c, a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ld   b, $00
+    cp   $0A
+    jr   c, .modulo_10_loop__0F20
+        sub  $0A  ; -= 10
+        ld   b, $10
     .modulo_10_loop__0F20:
-	add  c
-	add  b
-	ldi  [hl], a
+    add  c
+    add  b
+    ldi  [hl], a
 
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
     ; Why are 2 LSBits for Year are stored in 2 MSBits of Day further above???
     ; Not doing this foolishness on the MegaDuck
     if DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -2872,18 +2872,18 @@ rtc__load_data_to_rtc_transfer_buffer__0EB1:
     ENDC
 
     ; This is equivalent to serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE[0xF]
-	ld   [sioxfer_time__year__RAM_C2BD], a
-	ret
+    ld   [sioxfer_time__year__RAM_C2BD], a
+    ret
 
 ; Added to fill in gaps on Megaduck build
 ; for shortened version of above: rtc__load_data_to_rtc_transfer_buffer__0EB1
 SECTION "util__upshift_A_by_4__0F2C", ROM0[$0F2C]
     util__upshift_A_by_4__0F2C:
-    	add  a ; x 2
-    	add  a ; x 4
-    	add  a ; x 8
-    	add  a ; x 16
-	ret
+        add  a ; x 2
+        add  a ; x 4
+        add  a ; x 8
+        add  a ; x 16
+    ret
 
 
 ; Data below Appears to be ROM bank lookup table of some kind
@@ -2912,123 +2912,123 @@ db $7C, $05, $83, $7E, $03, $EE, $7E, $03, $06, $7E, $4E, $50, $51, $56, $5A, $4
 db $53, $50, $4F, $50, $41, $53, $50, $52, $55
 
 _LABEL_F68_:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_SRAM_1F9_]
-	cp   $05
-	jr   c, _LABEL_F77_
-	xor  a
-	ld   [_SRAM_1F9_], a
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [_SRAM_1F9_]
+    cp   $05
+    jr   c, _LABEL_F77_
+    xor  a
+    ld   [_SRAM_1F9_], a
 _LABEL_F77_:
-	ld   [_RAM_C232_], a
-	ld   e, a
-	add  a
-	add  e
-	ld   d, $00
-	ld   e, a
-	ld   hl, _DATA_F4A_
-	add  hl, de
-	ldi  a, [hl]
+    ld   [_RAM_C232_], a
+    ld   e, a
+    add  a
+    add  e
+    ld   d, $00
+    ld   e, a
+    ld   hl, _DATA_F4A_
+    add  hl, de
+    ldi  a, [hl]
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	ld   de, _RAM_CF00_
-	ld   b, $D0
-	ld   a, $E8
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    ld   de, _RAM_CF00_
+    ld   b, $D0
+    ld   a, $E8
 _LABEL_F92_:
-	push af
-	ldi  a, [hl]
-	ld   c, a
-	ld   [de], a
-	inc  de
-	ld   a, b
-	ld   [de], a
-	inc  de
-	ld   a, c
-	cp   [hl]
-	jr   c, _LABEL_FA1_
-	jr   z, _LABEL_FA1_
-	inc  b
+    push af
+    ldi  a, [hl]
+    ld   c, a
+    ld   [de], a
+    inc  de
+    ld   a, b
+    ld   [de], a
+    inc  de
+    ld   a, c
+    cp   [hl]
+    jr   c, _LABEL_FA1_
+    jr   z, _LABEL_FA1_
+    inc  b
 _LABEL_FA1_:
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F92_
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F92_
     ; The Duck MBC emulation doesn't support SRAM at the moment
     ; so force the read to return "0" (expected result in normal ROM)
     IF DEF(DEBUG_USE_DUCK_MBC_NO_SRAM) ; && DEF(TARGET_MEGADUCK))
         nop
         ld   a, 0
     ELSE
-	   ld   a, [_SRAM_1F9_]  ; Megaduck gets stuck here because it's MBC has no SRAM
+       ld   a, [_SRAM_1F9_]  ; Megaduck gets stuck here because it's MBC has no SRAM
     ENDC
-	ld   e, a
-	add  a
-	add  a
-	add  e
-	ld   d, $00
-	ld   e, a
-	ld   hl, _DATA_F31_
-	add  hl, de
-	ldi  a, [hl]
+    ld   e, a
+    add  a
+    add  a
+    add  e
+    ld   d, $00
+    ld   e, a
+    ld   hl, _DATA_F31_
+    add  hl, de
+    ldi  a, [hl]
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	inc  hl
-	ld   c, [hl]
-	inc  hl
-	ld   b, [hl]
-	ld   hl, _RAM_D0D0_ ; TODO: Label : gfx__temp_tilemap__RAM_D0D0
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    inc  hl
+    ld   c, [hl]
+    inc  hl
+    ld   b, [hl]
+    ld   hl, _RAM_D0D0_ ; TODO: Label : gfx__temp_tilemap__RAM_D0D0
     ; Loads a bunch of tile map data from ROM to RAM
     ._LABEL_0FC1:
-    	ld   a, [de]
-    	inc  de
-    	ldi  [hl], a
-    	dec  bc
-    	ld   a, b
-    	or   c
-    	jr   nz, ._LABEL_0FC1
+        ld   a, [de]
+        inc  de
+        ldi  [hl], a
+        dec  bc
+        ld   a, b
+        or   c
+        jr   nz, ._LABEL_0FC1
 
     ; Search for start of displayed version text
     ; Load RAM Address to start search
-	ld   a, $03
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   a, [_RAM_CF16_]
-	ld   l, a
-	ld   a, [_RAM_CF17_]
-	ld   h, a
+    ld   a, [_RAM_CF16_]
+    ld   l, a
+    ld   a, [_RAM_CF17_]
+    ld   h, a
     ;  a byte in RAM with value 0x35 ("5")
     ._LABEL_0FD6:
-    	ld   a, [hl]
-    	cp   $35
-    	jr   z, _LABEL_FDE_
-    	inc  hl
-    	jr   ._LABEL_0FD6
+        ld   a, [hl]
+        cp   $35
+        jr   z, _LABEL_FDE_
+        inc  hl
+        jr   ._LABEL_0FD6
 
     ; Overwrite "Version 5.74" with "Version 8.87"
     _LABEL_FDE_:
-	ld   de, _DATA_FEA_
-	ld   b, $04
+    ld   de, _DATA_FEA_
+    ld   b, $04
     .overwrite_version_loop__0FE3:
-    	ld   a, [de]
-    	inc  de
-    	ldi  [hl], a
-    	dec  b
-    	jr   nz, .overwrite_version_loop__0FE3
-	ret
+        ld   a, [de]
+        inc  de
+        ldi  [hl], a
+        dec  b
+        jr   nz, .overwrite_version_loop__0FE3
+    ret
 
 ; Data from FEA to FED (4 bytes)
 _DATA_FEA_:
@@ -3039,102 +3039,102 @@ db $38, $2E, $38, $37
 ; Dest   address : HL
 gfx__copy_string_to_vram__0FEE:
     ; Check if MSByte of source address is populated
-	ld   a, d
-	or   a
-	jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__0FFE
+    ld   a, d
+    or   a
+    jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__0FFE
 
         ; If source addr MSB empty, it means load source addr from pointer table instead
         ; pointer address =  0xCEFE + (LOW(Source Address) x 2)
-    	push hl
-    	ld   h, a
-    	ld   l, e
-    	add  hl, hl
-    	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
-    	add  hl, de
-    	ld   e, [hl]
-    	inc  hl
-    	ld   d, [hl]
-    	pop  hl
+        push hl
+        ld   h, a
+        ld   l, e
+        add  hl, hl
+        ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
+        add  hl, de
+        ld   e, [hl]
+        inc  hl
+        ld   d, [hl]
+        pop  hl
 
     .use_raw_source_addr__skip_load_from_pointer_table__0FFE:
-	ld   a, l
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, h
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, e
-	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
-	ld   a, d
-	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
-	ld   a, VBL_CMD__COPY_TEXT__0x0F  ; $0F
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
+    ld   a, l
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, h
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, e
+    ld   [gfx__src_addr_lo__RAM_C135_maybe], a
+    ld   a, d
+    ld   [gfx__src_addr_hi__RAM_C136_maybe], a
+    ld   a, VBL_CMD__COPY_TEXT__0x0F  ; $0F
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 
 ; Source address : DE (If MSB empty, E has index into pointer table to load source address instead)
 ; Dest   address : HL
 gfx__copy_string_to_vram_centered__1019:
     ; Check if MSByte of source address is populated
-	ld   a, d
-	or   a
-	jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__1029
+    ld   a, d
+    or   a
+    jr   nz, .use_raw_source_addr__skip_load_from_pointer_table__1029
 
         ; If source addr MSB empty, it means load source addr from pointer table instead
         ; pointer address =  0xCEFE + (LOW(Source Address) x 2)
-    	push hl
-    	ld   h, a
-    	ld   l, e
-    	add  hl, hl
-    	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
-    	add  hl, de
-    	ld   e, [hl]
-    	inc  hl
-    	ld   d, [hl]
-    	pop  hl
+        push hl
+        ld   h, a
+        ld   l, e
+        add  hl, hl
+        ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
+        add  hl, de
+        ld   e, [hl]
+        inc  hl
+        ld   d, [hl]
+        pop  hl
 
     .use_raw_source_addr__skip_load_from_pointer_table__1029:
     ; Find the number of bytes to copy (0 terminated)
-	push de
-	ld   b, $00
+    push de
+    ld   b, $00
     .find_length_loop__102C:
-    	ld   a, [de]
-    	inc  de
-    	or   a
-    	jr   z, .length_count_done__1034
-    	inc  b
-    	jr   .find_length_loop__102C
+        ld   a, [de]
+        inc  de
+        or   a
+        jr   z, .length_count_done__1034
+        inc  b
+        jr   .find_length_loop__102C
 
     .length_count_done__1034:
     ; Calc to center the text on the tilemap Row ((20 - length) / 2)
-	ld   a, _TILEMAP_SCREEN_WIDTH ; $14
-	sub  b
-	or   a
-	rr   a
+    ld   a, _TILEMAP_SCREEN_WIDTH ; $14
+    sub  b
+    or   a
+    rr   a
 
     ; Add it to Dest Address and save that to RAM (TODO)
     ; Dest  : RAM_C134,RAM_C133 (HL)
     ; Source: RAM_C135,RAM_C136 (DE)
-	add  l
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, h
-	adc  $00
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	pop  de
-	ld   a, e
-	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
-	ld   a, d
-	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
+    add  l
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, h
+    adc  $00
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    pop  de
+    ld   a, e
+    ld   [gfx__src_addr_lo__RAM_C135_maybe], a
+    ld   a, d
+    ld   [gfx__src_addr_hi__RAM_C136_maybe], a
     ; Select copy command and wait until the next frame for it to execute
-	ld   a, VBL_CMD__COPY_TEXT__0x0F; $0F
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
+    ld   a, VBL_CMD__COPY_TEXT__0x0F; $0F
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 ; Data from 1058 to 1070 (25 bytes)
 db $4E, $45, $56, $41, $53, $4F, $50, $53, $50, $55, $4E, $50, $45, $56, $5A, $41
@@ -3145,59 +3145,59 @@ _DATA_1071_:
 db $59, $4A, $4F, $53, $53
 
 _LABEL_1076_:
-	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	push de
-	ld   d, $00
-	ld   a, [_RAM_C232_]
-	ld   e, a
-	ld   hl, $1071
-	add  hl, de
-	pop  de
+    ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    push de
+    ld   d, $00
+    ld   a, [_RAM_C232_]
+    ld   e, a
+    ld   hl, $1071
+    add  hl, de
+    pop  de
 _LABEL_1089_:
-	ld   a, [de]
-	cp   [hl]
-	jr   z, _LABEL_1090_
-	inc  de
-	jr   _LABEL_1089_
+    ld   a, [de]
+    cp   [hl]
+    jr   z, _LABEL_1090_
+    inc  de
+    jr   _LABEL_1089_
 
 _LABEL_1090_:
-	ld   a, $41
-	ld   [de], a
-	ret
+    ld   a, $41
+    ld   [de], a
+    ret
 
 _LABEL_1094_:
-	push af
-	ld   hl, $70FA
-	ld   b, $19
+    push af
+    ld   hl, $70FA
+    ld   b, $19
 _LABEL_109A_:
-	cp   [hl]
-	jr   z, _LABEL_10A3_
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_109A_
-	pop  af
-	ret
+    cp   [hl]
+    jr   z, _LABEL_10A3_
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_109A_
+    pop  af
+    ret
 
 _LABEL_10A3_:
-	ld   a, $19
-	sub  b
-	add  a
-	ld   hl, _DATA_B113_
-	ld   d, $00
-	ld   e, a
-	add  hl, de
-	ldi  a, [hl]
-	ld   [_RAM_C593_], a
-	ldi  a, [hl]
-	ld   [_RAM_C594_], a
-	ld   a, $05
-	ld   [_RAM_C595_], a
-	pop  af
-	ret
+    ld   a, $19
+    sub  b
+    add  a
+    ld   hl, _DATA_B113_
+    ld   d, $00
+    ld   e, a
+    add  hl, de
+    ldi  a, [hl]
+    ld   [_RAM_C593_], a
+    ldi  a, [hl]
+    ld   [_RAM_C594_], a
+    ld   a, $05
+    ld   [_RAM_C595_], a
+    pop  af
+    ret
 
 ; Data from 10BD to 10C2 (6 bytes)
 _DATA_10BD_:
@@ -3205,348 +3205,348 @@ db $49, $54, $43, $4D, $52, $54
 
 
 alt_menu__show_when_no_keyboard_found__10C3:
-	call gfx__copy_some_tile_patterns_todo__0424
+    call gfx__copy_some_tile_patterns_todo__0424
 
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
 
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   a, $03
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   a, [_RAM_C233_]
-	or   a
-	jr   z, ._LABEL_10DF_
-	ld   hl, _DATA_DB31_
-	jr   ._LABEL_10E2_
+    ld   a, [_RAM_C233_]
+    or   a
+    jr   z, ._LABEL_10DF_
+    ld   hl, _DATA_DB31_
+    jr   ._LABEL_10E2_
 
     ._LABEL_10DF_:
-	ld   hl, _DATA_DB37_
+    ld   hl, _DATA_DB37_
 
     ._LABEL_10E2_:
-	call _LABEL_2003_
-	ld   de, $00DA
-	call _LABEL_1D2D_
-	ld   bc, $0009
-	call _LABEL_BC3_
-	ld   de, $00DB
-	call _LABEL_1D2D_
-	ld   bc, $0309
-	call _LABEL_BC3_
-	ld   de, $00DC
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $00DD
-	call _LABEL_1D2D_
-	ld   bc, $0909
-	call _LABEL_BC3_
-	ld   de, $00DE
-	call _LABEL_1D2D_
-	ld   bc, $0C09
-	call _LABEL_BC3_
-	ld   a, [_RAM_C233_]
-	or   a
-	jr   z, ._LABEL_1133_
-    	ld   de, $00D7
-    	call _LABEL_1D2D_
-    	ld   bc, $0F09
-    	call _LABEL_BC3_
+    call _LABEL_2003_
+    ld   de, $00DA
+    call _LABEL_1D2D_
+    ld   bc, $0009
+    call _LABEL_BC3_
+    ld   de, $00DB
+    call _LABEL_1D2D_
+    ld   bc, $0309
+    call _LABEL_BC3_
+    ld   de, $00DC
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $00DD
+    call _LABEL_1D2D_
+    ld   bc, $0909
+    call _LABEL_BC3_
+    ld   de, $00DE
+    call _LABEL_1D2D_
+    ld   bc, $0C09
+    call _LABEL_BC3_
+    ld   a, [_RAM_C233_]
+    or   a
+    jr   z, ._LABEL_1133_
+        ld   de, $00D7
+        call _LABEL_1D2D_
+        ld   bc, $0F09
+        call _LABEL_BC3_
 
     ._LABEL_1133_:
-	call sys_run_submenu_result_in_A__206D
-	cp   $05
-	jp   z, _LABEL_2DA7_
-	cp   $03
-	jp   z, app_calculator__launch__338A
-	push af
-	cp   $04
-	jr   nz, _LABEL_1153_
-	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	or   a
-	jr   nz, _LABEL_1174_
-	jp   _LABEL_DCC7_
+    call sys_run_submenu_result_in_A__206D
+    cp   $05
+    jp   z, _LABEL_2DA7_
+    cp   $03
+    jp   z, app_calculator__launch__338A
+    push af
+    cp   $04
+    jr   nz, _LABEL_1153_
+    ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    or   a
+    jr   nz, _LABEL_1174_
+    jp   _LABEL_DCC7_
 
 _LABEL_1153_:
-	cp   $01
-	jr   nz, _LABEL_1163_
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_SRAM_1_]
-	or   a
-	jr   nz, _LABEL_1174_
-	jp   _LABEL_DCC7_
+    cp   $01
+    jr   nz, _LABEL_1163_
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [_SRAM_1_]
+    or   a
+    jr   nz, _LABEL_1174_
+    jp   _LABEL_DCC7_
 
 _LABEL_1163_:
-	cp   $02
-	jr   nz, _LABEL_1174_
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_SRAM_231_]
-	or   a
-	jp   z, _LABEL_DCC7_
-	jr   _LABEL_11B2_
+    cp   $02
+    jr   nz, _LABEL_1174_
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [_SRAM_231_]
+    or   a
+    jp   z, _LABEL_DCC7_
+    jr   _LABEL_11B2_
 
 _LABEL_1174_:
-	call _LABEL_1210_
-	ld   bc, $570C
-	call _LABEL_2044_
-	ld   bc, $2808
-	call _LABEL_27DD_
-	ld   a, $03
+    call _LABEL_1210_
+    ld   bc, $570C
+    call _LABEL_2044_
+    ld   bc, $2808
+    call _LABEL_27DD_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_DB40_
-	push af
-	push bc
-	push de
-	push hl
-	ld   hl, $C11B
-	ld   de, _DATA_10BD_
-	ld   b, $06
+    call _LABEL_DB40_
+    push af
+    push bc
+    push de
+    push hl
+    ld   hl, $C11B
+    ld   de, _DATA_10BD_
+    ld   b, $06
 _LABEL_1197_:
-	ld   a, [de]
-	cp   [hl]
-	jr   nz, _LABEL_11A5_
-	inc  hl
-	inc  de
-	dec  b
-	jr   nz, _LABEL_1197_
-	ld   a, $01
-	ld   [_RAM_C233_], a
+    ld   a, [de]
+    cp   [hl]
+    jr   nz, _LABEL_11A5_
+    inc  hl
+    inc  de
+    dec  b
+    jr   nz, _LABEL_1197_
+    ld   a, $01
+    ld   [_RAM_C233_], a
 _LABEL_11A5_:
-	pop  hl
-	pop  de
-	pop  bc
-	pop  af
-	pop  af
-	cp   $01
-	jp   z, _LABEL_DD5A_
-	jp   _LABEL_DCE7_
+    pop  hl
+    pop  de
+    pop  bc
+    pop  af
+    pop  af
+    cp   $01
+    jp   z, _LABEL_DD5A_
+    jp   _LABEL_DCE7_
 
 _LABEL_11B2_:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__clear_tilemap_0__2722
-	ld   a, $02
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__clear_tilemap_0__2722
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	dec  a
-	ld   [_RAM_C10B_], a
-	call _LABEL_B765_
-	ld   de, $0002
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00D1
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00D2
-	ld   hl, $9A22
-	rst  $20	; GFX_COPY_STRING__RST_20
+    dec  a
+    ld   [_RAM_C10B_], a
+    call _LABEL_B765_
+    ld   de, $0002
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00D1
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00D2
+    ld   hl, $9A22
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_11DA_:
-	ld   a, [_RAM_C592_]
-	or   a
-	jr   z, _LABEL_11DA_
-	bit  2, a
-	jr   z, _LABEL_11F7_
-	ld   a, [_RAM_C10B_]
-	cp   $02
-	jr   c, _LABEL_11DA_
-	ld   a, [_RAM_C10B_]
-	dec  a
+    ld   a, [_RAM_C592_]
+    or   a
+    jr   z, _LABEL_11DA_
+    bit  2, a
+    jr   z, _LABEL_11F7_
+    ld   a, [_RAM_C10B_]
+    cp   $02
+    jr   c, _LABEL_11DA_
+    ld   a, [_RAM_C10B_]
+    dec  a
 _LABEL_11EF_:
-	ld   [_RAM_C10B_], a
-	call _LABEL_B765_
-	jr   _LABEL_11DA_
+    ld   [_RAM_C10B_], a
+    call _LABEL_B765_
+    jr   _LABEL_11DA_
 
 _LABEL_11F7_:
-	bit  0, a
-	jp   nz, _LABEL_200_
-	bit  1, a
-	jr   z, _LABEL_11DA_
-	ld   a, [_SRAM_231_]
-	ld   c, a
-	ld   a, [_RAM_C10B_]
-	cp   c
-	jr   z, _LABEL_11DA_
-	ld   a, [_RAM_C10B_]
-	inc  a
-	jr   _LABEL_11EF_
+    bit  0, a
+    jp   nz, _LABEL_200_
+    bit  1, a
+    jr   z, _LABEL_11DA_
+    ld   a, [_SRAM_231_]
+    ld   c, a
+    ld   a, [_RAM_C10B_]
+    cp   c
+    jr   z, _LABEL_11DA_
+    ld   a, [_RAM_C10B_]
+    inc  a
+    jr   _LABEL_11EF_
 
 _LABEL_1210_:
-	xor  a
-	ld   [_RAM_C234_], a
-	call gfx__turn_off_screen_2827
-	ld   a, $07
+    xor  a
+    ld   [_RAM_C234_], a
+    call gfx__turn_off_screen_2827
+    ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, _TILEDATA9000
-	ld   bc, _DATA_1DDCA_
-	xor  a ; Copy 256 tiles
-	call gfx__copy_tile_patterns__1437
-	ld   a, $05
+    ld   hl, _TILEDATA9000
+    ld   bc, _DATA_1DDCA_
+    xor  a ; Copy 256 tiles
+    call gfx__copy_tile_patterns__1437
+    ld   a, $05
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   de, _DATA_178FC_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	ld   a, $03
+    ld   de, _DATA_178FC_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $0010
-	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $0010
+    ld   hl, (_TILEMAP0 + $40)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_1241_:
-	ld   a, $01
-	ld   [_RAM_C234_], a
-	call gfx__turn_off_screen_2827
-	ld   a, $07
+    ld   a, $01
+    ld   [_RAM_C234_], a
+    call gfx__turn_off_screen_2827
+    ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, _TILEDATA9000
-	ld   bc, _DATA_1ED6A_
-	xor  a ; Copy 256 tiles
-	call gfx__copy_tile_patterns__1437
-	ld   a, $05
+    ld   hl, _TILEDATA9000
+    ld   bc, _DATA_1ED6A_
+    xor  a ; Copy 256 tiles
+    call gfx__copy_tile_patterns__1437
+    ld   a, $05
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   de, _DATA_17A64_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	ld   a, $03
+    ld   de, _DATA_17A64_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $0010
-	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $0010
+    ld   hl, (_TILEMAP0 + $40)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_1273_:
-	ld   a, [_RAM_C154_]
-	or   a
-	ret  z
-	ld   a, $02
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	ld   a, [_RAM_C155_]
-	cp   $5B
-	jr   z, _LABEL_12DC_
-	jr   nc, _LABEL_12B1_
-	ld   c, $02
-	ld   a, [_RAM_C155_]
-	ld   b, $5B
+    ld   a, [_RAM_C154_]
+    or   a
+    ret  z
+    ld   a, $02
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   a, [_RAM_C155_]
+    cp   $5B
+    jr   z, _LABEL_12DC_
+    jr   nc, _LABEL_12B1_
+    ld   c, $02
+    ld   a, [_RAM_C155_]
+    ld   b, $5B
 _LABEL_128D_:
-	dec  b
-	ld   a, b
-	and  $03
-	jr   z, _LABEL_129D_
-	ld   a, c
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_12A4_
-	ld   a, $06
-	jr   _LABEL_12A4_
+    dec  b
+    ld   a, b
+    and  $03
+    jr   z, _LABEL_129D_
+    ld   a, c
+    dec  a
+    cp   $FF
+    jr   nz, _LABEL_12A4_
+    ld   a, $06
+    jr   _LABEL_12A4_
 
 _LABEL_129D_:
-	ld   a, c
-	sub  $02
-	jr   nc, _LABEL_12A4_
-	add  $07
+    ld   a, c
+    sub  $02
+    jr   nc, _LABEL_12A4_
+    add  $07
 _LABEL_12A4_:
-	ld   c, a
-	ld   a, [_RAM_C155_]
-	cp   b
-	jr   nz, _LABEL_128D_
-	ld   a, c
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	jr   _LABEL_12DC_
+    ld   c, a
+    ld   a, [_RAM_C155_]
+    cp   b
+    jr   nz, _LABEL_128D_
+    ld   a, c
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    jr   _LABEL_12DC_
 
 _LABEL_12B1_:
-	ld   c, $02
-	ld   a, [_RAM_C155_]
-	ld   b, $5B
+    ld   c, $02
+    ld   a, [_RAM_C155_]
+    ld   b, $5B
 _LABEL_12B8_:
-	inc  b
-	ld   a, b
-	dec  a
-	and  $03
-	jr   z, _LABEL_12C8_
-	ld   a, c
-	inc  a
-	cp   $07
-	jr   nz, _LABEL_12D1_
-	xor  a
-	jr   _LABEL_12D1_
+    inc  b
+    ld   a, b
+    dec  a
+    and  $03
+    jr   z, _LABEL_12C8_
+    ld   a, c
+    inc  a
+    cp   $07
+    jr   nz, _LABEL_12D1_
+    xor  a
+    jr   _LABEL_12D1_
 
 _LABEL_12C8_:
-	ld   a, c
-	add  $02
-	cp   $07
-	jr   c, _LABEL_12D1_
-	sub  $07
+    ld   a, c
+    add  $02
+    cp   $07
+    jr   c, _LABEL_12D1_
+    sub  $07
 _LABEL_12D1_:
-	ld   c, a
-	ld   a, [_RAM_C155_]
-	cp   b
-	jr   nz, _LABEL_12B8_
-	ld   a, c
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   c, a
+    ld   a, [_RAM_C155_]
+    cp   b
+    jr   nz, _LABEL_12B8_
+    ld   a, c
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
 _LABEL_12DC_:
-	ld   a, [_RAM_C154_]
-	ld   [_RAM_C5C5_], a
-	ld   a, [_RAM_C152_]
-	ld   [_RAM_C5C6_], a
-	ld   a, $01
-	ld   [_RAM_C154_], a
-	ld   [_RAM_C152_], a
+    ld   a, [_RAM_C154_]
+    ld   [_RAM_C5C5_], a
+    ld   a, [_RAM_C152_]
+    ld   [_RAM_C5C6_], a
+    ld   a, $01
+    ld   [_RAM_C154_], a
+    ld   [_RAM_C152_], a
 _LABEL_12F0_:
-	call _LABEL_12F9_
-	ret  z
-	call _LABEL_AE3_
-	jr   _LABEL_12F0_
+    call _LABEL_12F9_
+    ret  z
+    call _LABEL_AE3_
+    jr   _LABEL_12F0_
 
 _LABEL_12F9_:
-	ld   a, [_RAM_C5C5_]
-	ld   c, a
-	ld   a, [_RAM_C154_]
-	cp   c
-	ret  nz
-	ld   a, [_RAM_C5C6_]
-	ld   c, a
-	ld   a, [_RAM_C152_]
-	cp   c
-	ret
+    ld   a, [_RAM_C5C5_]
+    ld   c, a
+    ld   a, [_RAM_C154_]
+    cp   c
+    ret  nz
+    ld   a, [_RAM_C5C6_]
+    ld   c, a
+    ld   a, [_RAM_C152_]
+    cp   c
+    ret
 
 ; Data from 130B to 132A (32 bytes)
 _DATA_130B_:
@@ -3554,198 +3554,198 @@ db $FF, $3C, $FF, $66, $FF, $C0, $FF, $C0, $FF, $C0, $FF, $66, $FF, $3C, $FF, $0
 db $FF, $C6, $FF, $E6, $FF, $D6, $FF, $CE, $FF, $C6, $FF, $C6, $FF, $C6, $FF, $00
 
 _LABEL_132B_:
-	ld   de, $00D4
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00D5
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, [_RAM_C232_]
-	ld   d, $00
-	ld   e, a
-	ld   hl, $1071
-	add  hl, de
+    ld   de, $00D4
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00D5
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C232_]
+    ld   d, $00
+    ld   e, a
+    ld   hl, $1071
+    add  hl, de
 _LABEL_1343_:
-	push hl
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	pop  hl
-	cp   $FF
-	jr   z, _LABEL_1343_
-	cp   [hl]
-	jr   z, _LABEL_134F_
-	xor  a
-	ret
+    push hl
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    pop  hl
+    cp   $FF
+    jr   z, _LABEL_1343_
+    cp   [hl]
+    jr   z, _LABEL_134F_
+    xor  a
+    ret
 
 _LABEL_134F_:
-	ld   a, $63
-	ret
+    ld   a, $63
+    ret
 
 _LABEL_1352_:
-	ld   a, [_SRAM_2A_]
-	or   a
-	ret  z
-	ld   a, [_RAM_C700_]
-	push af
-	ld   a, [_RAM_C701_]
-	ld   [_RAM_C700_], a
-	pop  af
-	ld   [_RAM_C701_], a
-	ret
+    ld   a, [_SRAM_2A_]
+    or   a
+    ret  z
+    ld   a, [_RAM_C700_]
+    push af
+    ld   a, [_RAM_C701_]
+    ld   [_RAM_C700_], a
+    pop  af
+    ld   [_RAM_C701_], a
+    ret
 
 ; 12th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_0B_TODO__LABEL_1366_:
-	ld   hl, $99E0
-	ld   b, $14
-	xor  a
+    ld   hl, $99E0
+    ld   b, $14
+    xor  a
 _LABEL_136C_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_136C_
-	ld   c, $0C
-	add  hl, bc
-	push hl
-	ld   hl, _RAM_CF1E_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
-	ld   b, $14
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_136C_
+    ld   c, $0C
+    add  hl, bc
+    push hl
+    ld   hl, _RAM_CF1E_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    pop  hl
+    ld   b, $14
 _LABEL_137D_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_137D_
-	jp   _LABEL_1410_
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_137D_
+    jp   _LABEL_1410_
 
 ; 14th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_0D_TODO__LABEL_1388_:
-	ld   hl, $99E1
-	ld   de, _RAM_C13D_
-	ld   b, $03
-	call _LABEL_13A6_
-	inc  hl
-	ld   b, $08
-	call _LABEL_13A6_
-	inc  hl
-	ld   b, $05
-	inc  de
-	call _LABEL_13A6_
-	call _LABEL_13AF_
-	jp   vblank__cmd_default__25F7
+    ld   hl, $99E1
+    ld   de, _RAM_C13D_
+    ld   b, $03
+    call _LABEL_13A6_
+    inc  hl
+    ld   b, $08
+    call _LABEL_13A6_
+    inc  hl
+    ld   b, $05
+    inc  de
+    call _LABEL_13A6_
+    call _LABEL_13AF_
+    jp   vblank__cmd_default__25F7
 
 _LABEL_13A6_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_13A6_
-	ret
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_13A6_
+    ret
 
 _LABEL_13AF_:
-	inc  de
-	inc  de
-	ld   a, [de]
-	and  $01
-	ret  nz
-	ld   [$99F0], a
-	ret
+    inc  de
+    inc  de
+    ld   a, [de]
+    and  $01
+    ret  nz
+    ld   [$99F0], a
+    ret
 
 ; Data from 13B9 to 13BB (3 bytes)
 db $C3, $F7, $25
 
 ; 13th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_0C_TODO__LABEL_13BC_:
-	ld   hl, _RAM_CF20_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, $9A00
-	ld   b, $14
+    ld   hl, _RAM_CF20_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, $9A00
+    ld   b, $14
 _LABEL_13C7_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_13C7_
-	ld   c, $0C
-	add  hl, bc
-	ld   b, $14
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_13C7_
+    ld   c, $0C
+    add  hl, bc
+    ld   b, $14
 _LABEL_13D4_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_13D4_
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_13D4_
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   vblank__cmd_default__25F7
 
 ; 22nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_15_TODO__LABEL_13E2_:
-	ld   hl, $9A01
-	ld   b, $12
-	ld   de, _RAM_C11B_
+    ld   hl, $9A01
+    ld   b, $12
+    ld   de, _RAM_C11B_
 _LABEL_13EA_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_13F5_
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_13EA_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_13F5_
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_13EA_
 _LABEL_13F5_:
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   vblank__cmd_default__25F7
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   vblank__cmd_default__25F7
 
 ; 9th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_08_TODO__LABEL_13FD_:
-	ld   hl, _RAM_CF1C_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, $9A00
-	ld   b, $14
+    ld   hl, _RAM_CF1C_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, $9A00
+    ld   b, $14
 _LABEL_1408_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_1408_
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_1408_
 _LABEL_1410_:
-	ld   c, $0C
-	add  hl, bc
-	xor  a
-	ld   b, $12
-	ld   de, _RAM_C11B_
+    ld   c, $0C
+    add  hl, bc
+    xor  a
+    ld   b, $12
+    ld   de, _RAM_C11B_
 _LABEL_1419_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_1424_
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   _LABEL_1419_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_1424_
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   _LABEL_1419_
 
 _LABEL_1424_:
-	ld   a, $12
-	sub  b
-	ld   [_RAM_C23B_], a
-	xor  a
+    ld   a, $12
+    sub  b
+    ld   [_RAM_C23B_], a
+    xor  a
 _LABEL_142B_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_142B_
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   vblank__cmd_default__25F7
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_142B_
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   vblank__cmd_default__25F7
 
 
 ; Copies N tiles worth of pattern data (16 bytes per tile)
@@ -3755,26 +3755,26 @@ _LABEL_142B_:
 ; Dest      : HL
 ; Num Tiles : A  (if 0, will copy 256)
 gfx__copy_tile_patterns__1437:
-	push af
-	ld   d, 16 ; $10 ; 16 bytes is one tile pattern
+    push af
+    ld   d, 16 ; $10 ; 16 bytes is one tile pattern
     .copy_tile_16_bytes_loop__143A:
-    	ld   a, [bc]
-    	inc  bc
-    	ldi  [hl], a
-    	dec  d
-    	jr   nz, .copy_tile_16_bytes_loop__143A
+        ld   a, [bc]
+        inc  bc
+        ldi  [hl], a
+        dec  d
+        jr   nz, .copy_tile_16_bytes_loop__143A
     ; Handle wraparound to $8800 if write address reached end of _TILEDATA9000
-	ld   a, h
-	cp   HIGH(_TILEDATA9000 + $800) ; $98
-	jr   nz, .skip_tiledata_8800_wraparound__1447
+    ld   a, h
+    cp   HIGH(_TILEDATA9000 + $800) ; $98
+    jr   nz, .skip_tiledata_8800_wraparound__1447
        ; Wrap around to tile data at 0x8800
-	   ld   h, HIGH(_TILEDATA8800) ; $88
+       ld   h, HIGH(_TILEDATA8800) ; $88
     .skip_tiledata_8800_wraparound__1447:
-	pop  af
-	dec  a
+    pop  af
+    dec  a
     ; Done copying when A is 0 after decrement
-	jr   nz, gfx__copy_tile_patterns__1437
-	ret
+    jr   nz, gfx__copy_tile_patterns__1437
+    ret
 
 
 ; Interleave Copies N tiles worth of pattern data (8 bytes + 8 bytes)
@@ -3791,29 +3791,29 @@ gfx__copy_tile_patterns__1437:
 ; Dest      : HL
 ; Num Tiles : A  (if 0, will copy 256)
 gfx__interleave_copy_tile_patterns__144C:
-	push af
-	ld   a, $08
+    push af
+    ld   a, $08
     .copy_interleaved_tile_16_bytes_loop__144F:
-    	push af
+        push af
 
-    	ld   a, [de]
-    	inc  de
-    	ldi  [hl], a
+        ld   a, [de]
+        inc  de
+        ldi  [hl], a
 
-    	ld   a, [bc]
-    	inc  bc
-    	ldi  [hl], a
+        ld   a, [bc]
+        inc  bc
+        ldi  [hl], a
 
-    	pop  af
-    	dec  a
-    	jp   nz, .copy_interleaved_tile_16_bytes_loop__144F
+        pop  af
+        dec  a
+        jp   nz, .copy_interleaved_tile_16_bytes_loop__144F
     ; BC += 8
     REPT 8
-    	inc  bc
+        inc  bc
     ENDR
     ; DE += 8
     REPT 8
-	   inc  de
+       inc  de
     ENDR
     ; Handle wraparound to $8800 if write address reached end of _TILEDATA9000
     ld   a, h
@@ -3823,11 +3823,11 @@ gfx__interleave_copy_tile_patterns__144C:
        ld   h, HIGH(_TILEDATA8800) ; $88
 
     .skip_tiledata_8800_wraparound__1472:
-	pop  af
-	dec  a
+    pop  af
+    dec  a
     ; Done copying when A is 0 after decrement
-	jp   nz, gfx__interleave_copy_tile_patterns__144C
-	ret
+    jp   nz, gfx__interleave_copy_tile_patterns__144C
+    ret
 
 
 ; Pointer Table from 1478 to 1479 (1 entries, indexed by _RAM_C251_)
@@ -3853,779 +3853,779 @@ db $03, $03, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $0
 db $01, $00, $01, $00
 
 _LABEL_1504_:
-	ld   h, $00
-	ld   l, e
-	add  hl, hl
-	ld   de, _DATA_1478_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   h, $C0
-	ld   a, [_RAM_C107_]
-	ld   l, a
-	ld   a, [de]
-	inc  de
-	ld   [_RAM_C23D_], a
-	ld   a, [de]
-	inc  de
+    ld   h, $00
+    ld   l, e
+    add  hl, hl
+    ld   de, _DATA_1478_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   h, $C0
+    ld   a, [_RAM_C107_]
+    ld   l, a
+    ld   a, [de]
+    inc  de
+    ld   [_RAM_C23D_], a
+    ld   a, [de]
+    inc  de
 _LABEL_151C_:
-	push af
-	push bc
-	ld   a, [_RAM_C23D_]
+    push af
+    push bc
+    ld   a, [_RAM_C23D_]
 _LABEL_1521_:
-	push af
-	ld   a, b
-	cp   $A0
-	jr   c, _LABEL_152B_
-	inc  de
-	inc  de
-	jr   _LABEL_154D_
+    push af
+    ld   a, b
+    cp   $A0
+    jr   c, _LABEL_152B_
+    inc  de
+    inc  de
+    jr   _LABEL_154D_
 
 _LABEL_152B_:
-	ld   [hl], b
-	inc  hl
-	ld   [hl], c
-	inc  hl
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_1539_
-	inc  de
-	inc  de
-	dec  hl
-	dec  hl
-	jr   _LABEL_154D_
+    ld   [hl], b
+    inc  hl
+    ld   [hl], c
+    inc  hl
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_1539_
+    inc  de
+    inc  de
+    dec  hl
+    dec  hl
+    jr   _LABEL_154D_
 
 _LABEL_1539_:
-	ld   [hl], a
-	ld   a, [_RAM_C23F_]
-	add  [hl]
-	inc  de
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	and  $C0
-	rrca
-	push de
-	ld   e, a
-	ld   a, [_RAM_C23E_]
-	or   e
-	pop  de
-	ldi  [hl], a
+    ld   [hl], a
+    ld   a, [_RAM_C23F_]
+    add  [hl]
+    inc  de
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    and  $C0
+    rrca
+    push de
+    ld   e, a
+    ld   a, [_RAM_C23E_]
+    or   e
+    pop  de
+    ldi  [hl], a
 _LABEL_154D_:
-	ld   a, c
-	add  $08
-	ld   c, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_1521_
-	pop  bc
-	ld   a, b
-	add  $08
-	ld   b, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_151C_
-	ld   a, l
-	ld   [_RAM_C107_], a
-	ret
+    ld   a, c
+    add  $08
+    ld   c, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_1521_
+    pop  bc
+    ld   a, b
+    add  $08
+    ld   b, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_151C_
+    ld   a, l
+    ld   [_RAM_C107_], a
+    ret
 
 _LABEL_1563_:
-	ld   a, [_RAM_C24F_]
-	ld   c, a
-	ld   a, [gfx__rBGP_cache__RAM_C27D]
-	ld   [_RAM_C24F_], a
-	ld   a, c
-	ld   [gfx__rBGP_cache__RAM_C27D], a
-	ret
+    ld   a, [_RAM_C24F_]
+    ld   c, a
+    ld   a, [gfx__rBGP_cache__RAM_C27D]
+    ld   [_RAM_C24F_], a
+    ld   a, c
+    ld   [gfx__rBGP_cache__RAM_C27D], a
+    ret
 
 ; 6th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_world__launch__1572:
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_1D88_
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jp   z, _LABEL_160B_
-	jp   _LABEL_897_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_1D88_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jp   z, _LABEL_160B_
+    jp   _LABEL_897_
 
 ; 8th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_conversion__launch__1598:
-	call _LABEL_27DD_
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_1DDC_
-	ld   a, $03
+    call _LABEL_27DD_
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_1DDC_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_D105_
+    jp   _LABEL_D105_
 
 
 ; Lets the user choose between launching Appointments or Calendar apps
 app_submenu__scheduling__15BE:
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_1E06_
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jp   z, app_appointments__launch__2209
-	jp   app_calendar__launch__0819
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_1E06_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jp   z, app_appointments__launch__2209
+    jp   app_calendar__launch__0819
 
 _LABEL_15E1_:
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_1DB2_
-	call sys_run_submenu_result_in_A__206D
-	push af
-	ld   a, $03
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_1DB2_
+    call sys_run_submenu_result_in_A__206D
+    push af
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	pop  af
-	cp   $01
-	jp   z, _LABEL_E7EF_
-	jp   _LABEL_E95A_
+    pop  af
+    cp   $01
+    jp   z, _LABEL_E7EF_
+    jp   _LABEL_E95A_
 
 _LABEL_160B_:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	call _LABEL_27DD_
-	ld   a, $F2
-	ldh  [rOBP0], a
-	ldh  [rOBP1], a
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   [_RAM_C23E_], a
-	call gfx__clear_shadow_oam__275B
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	call _LABEL_1E34_
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jp   z, _LABEL_1A6A_
-	cp   $03
-	jp   z, _LABEL_200_
-	ld   a, $03
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    call _LABEL_27DD_
+    ld   a, $F2
+    ldh  [rOBP0], a
+    ldh  [rOBP1], a
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   [_RAM_C23E_], a
+    call gfx__clear_shadow_oam__275B
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    call _LABEL_1E34_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jp   z, _LABEL_1A6A_
+    cp   $03
+    jp   z, _LABEL_200_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	ld   hl, _RAM_CFA6_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, (_TILEMAP0 + $40)
-	ld   a, $0E
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    ld   hl, _RAM_CFA6_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, (_TILEMAP0 + $40)
+    ld   a, $0E
 _LABEL_1662_:
-	push af
-	ld   b, $14
+    push af
+    ld   b, $14
 _LABEL_1665_:
-	ld   a, [de]
-	sub  $20
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_1665_
-	ld   c, $0C
-	add  hl, bc
-	pop  af
-	dec  a
-	jr   nz, _LABEL_1662_
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	ld   bc, $09E0
-	ld   e, $0E
-	call _LABEL_1CF6_
+    ld   a, [de]
+    sub  $20
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_1665_
+    ld   c, $0C
+    add  hl, bc
+    pop  af
+    dec  a
+    jr   nz, _LABEL_1662_
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    ld   bc, $09E0
+    ld   e, $0E
+    call _LABEL_1CF6_
 _LABEL_1684_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_169C_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $C4
-	jr   nz, _LABEL_16BF_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_16BF_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_169C_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $C4
+    jr   nz, _LABEL_16BF_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_16BF_
 
 _LABEL_169C_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $C4
-	jr   z, _LABEL_16BF_
-	ld   e, a
-	ld   a, $19
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_16D4_
-	bit  7, a
-	jr   nz, _LABEL_16E4_
-	bit  2, a
-	jr   z, _LABEL_16BF_
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $C4
+    jr   z, _LABEL_16BF_
+    ld   e, a
+    ld   a, $19
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_16D4_
+    bit  7, a
+    jr   nz, _LABEL_16E4_
+    bit  2, a
+    jr   z, _LABEL_16BF_
 _LABEL_16B6_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	bit  2, a
-	jr   nz, _LABEL_16B6_
-	jr   _LABEL_16F5_
+    ld   a, [gamepad_buttons__RAM_C103]
+    bit  2, a
+    jr   nz, _LABEL_16B6_
+    jr   _LABEL_16F5_
 
 _LABEL_16BF_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_1684_
-	or   a
-	jp   z, _LABEL_160B_
-	cp   $0D
-	jr   z, _LABEL_16F5_
-	cp   $12
-	jr   z, _LABEL_16E4_
-	cp   $0F
-	jr   nz, _LABEL_1684_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_1684_
+    or   a
+    jp   z, _LABEL_160B_
+    cp   $0D
+    jr   z, _LABEL_16F5_
+    cp   $12
+    jr   z, _LABEL_16E4_
+    cp   $0F
+    jr   nz, _LABEL_1684_
 _LABEL_16D4_:
-	ld   a, [_RAM_C399_]
-	cp   $0E
-	jr   nz, _LABEL_16DD_
-	ld   a, $7E
+    ld   a, [_RAM_C399_]
+    cp   $0E
+    jr   nz, _LABEL_16DD_
+    ld   a, $7E
 _LABEL_16DD_:
-	sub  $08
-	ld   [_RAM_C399_], a
-	jr   _LABEL_1684_
+    sub  $08
+    ld   [_RAM_C399_], a
+    jr   _LABEL_1684_
 
 _LABEL_16E4_:
-	ld   a, [_RAM_C399_]
-	cp   $76
-	jr   nz, _LABEL_16ED_
-	ld   a, $06
+    ld   a, [_RAM_C399_]
+    cp   $76
+    jr   nz, _LABEL_16ED_
+    ld   a, $06
 _LABEL_16ED_:
-	add  $08
-	ld   [_RAM_C399_], a
-	jp   _LABEL_1684_
+    add  $08
+    ld   [_RAM_C399_], a
+    jp   _LABEL_1684_
 
 _LABEL_16F5_:
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	ld   a, [_RAM_C399_]
-	sub  $0E
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   hl, _DATA_2165_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	add  a
-	add  a
-	ld   l, a
-	ld   h, $40
-	ld   a, $03
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    ld   a, [_RAM_C399_]
+    sub  $0E
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   hl, _DATA_2165_
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    add  a
+    add  a
+    ld   l, a
+    ld   h, $40
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   e, [hl]
-	inc  l
-	ld   d, [hl]
-	inc  l
-	ldi  a, [hl]
-	ld   c, [hl]
-	push af
-	push bc
-	push de
-	ld   a, $03
+    ld   e, [hl]
+    inc  l
+    ld   d, [hl]
+    inc  l
+    ldi  a, [hl]
+    ld   c, [hl]
+    push af
+    push bc
+    push de
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_F790_
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	pop  de
-	pop  bc
-	pop  af
+    call _LABEL_F790_
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    pop  de
+    pop  bc
+    pop  af
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   a, $00
-	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
-	ld   a, $C7
-	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   [_RAM_C399_], a
-	inc  a
-	ld   [_RAM_C249_], a
-	ld   [_RAM_C241_], a
-	ld   a, c
-	ld   [_RAM_C242_], a
-	ld   hl, _TILEMAP0
-	ld   a, [_RAM_C5F5_]
-	or   a
-	call nz, _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C243_], a
-	ld   [_RAM_C247_], a
-	ld   a, d
-	ld   [_RAM_C244_], a
-	ld   [_RAM_C248_], a
-	ld   b, $12
+    ld   a, $00
+    ld   [gfx__src_addr_lo__RAM_C135_maybe], a
+    ld   a, $C7
+    ld   [gfx__src_addr_hi__RAM_C136_maybe], a
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   [_RAM_C399_], a
+    inc  a
+    ld   [_RAM_C249_], a
+    ld   [_RAM_C241_], a
+    ld   a, c
+    ld   [_RAM_C242_], a
+    ld   hl, _TILEMAP0
+    ld   a, [_RAM_C5F5_]
+    or   a
+    call nz, _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C243_], a
+    ld   [_RAM_C247_], a
+    ld   a, d
+    ld   [_RAM_C244_], a
+    ld   [_RAM_C248_], a
+    ld   b, $12
 _LABEL_1770_:
-	push hl
+    push hl
 _LABEL_1771_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_1787_
-	cp   $30
-	jr   c, _LABEL_1782_
-	cp   $3A
-	jr   nc, _LABEL_1782_
-	add  $93
-	jr   _LABEL_1784_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_1787_
+    cp   $30
+    jr   c, _LABEL_1782_
+    cp   $3A
+    jr   nc, _LABEL_1782_
+    add  $93
+    jr   _LABEL_1784_
 
 _LABEL_1782_:
-	sub  $20
+    sub  $20
 _LABEL_1784_:
-	ldi  [hl], a
-	jr   _LABEL_1771_
+    ldi  [hl], a
+    jr   _LABEL_1771_
 
 _LABEL_1787_:
-	ld   a, $04
-	call _LABEL_1A4F_
-	pop  hl
-	push bc
-	ld   bc, $0020
-	add  hl, bc
-	pop  bc
-	dec  c
-	jr   z, _LABEL_1799_
-	dec  b
-	jr   nz, _LABEL_1770_
+    ld   a, $04
+    call _LABEL_1A4F_
+    pop  hl
+    push bc
+    ld   bc, $0020
+    add  hl, bc
+    pop  bc
+    dec  c
+    jr   z, _LABEL_1799_
+    dec  b
+    jr   nz, _LABEL_1770_
 _LABEL_1799_:
-	ld   a, e
-	ld   [_RAM_C245_], a
-	ld   a, d
-	ld   [_RAM_C246_], a
-	call gfx__turn_on_screen_bg_obj__2540
+    ld   a, e
+    ld   [_RAM_C245_], a
+    ld   a, d
+    ld   [_RAM_C246_], a
+    call gfx__turn_on_screen_bg_obj__2540
 _LABEL_17A4_:
-	ld   a, [_RAM_C399_]
-	or   a
-	jr   nz, _LABEL_17AE_
-	ld   a, $07
-	jr   _LABEL_17B0_
+    ld   a, [_RAM_C399_]
+    or   a
+    jr   nz, _LABEL_17AE_
+    ld   a, $07
+    jr   _LABEL_17B0_
 
 _LABEL_17AE_:
-	ld   a, $09
+    ld   a, $09
 _LABEL_17B0_:
-	ld   [_RAM_C39A_], a
-	rst  $18	; Call VSYNC__RST_18
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_17CF_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $C4
-	jr   nz, _LABEL_17F4_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_17F4_
+    ld   [_RAM_C39A_], a
+    rst  $18    ; Call VSYNC__RST_18
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_17CF_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $C4
+    jr   nz, _LABEL_17F4_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_17F4_
 
 _LABEL_17CF_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $C4
-	jr   z, _LABEL_17F4_
-	ld   e, a
-	ld   a, $05
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_180D_
-	bit  7, a
-	jp   nz, _LABEL_18B4_
-	bit  2, a
-	jr   z, _LABEL_17F4_
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $C4
+    jr   z, _LABEL_17F4_
+    ld   e, a
+    ld   a, $05
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_180D_
+    bit  7, a
+    jp   nz, _LABEL_18B4_
+    bit  2, a
+    jr   z, _LABEL_17F4_
 _LABEL_17EA_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	bit  2, a
-	jr   nz, _LABEL_17EA_
-	jp   _LABEL_1963_
+    ld   a, [gamepad_buttons__RAM_C103]
+    bit  2, a
+    jr   nz, _LABEL_17EA_
+    jp   _LABEL_1963_
 
 _LABEL_17F4_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_17A4_
-	or   a
-	jp   z, _LABEL_160B_
-	cp   $0D
-	jp   z, _LABEL_1963_
-	cp   $0F
-	jr   z, _LABEL_180D_
-	cp   $12
-	jp   z, _LABEL_18B4_
-	jr   _LABEL_17A4_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_17A4_
+    or   a
+    jp   z, _LABEL_160B_
+    cp   $0D
+    jp   z, _LABEL_1963_
+    cp   $0F
+    jr   z, _LABEL_180D_
+    cp   $12
+    jp   z, _LABEL_18B4_
+    jr   _LABEL_17A4_
 
 _LABEL_180D_:
-	ld   a, [_RAM_C241_]
-	cp   $01
-	jr   z, _LABEL_17A4_
-	ld   a, [_RAM_C247_]
-	ld   e, a
-	ld   a, [_RAM_C248_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A5B_
-	ld   a, e
-	ld   [_RAM_C247_], a
-	ld   a, d
-	ld   [_RAM_C248_], a
-	ld   a, [_RAM_C399_]
-	or   a
-	jr   z, _LABEL_1840_
-	sub  $08
-	cp   $FE
-	jr   nz, _LABEL_1836_
-	xor  a
+    ld   a, [_RAM_C241_]
+    cp   $01
+    jr   z, _LABEL_17A4_
+    ld   a, [_RAM_C247_]
+    ld   e, a
+    ld   a, [_RAM_C248_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A5B_
+    ld   a, e
+    ld   [_RAM_C247_], a
+    ld   a, d
+    ld   [_RAM_C248_], a
+    ld   a, [_RAM_C399_]
+    or   a
+    jr   z, _LABEL_1840_
+    sub  $08
+    cp   $FE
+    jr   nz, _LABEL_1836_
+    xor  a
 _LABEL_1836_:
-	ld   [_RAM_C399_], a
-	ld   hl, _RAM_C241_
-	dec  [hl]
-	jp   _LABEL_17A4_
+    ld   [_RAM_C399_], a
+    ld   hl, _RAM_C241_
+    dec  [hl]
+    jp   _LABEL_17A4_
 
 _LABEL_1840_:
-	ld   hl, _RAM_C241_
-	dec  [hl]
-	ld   a, [gfx__shadow_y_scroll__RAM_C102]
-	sub  $08
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   h, $00
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	ld   de, _TILEMAP0
-	add  hl, de
-	ld   a, l
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, h
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, [_RAM_C243_]
-	ld   e, a
-	ld   a, [_RAM_C244_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A5B_
-	ld   a, e
-	ld   l, a
-	ld   [_RAM_C243_], a
-	ld   a, d
-	ld   h, a
-	ld   [_RAM_C244_], a
-	push hl
-	ld   a, [_RAM_C245_]
-	ld   e, a
-	ld   a, [_RAM_C246_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A5B_
-	ld   a, e
-	ld   [_RAM_C245_], a
-	ld   a, d
-	ld   [_RAM_C246_], a
-	pop  hl
-	ld   de, _RAM_C700_
-	ld   b, $14
+    ld   hl, _RAM_C241_
+    dec  [hl]
+    ld   a, [gfx__shadow_y_scroll__RAM_C102]
+    sub  $08
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   h, $00
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    ld   de, _TILEMAP0
+    add  hl, de
+    ld   a, l
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, h
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, [_RAM_C243_]
+    ld   e, a
+    ld   a, [_RAM_C244_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A5B_
+    ld   a, e
+    ld   l, a
+    ld   [_RAM_C243_], a
+    ld   a, d
+    ld   h, a
+    ld   [_RAM_C244_], a
+    push hl
+    ld   a, [_RAM_C245_]
+    ld   e, a
+    ld   a, [_RAM_C246_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A5B_
+    ld   a, e
+    ld   [_RAM_C245_], a
+    ld   a, d
+    ld   [_RAM_C246_], a
+    pop  hl
+    ld   de, _RAM_C700_
+    ld   b, $14
 _LABEL_1890_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_18AB_
-	cp   $30
-	jr   c, _LABEL_189E_
-	cp   $3A
-	jr   nc, _LABEL_189E_
-	add  $B3
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_18AB_
+    cp   $30
+    jr   c, _LABEL_189E_
+    cp   $3A
+    jr   nc, _LABEL_189E_
+    add  $B3
 _LABEL_189E_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_1890_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_1890_
 _LABEL_18A3_:
-	ld   a, $05
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_17A4_
+    ld   a, $05
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   _LABEL_17A4_
 
 _LABEL_18AB_:
-	ld   a, $20
+    ld   a, $20
 _LABEL_18AD_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_18AD_
-	jr   _LABEL_18A3_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_18AD_
+    jr   _LABEL_18A3_
 
 _LABEL_18B4_:
-	ld   a, [_RAM_C241_]
-	ld   e, a
-	ld   a, [_RAM_C242_]
-	cp   e
-	jp   z, _LABEL_17A4_
-	ld   a, [_RAM_C247_]
-	ld   e, a
-	ld   a, [_RAM_C248_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C247_], a
-	ld   a, d
-	ld   [_RAM_C248_], a
-	ld   a, [_RAM_C399_]
-	cp   $86
-	jr   z, _LABEL_18ED_
-	add  $08
-	cp   $08
-	jr   nz, _LABEL_18E3_
-	dec  a
-	dec  a
+    ld   a, [_RAM_C241_]
+    ld   e, a
+    ld   a, [_RAM_C242_]
+    cp   e
+    jp   z, _LABEL_17A4_
+    ld   a, [_RAM_C247_]
+    ld   e, a
+    ld   a, [_RAM_C248_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C247_], a
+    ld   a, d
+    ld   [_RAM_C248_], a
+    ld   a, [_RAM_C399_]
+    cp   $86
+    jr   z, _LABEL_18ED_
+    add  $08
+    cp   $08
+    jr   nz, _LABEL_18E3_
+    dec  a
+    dec  a
 _LABEL_18E3_:
-	ld   [_RAM_C399_], a
-	ld   hl, _RAM_C241_
-	inc  [hl]
-	jp   _LABEL_17A4_
+    ld   [_RAM_C399_], a
+    ld   hl, _RAM_C241_
+    inc  [hl]
+    jp   _LABEL_17A4_
 
 _LABEL_18ED_:
-	ld   hl, _RAM_C241_
-	inc  [hl]
-	ld   a, [gfx__shadow_y_scroll__RAM_C102]
-	add  $08
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	add  $88
-	ld   h, $00
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	ld   de, _TILEMAP0
-	add  hl, de
-	ld   a, l
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, h
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, [_RAM_C245_]
-	ld   l, a
-	ld   a, [_RAM_C246_]
-	ld   h, a
-	push hl
-	push hl
-	pop  de
-	ld   a, $05
-	call _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C245_], a
-	ld   a, d
-	ld   [_RAM_C246_], a
-	ld   a, [_RAM_C243_]
-	ld   e, a
-	ld   a, [_RAM_C244_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C243_], a
-	ld   a, d
-	ld   [_RAM_C244_], a
-	pop  hl
-	ld   de, _RAM_C700_
-	ld   b, $14
+    ld   hl, _RAM_C241_
+    inc  [hl]
+    ld   a, [gfx__shadow_y_scroll__RAM_C102]
+    add  $08
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    add  $88
+    ld   h, $00
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    ld   de, _TILEMAP0
+    add  hl, de
+    ld   a, l
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, h
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, [_RAM_C245_]
+    ld   l, a
+    ld   a, [_RAM_C246_]
+    ld   h, a
+    push hl
+    push hl
+    pop  de
+    ld   a, $05
+    call _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C245_], a
+    ld   a, d
+    ld   [_RAM_C246_], a
+    ld   a, [_RAM_C243_]
+    ld   e, a
+    ld   a, [_RAM_C244_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C243_], a
+    ld   a, d
+    ld   [_RAM_C244_], a
+    pop  hl
+    ld   de, _RAM_C700_
+    ld   b, $14
 _LABEL_193F_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_195A_
-	cp   $30
-	jr   c, _LABEL_194D_
-	cp   $3A
-	jr   nc, _LABEL_194D_
-	add  $B3
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_195A_
+    cp   $30
+    jr   c, _LABEL_194D_
+    cp   $3A
+    jr   nc, _LABEL_194D_
+    add  $B3
 _LABEL_194D_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_193F_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_193F_
 _LABEL_1952_:
-	ld   a, $05
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_17A4_
+    ld   a, $05
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   _LABEL_17A4_
 
 _LABEL_195A_:
-	ld   a, $20
+    ld   a, $20
 _LABEL_195C_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_195C_
-	jr   _LABEL_1952_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_195C_
+    jr   _LABEL_1952_
 
 _LABEL_1963_:
-	ld   a, [_RAM_C5F5_]
-	or   a
-	jr   z, _LABEL_197F_
-	ld   a, [_RAM_C247_]
-	ld   e, a
-	ld   a, [_RAM_C248_]
-	ld   d, a
-	ld   a, [_RAM_C5F5_]
-	call _LABEL_1A5B_
-	ld   a, e
-	ld   [_RAM_C247_], a
-	ld   a, d
-	ld   [_RAM_C248_], a
+    ld   a, [_RAM_C5F5_]
+    or   a
+    jr   z, _LABEL_197F_
+    ld   a, [_RAM_C247_]
+    ld   e, a
+    ld   a, [_RAM_C248_]
+    ld   d, a
+    ld   a, [_RAM_C5F5_]
+    call _LABEL_1A5B_
+    ld   a, e
+    ld   [_RAM_C247_], a
+    ld   a, d
+    ld   [_RAM_C248_], a
 _LABEL_197F_:
-	call _LABEL_19A9_
+    call _LABEL_19A9_
 _LABEL_1982_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_198F_
-	dec  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_199D_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_198F_
+    dec  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_199D_
 
 _LABEL_198F_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	or   a
-	jr   z, _LABEL_199D_
-	ld   a, $32
-	ld   [_RAM_C240_], a
-	jp   _LABEL_160B_
+    ld   a, [gamepad_buttons__RAM_C103]
+    or   a
+    jr   z, _LABEL_199D_
+    ld   a, $32
+    ld   [_RAM_C240_], a
+    jp   _LABEL_160B_
 
 _LABEL_199D_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_1982_
-	or   a
-	jp   z, _LABEL_200_
-	jp   _LABEL_160B_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_1982_
+    or   a
+    jp   z, _LABEL_200_
+    jp   _LABEL_160B_
 
 _LABEL_19A9_:
-	xor  a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $32
-	ld   [_RAM_C240_], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	ld   c, $05
-	ld   de, _DATA_1A0E_
-	ld   hl, _TILEMAP0
+    xor  a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $32
+    ld   [_RAM_C240_], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    ld   c, $05
+    ld   de, _DATA_1A0E_
+    ld   hl, _TILEMAP0
 _LABEL_19C5_:
-	push bc
-	ld   b, $0D
+    push bc
+    ld   b, $0D
 _LABEL_19C8_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_19C8_
-	ld   b, $07
-	ld   a, $8F
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_19C8_
+    ld   b, $07
+    ld   a, $8F
 _LABEL_19D2_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_19D2_
-	ld   c, $4C
-	add  hl, bc
-	pop  bc
-	dec  c
-	jr   nz, _LABEL_19C5_
-	ld   hl, (_TILEMAP0 + $20)
-	ld   c, $05
-	ld   a, [_RAM_C247_]
-	ld   e, a
-	ld   a, [_RAM_C248_]
-	ld   d, a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_19D2_
+    ld   c, $4C
+    add  hl, bc
+    pop  bc
+    dec  c
+    jr   nz, _LABEL_19C5_
+    ld   hl, (_TILEMAP0 + $20)
+    ld   c, $05
+    ld   a, [_RAM_C247_]
+    ld   e, a
+    ld   a, [_RAM_C248_]
+    ld   d, a
 _LABEL_19EA_:
-	push bc
-	push hl
+    push bc
+    push hl
 _LABEL_19EC_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_1A02_
-	cp   $30
-	jr   c, _LABEL_19FD_
-	cp   $3A
-	jr   nc, _LABEL_19FD_
-	add  $93
-	jr   _LABEL_19FF_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_1A02_
+    cp   $30
+    jr   c, _LABEL_19FD_
+    cp   $3A
+    jr   nc, _LABEL_19FD_
+    add  $93
+    jr   _LABEL_19FF_
 
 _LABEL_19FD_:
-	sub  $20
+    sub  $20
 _LABEL_19FF_:
-	ldi  [hl], a
-	jr   _LABEL_19EC_
+    ldi  [hl], a
+    jr   _LABEL_19EC_
 
 _LABEL_1A02_:
-	ld   bc, $0060
-	pop  hl
-	add  hl, bc
-	pop  bc
-	dec  c
-	jr   nz, _LABEL_19EA_
-	jp   gfx__turn_on_screen_bg_obj__2540
+    ld   bc, $0060
+    pop  hl
+    add  hl, bc
+    pop  bc
+    dec  c
+    jr   nz, _LABEL_19EA_
+    jp   gfx__turn_on_screen_bg_obj__2540
 
 ; Data from 1A0E to 1A4E (65 bytes)
 _DATA_1A0E_:
@@ -4636,634 +4636,634 @@ db $D4, $D7, $D8, $D9, $8F, $8F, $8F, $8F, $8F, $8F, $D7, $E0, $DB, $D6, $D7, $D
 db $D4
 
 _LABEL_1A4F_:
-	push bc
-	ld   b, a
+    push bc
+    ld   b, a
 _LABEL_1A51_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   nz, _LABEL_1A51_
-	dec  b
-	jr   nz, _LABEL_1A51_
-	pop  bc
-	ret
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   nz, _LABEL_1A51_
+    dec  b
+    jr   nz, _LABEL_1A51_
+    pop  bc
+    ret
 
 _LABEL_1A5B_:
-	push bc
-	inc  a
-	ld   b, a
+    push bc
+    inc  a
+    ld   b, a
 _LABEL_1A5E_:
-	ld   a, [de]
-	dec  de
-	or   a
-	jr   nz, _LABEL_1A5E_
-	dec  b
-	jr   nz, _LABEL_1A5E_
-	inc  de
-	inc  de
-	pop  bc
-	ret
+    ld   a, [de]
+    dec  de
+    or   a
+    jr   nz, _LABEL_1A5E_
+    dec  b
+    jr   nz, _LABEL_1A5E_
+    inc  de
+    inc  de
+    pop  bc
+    ret
 
 _LABEL_1A6A_:
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   [_RAM_C23B_], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	ld   a, $03
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   [_RAM_C23B_], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_F790_
-	call _LABEL_F74D_
-	ld   a, $F2
-	ldh  [rOBP0], a
-	call gfx__turn_off_screen_2827
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $0012
-	call _LABEL_1D2D_
-	ld   bc, $0509
-	call _LABEL_BC3_
-	ld   de, _DATA_2150_
-	ld   bc, $0F09
-	ld   a, $14
-	call _LABEL_BC3_
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   [_RAM_C11B_], a
-	ld   [_RAM_C239_], a
-	ld   a, [_RAM_C281_]
-	ld   [_RAM_C237_], a
-	ld   a, [_RAM_C282_]
-	ld   [_RAM_C238_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, [_RAM_C23B_]
-	add  a
-	add  a
-	add  a
-	add  $10
-	ld   [_RAM_C281_], a
-	ld   a, $90
-	ld   [_RAM_C282_], a
+    call _LABEL_F790_
+    call _LABEL_F74D_
+    ld   a, $F2
+    ldh  [rOBP0], a
+    call gfx__turn_off_screen_2827
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $0012
+    call _LABEL_1D2D_
+    ld   bc, $0509
+    call _LABEL_BC3_
+    ld   de, _DATA_2150_
+    ld   bc, $0F09
+    ld   a, $14
+    call _LABEL_BC3_
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   [_RAM_C11B_], a
+    ld   [_RAM_C239_], a
+    ld   a, [_RAM_C281_]
+    ld   [_RAM_C237_], a
+    ld   a, [_RAM_C282_]
+    ld   [_RAM_C238_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [_RAM_C23B_]
+    add  a
+    add  a
+    add  a
+    add  $10
+    ld   [_RAM_C281_], a
+    ld   a, $90
+    ld   [_RAM_C282_], a
 _LABEL_1AD9_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_1AD9_
-	or   a
-	jp   z, _LABEL_200_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_1AD9_
+    or   a
+    jp   z, _LABEL_200_
 
-	cp   WORKBOY_SYS_KEY_RETURN ; $0D
-	jr   z, _LABEL_1B47_
+    cp   WORKBOY_SYS_KEY_RETURN ; $0D
+    jr   z, _LABEL_1B47_
 
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-	jr   nz, _LABEL_1AF8_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_1AD9_
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+    jr   nz, _LABEL_1AF8_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_1AD9_
 
 _LABEL_1AF8_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_1B06_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_1AD9_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_1B06_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_1AD9_
 
 _LABEL_1B06_:
-	cp   $80
-	jr   nz, _LABEL_1B1D_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jr   z, _LABEL_1AD9_
-	sub  $08
-	ld   [_RAM_C281_], a
-	ld   a, $20
-	call _LABEL_76A_
-	jr   _LABEL_1AD9_
+    cp   $80
+    jr   nz, _LABEL_1B1D_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jr   z, _LABEL_1AD9_
+    sub  $08
+    ld   [_RAM_C281_], a
+    ld   a, $20
+    call _LABEL_76A_
+    jr   _LABEL_1AD9_
 
 _LABEL_1B1D_:
-	cp   $7E
-	jr   z, _LABEL_1B31_
-	cp   $2D
-	jr   z, _LABEL_1B31_
-	cp   $20
-	jr   z, _LABEL_1B31_
-	cp   $41
-	jr   c, _LABEL_1AD9_
-	cp   $5B
-	jr   nc, _LABEL_1AD9_
+    cp   $7E
+    jr   z, _LABEL_1B31_
+    cp   $2D
+    jr   z, _LABEL_1B31_
+    cp   $20
+    jr   z, _LABEL_1B31_
+    cp   $41
+    jr   c, _LABEL_1AD9_
+    cp   $5B
+    jr   nc, _LABEL_1AD9_
 _LABEL_1B31_:
-	ld   c, a
-	ld   a, [_RAM_C281_]
-	cp   $80
-	jr   z, _LABEL_1AD9_
-	ld   a, c
-	call _LABEL_76A_
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_1AD9_
+    ld   c, a
+    ld   a, [_RAM_C281_]
+    cp   $80
+    jr   z, _LABEL_1AD9_
+    ld   a, c
+    call _LABEL_76A_
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_1AD9_
 
 _LABEL_1B47_:
-	ld   a, [_RAM_C281_]
-	sub  $10
-	jp   z, _LABEL_160B_
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   [_RAM_C23B_], a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $C11B
-	add  hl, de
-	xor  a
-	ld   [hl], a
-	call gfx__clear_shadow_oam__275B
-	ld   a, $01
-	ld   [_RAM_C24B_], a
-	call _LABEL_1CC6_
+    ld   a, [_RAM_C281_]
+    sub  $10
+    jp   z, _LABEL_160B_
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   [_RAM_C23B_], a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $C11B
+    add  hl, de
+    xor  a
+    ld   [hl], a
+    call gfx__clear_shadow_oam__275B
+    ld   a, $01
+    ld   [_RAM_C24B_], a
+    call _LABEL_1CC6_
 _LABEL_1B6F_:
-	ld   a, [_RAM_C24A_]
+    ld   a, [_RAM_C24A_]
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_1C3D_
-	or   a
-	jp   z, _LABEL_1C17_
-	ld   a, [_RAM_C5F5_]
-	or   a
-	jr   z, _LABEL_1BAE_
-	ld   c, a
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
-	ld   a, c
-	call _LABEL_1A5B_
-	ld   a, e
-	ld   [_RAM_C247_], a
-	ld   a, d
-	ld   [_RAM_C248_], a
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	jr   _LABEL_1BC9_
+    call _LABEL_1C3D_
+    or   a
+    jp   z, _LABEL_1C17_
+    ld   a, [_RAM_C5F5_]
+    or   a
+    jr   z, _LABEL_1BAE_
+    ld   c, a
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
+    ld   a, c
+    call _LABEL_1A5B_
+    ld   a, e
+    ld   [_RAM_C247_], a
+    ld   a, d
+    ld   [_RAM_C248_], a
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    jr   _LABEL_1BC9_
 
 _LABEL_1BAE_:
-	ld   a, [_RAM_C24C_]
-	ld   [_RAM_C247_], a
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   [_RAM_C248_], a
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
+    ld   a, [_RAM_C24C_]
+    ld   [_RAM_C247_], a
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   [_RAM_C248_], a
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
 _LABEL_1BC9_:
-	ld   hl, _RAM_C24E_
-	dec  [hl]
-	ld   a, [_RAM_C24A_]
+    ld   hl, _RAM_C24E_
+    dec  [hl]
+    ld   a, [_RAM_C24A_]
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_19A9_
-	ld   a, $00
-	ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
-	ld   a, $9A
-	ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
-	ld   a, [_RAM_CF2C_]
-	ld   [gfx__src_addr_lo__RAM_C135_maybe], a
-	ld   a, [_RAM_CF2D_]
-	ld   [gfx__src_addr_hi__RAM_C136_maybe], a
-	ld   a, $05
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
+    call _LABEL_19A9_
+    ld   a, $00
+    ld   [gfx__dest_addr_lo__RAM_C133_maybe], a
+    ld   a, $9A
+    ld   [gfx__dest_addr_hi__RAM_C134_maybe], a
+    ld   a, [_RAM_CF2C_]
+    ld   [gfx__src_addr_lo__RAM_C135_maybe], a
+    ld   a, [_RAM_CF2D_]
+    ld   [gfx__src_addr_hi__RAM_C136_maybe], a
+    ld   a, $05
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_1BF6_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_1BF6_
-	or   a
-	jp   z, _LABEL_160B_
-	push af
-	ld   a, [_RAM_C232_]
-	add  a
-	ld   hl, $1058
-	ld   d, $00
-	ld   e, a
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jp   z, _LABEL_1B6F_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_160B_
-	jr   _LABEL_1BF6_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_1BF6_
+    or   a
+    jp   z, _LABEL_160B_
+    push af
+    ld   a, [_RAM_C232_]
+    add  a
+    ld   hl, $1058
+    ld   d, $00
+    ld   e, a
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jp   z, _LABEL_1B6F_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_160B_
+    jr   _LABEL_1BF6_
 
 _LABEL_1C17_:
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	ld   de, $0014
-	ld   hl, $98A0
-	rst  $10	; _LABEL_10_
-	ld   de, $0015
-	ld   hl, $98C0
-	rst  $10	; _LABEL_10_
-	ld   de, $0016
-	ld   hl, $9940
-	rst  $10	; _LABEL_10_
-	call gfx__turn_on_screen_bg_obj__2540
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    ld   de, $0014
+    ld   hl, $98A0
+    rst  $10    ; _LABEL_10_
+    ld   de, $0015
+    ld   hl, $98C0
+    rst  $10    ; _LABEL_10_
+    ld   de, $0016
+    ld   hl, $9940
+    rst  $10    ; _LABEL_10_
+    call gfx__turn_on_screen_bg_obj__2540
 _LABEL_1C35_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_1C35_
-	jp   _LABEL_160B_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_1C35_
+    jp   _LABEL_160B_
 
 _LABEL_1C3D_:
-	ld   a, [_RAM_C24E_]
-	or   a
-	jr   nz, _LABEL_1C53_
-	ld   a, [_RAM_C24B_]
-	inc  a
-	ld   [_RAM_C24B_], a
-	cp   $0F
-	jr   nz, _LABEL_1C50_
-	xor  a
-	ret
+    ld   a, [_RAM_C24E_]
+    or   a
+    jr   nz, _LABEL_1C53_
+    ld   a, [_RAM_C24B_]
+    inc  a
+    ld   [_RAM_C24B_], a
+    cp   $0F
+    jr   nz, _LABEL_1C50_
+    xor  a
+    ret
 
 _LABEL_1C50_:
-	call _LABEL_1CC6_
+    call _LABEL_1CC6_
 _LABEL_1C53_:
-	ld   a, [_RAM_C24C_]
-	ld   l, a
-	ld   a, [_RAM_C24D_]
-	ld   h, a
+    ld   a, [_RAM_C24C_]
+    ld   l, a
+    ld   a, [_RAM_C24D_]
+    ld   h, a
 _LABEL_1C5B_:
-	push hl
-	ld   de, _RAM_C11B_
+    push hl
+    ld   de, _RAM_C11B_
 _LABEL_1C5F_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_1CB4_
-	cp   [hl]
-	jr   nz, _LABEL_1C73_
-	inc  hl
-	ld   a, [hl]
-	or   a
-	jr   nz, _LABEL_1C5F_
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_1CB4_
-	pop  hl
-	jr   _LABEL_1C8C_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_1CB4_
+    cp   [hl]
+    jr   nz, _LABEL_1C73_
+    inc  hl
+    ld   a, [hl]
+    or   a
+    jr   nz, _LABEL_1C5F_
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_1CB4_
+    pop  hl
+    jr   _LABEL_1C8C_
 
 _LABEL_1C73_:
-	ld   a, [_RAM_C5F4_]
-	or   a
-	jr   z, _LABEL_1C86_
-	pop  hl
+    ld   a, [_RAM_C5F4_]
+    or   a
+    jr   z, _LABEL_1C86_
+    pop  hl
 _LABEL_1C7A_:
-	inc  hl
-	ld   a, [hl]
-	or   a
-	jr   z, _LABEL_1C8C_
-	cp   $20
-	jr   nz, _LABEL_1C7A_
-	inc  hl
-	jr   _LABEL_1C5B_
+    inc  hl
+    ld   a, [hl]
+    or   a
+    jr   z, _LABEL_1C8C_
+    cp   $20
+    jr   nz, _LABEL_1C7A_
+    inc  hl
+    jr   _LABEL_1C5B_
 
 _LABEL_1C86_:
-	pop  hl
-	inc  hl
-	ld   a, [hl]
-	or   a
-	jr   nz, _LABEL_1C5B_
+    pop  hl
+    inc  hl
+    ld   a, [hl]
+    or   a
+    jr   nz, _LABEL_1C5B_
 _LABEL_1C8C_:
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
-	ld   a, $05
-	call _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	ld   a, [_RAM_C24E_]
-	ld   l, a
-	ld   a, [_RAM_C24F_]
-	ld   h, a
-	dec  hl
-	ld   a, l
-	ld   [_RAM_C24E_], a
-	ld   a, h
-	ld   [_RAM_C24F_], a
-	jr   _LABEL_1C3D_
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
+    ld   a, $05
+    call _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    ld   a, [_RAM_C24E_]
+    ld   l, a
+    ld   a, [_RAM_C24F_]
+    ld   h, a
+    dec  hl
+    ld   a, l
+    ld   [_RAM_C24E_], a
+    ld   a, h
+    ld   [_RAM_C24F_], a
+    jr   _LABEL_1C3D_
 
 _LABEL_1CB4_:
-	ld   a, [_RAM_C5F4_]
-	or   a
-	jr   z, _LABEL_1CC2_
-	ld   a, [hl]
-	or   a
-	jr   z, _LABEL_1CC2_
-	cp   $20
-	jr   nz, _LABEL_1C73_
+    ld   a, [_RAM_C5F4_]
+    or   a
+    jr   z, _LABEL_1CC2_
+    ld   a, [hl]
+    or   a
+    jr   z, _LABEL_1CC2_
+    cp   $20
+    jr   nz, _LABEL_1C73_
 _LABEL_1CC2_:
-	pop  hl
-	ld   a, $01
-	ret
+    pop  hl
+    ld   a, $01
+    ret
 
 _LABEL_1CC6_:
-	ld   a, $03
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   a, [_RAM_C24B_]
-	dec  a
-	add  a
-	add  a
-	ld   l, a
-	ld   h, $40
-	ldi  a, [hl]
-	ld   e, a
-	ldi  a, [hl]
-	ld   d, a
-	ldi  a, [hl]
-	ld   [_RAM_C24A_], a
-	ld   a, [hl]
-	ld   [_RAM_C24E_], a
-	ld   a, [_RAM_C24A_]
+    ld   a, [_RAM_C24B_]
+    dec  a
+    add  a
+    add  a
+    ld   l, a
+    ld   h, $40
+    ldi  a, [hl]
+    ld   e, a
+    ldi  a, [hl]
+    ld   d, a
+    ldi  a, [hl]
+    ld   [_RAM_C24A_], a
+    ld   a, [hl]
+    ld   [_RAM_C24E_], a
+    ld   a, [_RAM_C24A_]
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   a, [_RAM_C5F5_]
-	or   a
-	call nz, _LABEL_1A4F_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	ret
+    ld   a, [_RAM_C5F5_]
+    or   a
+    call nz, _LABEL_1A4F_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    ret
 
 _LABEL_1CF6_:
-	ld   a, e
-	ld   [_RAM_C399_], a
-	ld   a, b
-	ld   [_RAM_C39A_], a
-	ld   a, c
-	ld   [_RAM_C24F_], a
-	di
-	ld   a, $44
-	ldh  [rSTAT], a
-	ld   a, $03
-	ldh  [rIE], a
-	ei
-	ret
+    ld   a, e
+    ld   [_RAM_C399_], a
+    ld   a, b
+    ld   [_RAM_C39A_], a
+    ld   a, c
+    ld   [_RAM_C24F_], a
+    di
+    ld   a, $44
+    ldh  [rSTAT], a
+    ld   a, $03
+    ldh  [rIE], a
+    ei
+    ret
 
 _LABEL_1D0D_:
-	ld   a, d
-	or   a
-	jr   nz, _LABEL_1D1D_
-	push hl
-	ld   h, a
-	ld   l, e
-	add  hl, hl
-	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
+    ld   a, d
+    or   a
+    jr   nz, _LABEL_1D1D_
+    push hl
+    ld   h, a
+    ld   l, e
+    add  hl, hl
+    ld   de, gfx__tilemap_string_addr_table__RAM_CEFE
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    pop  hl
 _LABEL_1D1D_:
-	ld   a, [de]
-	inc  de
-	or   a
-	ret  z
-	sub  $20
-	ldi  [hl], a
-	jr   _LABEL_1D0D_
+    ld   a, [de]
+    inc  de
+    or   a
+    ret  z
+    sub  $20
+    ldi  [hl], a
+    jr   _LABEL_1D0D_
 
 _LABEL_1D26_:
-	ld   a, [de]
-	inc  de
-	or   a
-	ret  z
-	ldi  [hl], a
-	jr   _LABEL_1D26_
+    ld   a, [de]
+    inc  de
+    or   a
+    ret  z
+    ldi  [hl], a
+    jr   _LABEL_1D26_
 
 _LABEL_1D2D_:
-	ld   h, d
-	ld   l, e
-	add  hl, hl
-	ld   de, $CF00
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	push de
-	ld   h, d
-	ld   l, e
-	ld   bc, _DATA_13_
-	add  hl, bc
-	ld   b, $00
+    ld   h, d
+    ld   l, e
+    add  hl, hl
+    ld   de, $CF00
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    push de
+    ld   h, d
+    ld   l, e
+    ld   bc, _DATA_13_
+    add  hl, bc
+    ld   b, $00
 _LABEL_1D40_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   nz, _LABEL_1D49_
-	inc  b
-	jr   _LABEL_1D40_
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   nz, _LABEL_1D49_
+    inc  b
+    jr   _LABEL_1D40_
 
 _LABEL_1D49_:
-	ldd  a, [hl]
-	cp   $20
-	jr   nz, _LABEL_1D51_
-	inc  b
-	jr   _LABEL_1D49_
+    ldd  a, [hl]
+    cp   $20
+    jr   nz, _LABEL_1D51_
+    inc  b
+    jr   _LABEL_1D49_
 
 _LABEL_1D51_:
-	ld   a, $16
-	sub  b
-	pop  de
-	cp   $15
-	ret  c
-	ld   a, $14
-	ret
+    ld   a, $16
+    sub  b
+    pop  de
+    cp   $15
+    ret  c
+    ld   a, $14
+    ret
 
 _LABEL_1D5B_:
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	ld   de, $0028
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $0029
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $002A
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	jp   _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    ld   de, $0028
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $0029
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $002A
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    jp   _LABEL_BC3_
 
 ; Data from 1D85 to 1D87 (3 bytes)
 _DATA_1D85_:
 db $02, $06, $0A
 
 _LABEL_1D88_:
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	ld   de, $001C
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $001D
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $001E
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	jp   _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    ld   de, $001C
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $001D
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $001E
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    jp   _LABEL_BC3_
 
 _LABEL_1DB2_:
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	ld   de, $0022
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $0023
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $0024
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	jp   _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    ld   de, $0022
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $0023
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $0024
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    jp   _LABEL_BC3_
 
 _LABEL_1DDC_:
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	ld   de, $0025
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $0026
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $0027
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	jp   _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    ld   de, $0025
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $0026
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $0027
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    jp   _LABEL_BC3_
 
 _LABEL_1E06_:
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	ld   de, $001F
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $0020
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $0021
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	jp   _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    ld   de, $001F
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $0020
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $0021
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    jp   _LABEL_BC3_
 
 ; Data from 1E30 to 1E33 (4 bytes)
 _DATA_1E30_:
 db $03, $06, $0A, $0E
 
 _LABEL_1E34_:
-	ld   hl, _DATA_1E30_
-	call _LABEL_2003_
-	ld   de, $0018
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $0019
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $001A
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	call _LABEL_BC3_
-	ld   de, $001B
-	call _LABEL_1D2D_
-	ld   bc, $0E09
-	jp   _LABEL_BC3_
+    ld   hl, _DATA_1E30_
+    call _LABEL_2003_
+    ld   de, $0018
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $0019
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $001A
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    call _LABEL_BC3_
+    ld   de, $001B
+    call _LABEL_1D2D_
+    ld   bc, $0E09
+    jp   _LABEL_BC3_
 
 _LABEL_1E6A_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call gfx__clear_shadow_oam__275B
-	call gfx__copy_some_tile_patterns_todo__0424
-	call _LABEL_2735_
-	ld   a, $03
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call gfx__clear_shadow_oam__275B
+    call gfx__copy_some_tile_patterns_todo__0424
+    call _LABEL_2735_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_C4C3_
+    jp   _LABEL_C4C3_
 
 _LABEL_1E7F_:
-	call _LABEL_1E88_
-	jp   z, _LABEL_C521_
-	jp   _LABEL_1E6A_
+    call _LABEL_1E88_
+    jp   z, _LABEL_C521_
+    jp   _LABEL_1E6A_
 
 _LABEL_1E88_:
-	xor  a
-	ld   [_RAM_C3AA_], a
-	ld   a, [_RAM_C59C_]
-	or   a
-	ret  z
-	ld   hl, _RAM_C59B_
-	dec  [hl]
-	xor  a
-	ld   [_RAM_C59C_], a
-	inc  a
-	ret
+    xor  a
+    ld   [_RAM_C3AA_], a
+    ld   a, [_RAM_C59C_]
+    or   a
+    ret  z
+    ld   hl, _RAM_C59B_
+    dec  [hl]
+    xor  a
+    ld   [_RAM_C59C_], a
+    inc  a
+    ret
 
 ; Data from 1E9B to 2002 (360 bytes)
 _DATA_1E9B_:
@@ -5306,190 +5306,190 @@ ds 18, $63
 db $64
 
 _LABEL_2003_:
-	ld   a, $0A
-	ld   [_RAM_C25B_], a
-	ld   a, $96
-	ld   [_RAM_C25C_], a
-	ld   a, l
-	ld   [_RAM_C254_], a
-	ld   a, h
-	ld   [_RAM_C255_], a
-	ldi  a, [hl]
-	ld   [_RAM_C256_], a
-	xor  a
-	ld   [_RAM_C23E_], a
-	inc  a
-	ld   [_RAM_C257_], a
-	ld   a, $1B
-	ldh  [rOBP0], a
-	ld   a, $05
-	ld   [_RAM_C253_], a
-	ld   a, $41
-	ld   [_RAM_C23F_], a
-	ldi  a, [hl]
-	add  $02
-	add  a
-	add  a
-	add  a
-	add  $04
-	ld   [_RAM_C250_], a
-	xor  a
-	ld   [_RAM_C251_], a
-	ld   a, $08
-	ld   [_RAM_C252_], a
-	ret
+    ld   a, $0A
+    ld   [_RAM_C25B_], a
+    ld   a, $96
+    ld   [_RAM_C25C_], a
+    ld   a, l
+    ld   [_RAM_C254_], a
+    ld   a, h
+    ld   [_RAM_C255_], a
+    ldi  a, [hl]
+    ld   [_RAM_C256_], a
+    xor  a
+    ld   [_RAM_C23E_], a
+    inc  a
+    ld   [_RAM_C257_], a
+    ld   a, $1B
+    ldh  [rOBP0], a
+    ld   a, $05
+    ld   [_RAM_C253_], a
+    ld   a, $41
+    ld   [_RAM_C23F_], a
+    ldi  a, [hl]
+    add  $02
+    add  a
+    add  a
+    add  a
+    add  $04
+    ld   [_RAM_C250_], a
+    xor  a
+    ld   [_RAM_C251_], a
+    ld   a, $08
+    ld   [_RAM_C252_], a
+    ret
 
 _LABEL_2044_:
-	ld   a, c
-	ld   [_RAM_C258_], a
-	ld   a, b
-	ld   [_RAM_C259_], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_463_
-	call gfx__turn_on_screen_bg_obj__2540
-	xor  a
-	ld   [_RAM_C23E_], a
-	ld   a, $39
-	ld   [_RAM_C25A_], a
-	ld   a, $1B
-	ldh  [rOBP0], a
-	ld   a, $05
-	ld   [_RAM_C253_], a
-	ld   a, $41
-	ld   [_RAM_C23F_], a
-	ret
+    ld   a, c
+    ld   [_RAM_C258_], a
+    ld   a, b
+    ld   [_RAM_C259_], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_463_
+    call gfx__turn_on_screen_bg_obj__2540
+    xor  a
+    ld   [_RAM_C23E_], a
+    ld   a, $39
+    ld   [_RAM_C25A_], a
+    ld   a, $1B
+    ldh  [rOBP0], a
+    ld   a, $05
+    ld   [_RAM_C253_], a
+    ld   a, $41
+    ld   [_RAM_C23F_], a
+    ret
 
 sys_run_submenu_result_in_A__206D:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C25B_]
-	ld   c, a
-	ld   a, [_RAM_C250_]
-	ld   b, a
-	ld   a, [_RAM_C251_]
-	inc  a
-	and  $0F
-	ld   e, a
-	ld   a, [_RAM_C253_]
-	cp   $05
-	jr   nz, _LABEL_2088_
-	ld   a, e
-	ld   [_RAM_C251_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C25B_]
+    ld   c, a
+    ld   a, [_RAM_C250_]
+    ld   b, a
+    ld   a, [_RAM_C251_]
+    inc  a
+    and  $0F
+    ld   e, a
+    ld   a, [_RAM_C253_]
+    cp   $05
+    jr   nz, _LABEL_2088_
+    ld   a, e
+    ld   [_RAM_C251_], a
 _LABEL_2088_:
-	ld   a, e
-	add  $22
-	ld   e, a
-	call _LABEL_1504_
-	ld   a, [_RAM_C25C_]
-	ld   c, a
-	ld   a, [_RAM_C250_]
-	ld   b, a
-	ld   a, [_RAM_C252_]
-	inc  a
-	and  $0F
-	ld   e, a
-	ld   a, [_RAM_C253_]
-	cp   $05
-	jr   nz, _LABEL_20A9_
-	ld   a, e
-	ld   [_RAM_C252_], a
+    ld   a, e
+    add  $22
+    ld   e, a
+    call _LABEL_1504_
+    ld   a, [_RAM_C25C_]
+    ld   c, a
+    ld   a, [_RAM_C250_]
+    ld   b, a
+    ld   a, [_RAM_C252_]
+    inc  a
+    and  $0F
+    ld   e, a
+    ld   a, [_RAM_C253_]
+    cp   $05
+    jr   nz, _LABEL_20A9_
+    ld   a, e
+    ld   [_RAM_C252_], a
 _LABEL_20A9_:
-	ld   a, e
-	add  $22
-	ld   e, a
-	call _LABEL_1504_
-	ld   a, [_RAM_C253_]
-	dec  a
-	jr   nz, _LABEL_20B8_
-	ld   a, $05
+    ld   a, e
+    add  $22
+    ld   e, a
+    call _LABEL_1504_
+    ld   a, [_RAM_C253_]
+    dec  a
+    jr   nz, _LABEL_20B8_
+    ld   a, $05
 _LABEL_20B8_:
-	ld   [_RAM_C253_], a
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_20D2_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $C4
-	jr   nz, _LABEL_20F5_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_20F5_
+    ld   [_RAM_C253_], a
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_20D2_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $C4
+    jr   nz, _LABEL_20F5_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_20F5_
 
 _LABEL_20D2_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $C4
-	jr   z, _LABEL_20F5_
-	ld   e, a
-	ld   a, $19
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_213A_
-	bit  7, a
-	jr   nz, _LABEL_210C_
-	bit  2, a
-	jr   z, _LABEL_20F5_
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $C4
+    jr   z, _LABEL_20F5_
+    ld   e, a
+    ld   a, $19
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_213A_
+    bit  7, a
+    jr   nz, _LABEL_210C_
+    bit  2, a
+    jr   z, _LABEL_20F5_
 _LABEL_20EC_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	bit  2, a
-	jr   nz, _LABEL_20EC_
-	jr   _LABEL_2145_
+    ld   a, [gamepad_buttons__RAM_C103]
+    bit  2, a
+    jr   nz, _LABEL_20EC_
+    jr   _LABEL_2145_
 
 _LABEL_20F5_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jp   z, sys_run_submenu_result_in_A__206D
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jr   z, _LABEL_2145_
-	cp   $0F
-	jr   z, _LABEL_213A_
-	cp   $12
-	jp   nz, sys_run_submenu_result_in_A__206D
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jp   z, sys_run_submenu_result_in_A__206D
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jr   z, _LABEL_2145_
+    cp   $0F
+    jr   z, _LABEL_213A_
+    cp   $12
+    jp   nz, sys_run_submenu_result_in_A__206D
 _LABEL_210C_:
-	ld   a, [_RAM_C256_]
-	ld   c, a
-	ld   a, [_RAM_C257_]
-	cp   c
-	jr   nz, _LABEL_2117_
-	xor  a
+    ld   a, [_RAM_C256_]
+    ld   c, a
+    ld   a, [_RAM_C257_]
+    cp   c
+    jr   nz, _LABEL_2117_
+    xor  a
 _LABEL_2117_:
-	inc  a
+    inc  a
 _LABEL_2118_:
-	ld   [_RAM_C257_], a
-	ld   a, [_RAM_C254_]
-	ld   l, a
-	ld   a, [_RAM_C255_]
-	ld   h, a
-	ld   a, [_RAM_C257_]
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	add  $02
-	add  a
-	add  a
-	add  a
-	add  $04
-	ld   [_RAM_C250_], a
-	jp   sys_run_submenu_result_in_A__206D
+    ld   [_RAM_C257_], a
+    ld   a, [_RAM_C254_]
+    ld   l, a
+    ld   a, [_RAM_C255_]
+    ld   h, a
+    ld   a, [_RAM_C257_]
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    add  $02
+    add  a
+    add  a
+    add  a
+    add  $04
+    ld   [_RAM_C250_], a
+    jp   sys_run_submenu_result_in_A__206D
 
 _LABEL_213A_:
-	ld   a, [_RAM_C257_]
-	dec  a
-	jr   nz, _LABEL_2118_
-	ld   a, [_RAM_C256_]
-	jr   _LABEL_2118_
+    ld   a, [_RAM_C257_]
+    dec  a
+    jr   nz, _LABEL_2118_
+    ld   a, [_RAM_C256_]
+    jr   _LABEL_2118_
 
 _LABEL_2145_:
-	xor  a
-	ld   [_RAM_C23F_], a
-	call gfx__clear_shadow_oam__275B
-	ld   a, [_RAM_C257_]
-	ret
+    xor  a
+    ld   [_RAM_C23F_], a
+    call gfx__clear_shadow_oam__275B
+    ld   a, [_RAM_C257_]
+    ret
 
 ; Data from 2150 to 2164 (21 bytes)
 _DATA_2150_:
@@ -5501,90 +5501,90 @@ _DATA_2165_:
 db $0A, $06, $08, $05, $01, $0C, $00, $03, $09, $04, $07, $0B, $0D, $02
 
 _LABEL_2173_:
-	ld   a, c
-	cp   $13
-	ret  z
-	ld   [_RAM_C25D_], a
-	push de
-	push hl
-	ld   a, b
-	ld   [_RAM_C25E_], a
-	add  a
-	add  a
-	ld   b, a
-	add  a
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   h, $00
-	ld   l, b
-	add  hl, de
-	ld   c, l
-	ld   b, h
-	pop  hl
-	pop  de
-	add  hl, bc
-	push hl
-	ld   a, [_RAM_C25E_]
-	ld   h, $00
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, de
-	ld   d, h
-	ld   e, l
-	pop  hl
-	push de
-	push hl
-	ld   de, $0013
-	add  hl, de
-	ld   d, h
-	ld   e, l
-	dec  de
-	ld   a, [_RAM_C25D_]
-	ld   c, a
-	ld   a, $13
-	sub  c
-	ld   c, a
+    ld   a, c
+    cp   $13
+    ret  z
+    ld   [_RAM_C25D_], a
+    push de
+    push hl
+    ld   a, b
+    ld   [_RAM_C25E_], a
+    add  a
+    add  a
+    ld   b, a
+    add  a
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   h, $00
+    ld   l, b
+    add  hl, de
+    ld   c, l
+    ld   b, h
+    pop  hl
+    pop  de
+    add  hl, bc
+    push hl
+    ld   a, [_RAM_C25E_]
+    ld   h, $00
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, de
+    ld   d, h
+    ld   e, l
+    pop  hl
+    push de
+    push hl
+    ld   de, $0013
+    add  hl, de
+    ld   d, h
+    ld   e, l
+    dec  de
+    ld   a, [_RAM_C25D_]
+    ld   c, a
+    ld   a, $13
+    sub  c
+    ld   c, a
 _LABEL_21B2_:
-	ld   a, [de]
-	dec  de
-	ldd  [hl], a
-	dec  c
-	jr   nz, _LABEL_21B2_
-	ld   a, $20
-	ld   [hl], a
-	pop  hl
-	ld   de, _RAM_C261_
-	ld   b, $14
+    ld   a, [de]
+    dec  de
+    ldd  [hl], a
+    dec  c
+    jr   nz, _LABEL_21B2_
+    ld   a, $20
+    ld   [hl], a
+    pop  hl
+    ld   de, _RAM_C261_
+    ld   b, $14
 _LABEL_21C1_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_21C1_
-	xor  a
-	ld   [de], a
-	pop  hl
-	ld   de, $C261
-	ld   a, [vblank__dispatch_select__RAM_C27C]
-	push af
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  af
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_21C1_
+    xor  a
+    ld   [de], a
+    pop  hl
+    ld   de, $C261
+    ld   a, [vblank__dispatch_select__RAM_C27C]
+    push af
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  af
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 _LABEL_21D7_:
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ret
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ret
 
 ; Data from 21E1 to 2208 (40 bytes)
 db $52, $4D, $43, $45, $4E, $50, $51, $69, $4E, $53, $4C, $44, $56, $52, $45, $67
@@ -5593,231 +5593,231 @@ db $4E, $46, $43, $52, $50, $45, $55, $21
 
 ; 4th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_appointments__launch__2209:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   a, [_SRAM_231_]
-	or   a
-	jr   z, _LABEL_2215_
-	ld   a, $01
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   a, [_SRAM_231_]
+    or   a
+    jr   z, _LABEL_2215_
+    ld   a, $01
 _LABEL_2215_:
-	ld   [_RAM_C10B_], a
+    ld   [_RAM_C10B_], a
 _LABEL_2218_:
-	ld   a, $F2
-	ldh  [rOBP0], a
-	call gfx__clear_shadow_oam__275B
-	ld   a, $01
-	ld   [_RAM_C260_], a
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	call _LABEL_3EF_
-	ld   a, $02
+    ld   a, $F2
+    ldh  [rOBP0], a
+    call gfx__clear_shadow_oam__275B
+    ld   a, $01
+    ld   [_RAM_C260_], a
+    di
+    ld   a, $04
+    ldh  [rSTAT], a
+    ld   a, $01
+    ldh  [rIE], a
+    ei
+    call _LABEL_3EF_
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_B75C_
-	ld   bc, $FFE4
-	ld   e, $70
-	call _LABEL_1CF6_
+    call _LABEL_B75C_
+    ld   bc, $FFE4
+    ld   e, $70
+    call _LABEL_1CF6_
 _LABEL_2241_:
-	call _LABEL_1563_
+    call _LABEL_1563_
 _LABEL_2244_:
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_224C_:
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   WORKBOY_SCAN_KEY_NONE ; $FF
-	jr   z, _LABEL_224C_
-	or   a
-	jp   z, _LABEL_200_
-	push af
-	ld   a, [_RAM_C232_]
-	add  a
-	add  a
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $21E1
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   nz, _LABEL_2286_
-	ld   a, [_RAM_C10D_]
-	push af
-	ld   a, [_RAM_C10B_]
-	ld   [_RAM_C10D_], a
-	call _LABEL_4C9_
-	call gfx__clear_shadow_oam__275B
-	call _LABEL_B7F7_
-	pop  af
-	ld   [_RAM_C10D_], a
-	jp   _LABEL_2244_
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   WORKBOY_SCAN_KEY_NONE ; $FF
+    jr   z, _LABEL_224C_
+    or   a
+    jp   z, _LABEL_200_
+    push af
+    ld   a, [_RAM_C232_]
+    add  a
+    add  a
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $21E1
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   nz, _LABEL_2286_
+    ld   a, [_RAM_C10D_]
+    push af
+    ld   a, [_RAM_C10B_]
+    ld   [_RAM_C10D_], a
+    call _LABEL_4C9_
+    call gfx__clear_shadow_oam__275B
+    call _LABEL_B7F7_
+    pop  af
+    ld   [_RAM_C10D_], a
+    jp   _LABEL_2244_
 
 _LABEL_2286_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_229E_
-	ld   a, [_SRAM_231_]
-	cp   $1E
-	jr   z, _LABEL_224C_
-	xor  a
-	ld   [_RAM_C596_], a
-	call _LABEL_B1CA_
-	call _LABEL_D58_
-	jp   _LABEL_2241_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_229E_
+    ld   a, [_SRAM_231_]
+    cp   $1E
+    jr   z, _LABEL_224C_
+    xor  a
+    ld   [_RAM_C596_], a
+    call _LABEL_B1CA_
+    call _LABEL_D58_
+    jp   _LABEL_2241_
 
 _LABEL_229E_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_22B2_
-	call _LABEL_132B_
-	push af
-	call _LABEL_B743_
-	pop  af
-	or   a
-	jr   z, _LABEL_224C_
-	call _LABEL_2300_
-	jr   _LABEL_224C_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_22B2_
+    call _LABEL_132B_
+    push af
+    call _LABEL_B743_
+    pop  af
+    or   a
+    jr   z, _LABEL_224C_
+    call _LABEL_2300_
+    jr   _LABEL_224C_
 
 _LABEL_22B2_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_22CA_
-	ld   a, [_RAM_C10B_]
-	or   a
-	jr   z, _LABEL_224C_
-	ld   a, $01
-	ld   [_RAM_C596_], a
-	call _LABEL_B1F7_
-	call _LABEL_D58_
-	jp   _LABEL_2241_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_22CA_
+    ld   a, [_RAM_C10B_]
+    or   a
+    jr   z, _LABEL_224C_
+    ld   a, $01
+    ld   [_RAM_C596_], a
+    call _LABEL_B1F7_
+    call _LABEL_D58_
+    jp   _LABEL_2241_
 
 _LABEL_22CA_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_22DF_
-	ld   a, [_SRAM_231_]
-	ld   c, a
-	ld   a, [_RAM_C10B_]
-	cp   c
-	jp   z, _LABEL_224C_
-	ld   a, [_RAM_C10B_]
-	inc  a
-	jr   _LABEL_22EF_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_22DF_
+    ld   a, [_SRAM_231_]
+    ld   c, a
+    ld   a, [_RAM_C10B_]
+    cp   c
+    jp   z, _LABEL_224C_
+    ld   a, [_RAM_C10B_]
+    inc  a
+    jr   _LABEL_22EF_
 
 _LABEL_22DF_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_22F8_
-	ld   a, [_RAM_C10B_]
-	cp   $02
-	jp   c, _LABEL_224C_
-	ld   a, [_RAM_C10B_]
-	dec  a
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_22F8_
+    ld   a, [_RAM_C10B_]
+    cp   $02
+    jp   c, _LABEL_224C_
+    ld   a, [_RAM_C10B_]
+    dec  a
 _LABEL_22EF_:
-	ld   [_RAM_C10B_], a
-	call _LABEL_B765_
-	jp   _LABEL_224C_
+    ld   [_RAM_C10B_], a
+    call _LABEL_B765_
+    jp   _LABEL_224C_
 
 _LABEL_22F8_:
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_200_
-	jp   _LABEL_224C_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_200_
+    jp   _LABEL_224C_
 
 _LABEL_2300_:
-	call _LABEL_24D5_
-	ld   a, [_RAM_C10B_]
-	or   a
-	ret  z
-	dec  a
-	add  a
-	ld   e, a
-	ld   d, $00
-	ld   h, d
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, de
-	ld   de, $A233
-	add  hl, de
-	ld   a, [_RAM_C10B_]
-	ld   c, a
-	ld   a, $1E
-	sub  c
-	jr   z, _LABEL_2340_
-	push hl
-	ld   de, $0042
-	ld   hl, $0000
+    call _LABEL_24D5_
+    ld   a, [_RAM_C10B_]
+    or   a
+    ret  z
+    dec  a
+    add  a
+    ld   e, a
+    ld   d, $00
+    ld   h, d
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, de
+    ld   de, $A233
+    add  hl, de
+    ld   a, [_RAM_C10B_]
+    ld   c, a
+    ld   a, $1E
+    sub  c
+    jr   z, _LABEL_2340_
+    push hl
+    ld   de, $0042
+    ld   hl, $0000
 _LABEL_2329_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_2329_
-	ld   b, h
-	ld   c, l
-	pop  hl
-	push hl
-	ld   de, $0042
-	add  hl, de
-	ld   d, h
-	ld   e, l
-	pop  hl
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_2329_
+    ld   b, h
+    ld   c, l
+    pop  hl
+    push hl
+    ld   de, $0042
+    add  hl, de
+    ld   d, h
+    ld   e, l
+    pop  hl
 _LABEL_2338_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_2338_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_2338_
 _LABEL_2340_:
-	ld   a, [_SRAM_231_]
-	dec  a
-	ld   [_SRAM_231_], a
-	ld   c, a
-	ld   a, [_RAM_C10B_]
-	cp   c
-	jr   c, _LABEL_2354_
-	jr   z, _LABEL_2354_
-	dec  a
-	ld   [_RAM_C10B_], a
+    ld   a, [_SRAM_231_]
+    dec  a
+    ld   [_SRAM_231_], a
+    ld   c, a
+    ld   a, [_RAM_C10B_]
+    cp   c
+    jr   c, _LABEL_2354_
+    jr   z, _LABEL_2354_
+    dec  a
+    ld   [_RAM_C10B_], a
 _LABEL_2354_:
-	call _LABEL_B75C_
-	jp   _LABEL_224C_
+    call _LABEL_B75C_
+    jp   _LABEL_224C_
 
 _LABEL_235A_:
-	or   a
-	ret  z
-	ld   b, a
+    or   a
+    ret  z
+    ld   b, a
 _LABEL_235D_:
-	push bc
-	call _LABEL_2366_
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_235D_
-	ret
+    push bc
+    call _LABEL_2366_
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_235D_
+    ret
 
 _LABEL_2366_:
-	ld   hl, _RAM_C268_
+    ld   hl, _RAM_C268_
 _LABEL_2369_:
-	inc  [hl]
-	ld   a, [hl]
-	cp   $3A
-	ret  nz
-	ld   [hl], $30
-	dec  hl
-	jr   _LABEL_2369_
+    inc  [hl]
+    ld   a, [hl]
+    cp   $3A
+    ret  nz
+    ld   [hl], $30
+    dec  hl
+    jr   _LABEL_2369_
 
 ; Data from 2373 to 2384 (18 bytes)
 db $30, $38, $48, $50, $60, $68, $70, $78, $38, $40, $50, $58, $68, $70, $68, $70
@@ -5825,329 +5825,329 @@ db $80, $88
 
 ; 20th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_13_TODO__LABEL_2385_:
-	call _LABEL_30A1_
-	ld   b, $02
-	ld   hl, $99AC
-	jr   _LABEL_23B8_
+    call _LABEL_30A1_
+    ld   b, $02
+    ld   hl, $99AC
+    jr   _LABEL_23B8_
 
 ; 25th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_18_TODO__LABEL_238F_:
-	ld   b, $03
-	ld   hl, (_TILEMAP0 + $85)
-	ld   de, _RAM_C261_
+    ld   b, $03
+    ld   hl, (_TILEMAP0 + $85)
+    ld   de, _RAM_C261_
 _LABEL_2397_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_2397_
-	dec  hl
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_2397_
+    dec  hl
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    jp   vblank__cmd_default__25F7
 
 ; 19th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_12_TODO__LABEL_23B3_:
-	ld   b, $03
-	ld   hl, $99E6
+    ld   b, $03
+    ld   hl, $99E6
 _LABEL_23B8_:
-	ld   de, _RAM_C261_
+    ld   de, _RAM_C261_
 _LABEL_23BB_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_23BB_
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_23BB_
+    jp   vblank__cmd_default__25F7
 
 ; 17th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_10_TODO__LABEL_23CC_:
-	ld   hl, (_TILEMAP0 + $05)
-	ld   a, [_RAM_C260_]
-	or   a
-	jr   nz, _LABEL_23D8_
-	ld   hl, $99E5
+    ld   hl, (_TILEMAP0 + $05)
+    ld   a, [_RAM_C260_]
+    or   a
+    jr   nz, _LABEL_23D8_
+    ld   hl, $99E5
 _LABEL_23D8_:
-	ld   de, _RAM_C261_
-	ld   b, $03
+    ld   de, _RAM_C261_
+    ld   b, $03
 _LABEL_23DD_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_23DD_
-	dec  hl
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	sub  $20
-	ldi  [hl], a
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_23DD_
+    dec  hl
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    sub  $20
+    ldi  [hl], a
+    jp   vblank__cmd_default__25F7
 
 ; 18th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_11_TODO__LABEL_23F8_:
-	ld   de, _RAM_C261_
-	ld   hl, (_TILEMAP0 + $25)
-	ld   b, $02
+    ld   de, _RAM_C261_
+    ld   hl, (_TILEMAP0 + $25)
+    ld   b, $02
 _LABEL_2400_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_2400_
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_2400_
+    jp   vblank__cmd_default__25F7
 
 _LABEL_2411_:
-	call _LABEL_241A_
-	push af
-	call gfx__clear_shadow_oam__275B
-	pop  af
-	ret
+    call _LABEL_241A_
+    push af
+    call gfx__clear_shadow_oam__275B
+    pop  af
+    ret
 
 _LABEL_241A_:
-	ld   [_RAM_C282_], a
-	ld   a, c
-	ld   [_RAM_C27B_], a
-	ld   a, b
-	ld   [_RAM_C27A_], a
-	ld   a, e
-	ld   [_RAM_C276_], a
-	ld   a, d
-	ld   [_RAM_C277_], a
-	ld   a, l
-	ld   [_RAM_C278_], a
-	ld   a, h
-	ld   [_RAM_C279_], a
+    ld   [_RAM_C282_], a
+    ld   a, c
+    ld   [_RAM_C27B_], a
+    ld   a, b
+    ld   [_RAM_C27A_], a
+    ld   a, e
+    ld   [_RAM_C276_], a
+    ld   a, d
+    ld   [_RAM_C277_], a
+    ld   a, l
+    ld   [_RAM_C278_], a
+    ld   a, h
+    ld   [_RAM_C279_], a
 _LABEL_2435_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C276_]
-	ld   l, a
-	ld   a, [_RAM_C277_]
-	ld   h, a
-	ld   a, [_RAM_C27B_]
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	ld   [_RAM_C281_], a
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_2435_
-	or   a
-	jr   nz, _LABEL_246F_
-	ld   a, [_RAM_C260_]
-	cp   $C7
-	jr   nz, _LABEL_2468_
-	xor  a
-	ld   [_RAM_C260_], a
-	ld   hl, $FFFE
-	ld   sp, hl
-	jp   app_checkbook__launch__0AF1
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C276_]
+    ld   l, a
+    ld   a, [_RAM_C277_]
+    ld   h, a
+    ld   a, [_RAM_C27B_]
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    ld   [_RAM_C281_], a
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_2435_
+    or   a
+    jr   nz, _LABEL_246F_
+    ld   a, [_RAM_C260_]
+    cp   $C7
+    jr   nz, _LABEL_2468_
+    xor  a
+    ld   [_RAM_C260_], a
+    ld   hl, $FFFE
+    ld   sp, hl
+    jp   app_checkbook__launch__0AF1
 
 _LABEL_2468_:
-	or   a
-	jp   nz, _LABEL_2218_
-	ld   a, $FF
-	ret
+    or   a
+    jp   nz, _LABEL_2218_
+    ld   a, $FF
+    ret
 
 _LABEL_246F_:
-	cp   $0D
-	ret  z
-	cp   $10
-	jr   z, _LABEL_24A9_
-	cp   $11
-	jr   z, _LABEL_2495_
-	cp   $30
-	jr   c, _LABEL_2435_
-	cp   $3A
-	jr   nc, _LABEL_2435_
-	ld   c, a
-	ld   a, [_RAM_C278_]
-	ld   l, a
-	ld   a, [_RAM_C279_]
-	ld   h, a
-	ld   a, [_RAM_C27B_]
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], c
+    cp   $0D
+    ret  z
+    cp   $10
+    jr   z, _LABEL_24A9_
+    cp   $11
+    jr   z, _LABEL_2495_
+    cp   $30
+    jr   c, _LABEL_2435_
+    cp   $3A
+    jr   nc, _LABEL_2435_
+    ld   c, a
+    ld   a, [_RAM_C278_]
+    ld   l, a
+    ld   a, [_RAM_C279_]
+    ld   h, a
+    ld   a, [_RAM_C27B_]
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], c
 _LABEL_2495_:
-	ld   a, [_RAM_C27B_]
-	ld   c, a
-	ld   a, [_RAM_C27A_]
-	cp   c
-	jr   nz, _LABEL_24A2_
-	xor  a
-	jr   _LABEL_24A4_
+    ld   a, [_RAM_C27B_]
+    ld   c, a
+    ld   a, [_RAM_C27A_]
+    cp   c
+    jr   nz, _LABEL_24A2_
+    xor  a
+    jr   _LABEL_24A4_
 
 _LABEL_24A2_:
-	ld   a, c
-	inc  a
+    ld   a, c
+    inc  a
 _LABEL_24A4_:
-	ld   [_RAM_C27B_], a
-	jr   _LABEL_2435_
+    ld   [_RAM_C27B_], a
+    jr   _LABEL_2435_
 
 _LABEL_24A9_:
-	ld   a, [_RAM_C27B_]
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_24B4_
-	ld   a, [_RAM_C27A_]
+    ld   a, [_RAM_C27B_]
+    dec  a
+    cp   $FF
+    jr   nz, _LABEL_24B4_
+    ld   a, [_RAM_C27A_]
 _LABEL_24B4_:
-	ld   [_RAM_C27B_], a
-	jp   _LABEL_2435_
+    ld   [_RAM_C27B_], a
+    jp   _LABEL_2435_
 
 
 ; 16th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_0F__copy_text__24BA:
     ; Dest  : RAM_C134,RAM_C133 (DE)
     ; Source: RAM_C135,RAM_C136 (HL)
-	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
-	ld   e, a
-	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
-	ld   d, a
+    ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
+    ld   e, a
+    ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
+    ld   d, a
 
-	ld   a, [gfx__src_addr_lo__RAM_C135_maybe]
-	ld   l, a
-	ld   a, [gfx__src_addr_hi__RAM_C136_maybe]
-	ld   h, a
+    ld   a, [gfx__src_addr_lo__RAM_C135_maybe]
+    ld   l, a
+    ld   a, [gfx__src_addr_hi__RAM_C136_maybe]
+    ld   h, a
     ; Copies bytes from Source (HL) to DE
     ; subtracting 32 from each byte before writing it (adjust to start of font tiles)
     .copy_loop__24CA:
-    	ldi  a, [hl]
-    	or   a
+        ldi  a, [hl]
+        or   a
         ; Jump back to vblank handler when done
-    	jp   z, vblank__cmd_default__25F7
-    	sub  32 ; $20
-    	ld   [de], a
-    	inc  de
-    	jr   .copy_loop__24CA
+        jp   z, vblank__cmd_default__25F7
+        sub  32 ; $20
+        ld   [de], a
+        inc  de
+        jr   .copy_loop__24CA
 
 
 _LABEL_24D5_:
-	ld   hl, _TILEMAP0
-	ld   b, $07
+    ld   hl, _TILEMAP0
+    ld   b, $07
 _LABEL_24DA_:
-	ld   a, l
-	ld   [_RAM_C105_], a
-	ld   a, h
-	ld   [_RAM_C106_], a
-	ld   a, $0E
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   de, $0040
-	add  hl, de
-	dec  b
-	jr   nz, _LABEL_24DA_
+    ld   a, l
+    ld   [_RAM_C105_], a
+    ld   a, h
+    ld   [_RAM_C106_], a
+    ld   a, $0E
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   de, $0040
+    add  hl, de
+    dec  b
+    jr   nz, _LABEL_24DA_
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 input_read_gamepad_buttons__ROM_24F4:
-	ld   a, $20
-	ldh  [rP1], a
-	ldh  a, [rP1]
-	ldh  a, [rP1]
-	cpl
-	and  $0F
-	rlca
-	rlca
-	rlca
-	rlca
-	ld   b, a
-	ld   a, $10
-	ldh  [rP1], a
-	ldh  a, [rP1]
-	ldh  a, [rP1]
-	ldh  a, [rP1]
-	ldh  a, [rP1]
-	ldh  a, [rP1]
-	ldh  a, [rP1]
-	cpl
-	and  $0F
-	or   b
-	ld   c, a
-	ld   a, [gamepad_buttons__RAM_C103]
-	xor  c
-	and  c
-	ld   [_RAM_C104_], a  ; TODO: label: maybe buttons changed?
-	ld   a, c
-	ld   [gamepad_buttons__RAM_C103], a
-	ld   a, [$0030]
-	ldh  [rP1], a
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  $0F
-	xor  $0F
-	add  a
-	add  a
-	add  a
-	add  a
-	add  $0F
-	ld   e, a
-	ld   a, [gamepad_buttons__RAM_C103]
-	and  e
-	ld   [gamepad_buttons__RAM_C103], a
-	ret
+    ld   a, $20
+    ldh  [rP1], a
+    ldh  a, [rP1]
+    ldh  a, [rP1]
+    cpl
+    and  $0F
+    rlca
+    rlca
+    rlca
+    rlca
+    ld   b, a
+    ld   a, $10
+    ldh  [rP1], a
+    ldh  a, [rP1]
+    ldh  a, [rP1]
+    ldh  a, [rP1]
+    ldh  a, [rP1]
+    ldh  a, [rP1]
+    ldh  a, [rP1]
+    cpl
+    and  $0F
+    or   b
+    ld   c, a
+    ld   a, [gamepad_buttons__RAM_C103]
+    xor  c
+    and  c
+    ld   [_RAM_C104_], a  ; TODO: label: maybe buttons changed?
+    ld   a, c
+    ld   [gamepad_buttons__RAM_C103], a
+    ld   a, [$0030]
+    ldh  [rP1], a
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  $0F
+    xor  $0F
+    add  a
+    add  a
+    add  a
+    add  a
+    add  $0F
+    ld   e, a
+    ld   a, [gamepad_buttons__RAM_C103]
+    and  e
+    ld   [gamepad_buttons__RAM_C103], a
+    ret
 
 
 gfx__turn_on_screen_bg_obj__2540:
-	ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
-	ld   [_RAM_C23C_], a ; TODO: VAR: Some cache of LCDC settings?
-	ldh  [rLCDC], a
-	ret
+    ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
+    ld   [_RAM_C23C_], a ; TODO: VAR: Some cache of LCDC settings?
+    ldh  [rLCDC], a
+    ret
 
 
 gfx__vsync__2548:
-	push af
-	push hl
-	ld   a, [vblank__frame_counter_maybe__RAM_C100]
-	ld   hl, vblank__frame_counter_maybe__RAM_C100 ; $C100
-	halt
+    push af
+    push hl
+    ld   a, [vblank__frame_counter_maybe__RAM_C100]
+    ld   hl, vblank__frame_counter_maybe__RAM_C100 ; $C100
+    halt
     ; Wait for frame counter to change
     .wait_new_frame_loop__2551_:
-    	cp   [hl]
-    	jr   z, .wait_new_frame_loop__2551_
-	pop  hl
-	pop  af
-	ret
+        cp   [hl]
+        jr   z, .wait_new_frame_loop__2551_
+    pop  hl
+    pop  af
+    ret
 
 ; Jump Table from 2557 to 2588 (25 entries, indexed by vblank__dispatch_select__RAM_C27C)
 vblank__dispatch_table__2557:
@@ -6183,174 +6183,174 @@ db $57, $4C, $B1, $2C, $92, $79, $AF, $79
 
 ; 21st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_14_TODO__LABEL_2591_:
-	ld   hl, (_TILEMAP0 + $44)
-	ld   de, _RAM_C13D_
-	ld   b, $03
-	call _LABEL_25A5_
-	inc  hl
-	ld   b, $08
-	call _LABEL_25A5_
-	jp   vblank__cmd_0A_TODO__LABEL_309B_
+    ld   hl, (_TILEMAP0 + $44)
+    ld   de, _RAM_C13D_
+    ld   b, $03
+    call _LABEL_25A5_
+    inc  hl
+    ld   b, $08
+    call _LABEL_25A5_
+    jp   vblank__cmd_0A_TODO__LABEL_309B_
 
 _LABEL_25A5_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_25A5_
-	ret
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_25A5_
+    ret
 
 ; 15th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_0E_TODO__LABEL_25AE_:
-	ld   a, [_RAM_C105_]
-	ld   l, a
-	ld   a, [_RAM_C106_]
-	ld   h, a
-	ld   b, $34
-	xor  a
+    ld   a, [_RAM_C105_]
+    ld   l, a
+    ld   a, [_RAM_C106_]
+    ld   h, a
+    ld   b, $34
+    xor  a
 _LABEL_25B9_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_25B9_
-	jp   vblank__cmd_default__25F7
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_25B9_
+    jp   vblank__cmd_default__25F7
 
 ; Data from 25C0 to 25CB (12 bytes)
 db $CD, $F4, $24, $FA, $03, $C1, $B7, $20, $F7, $C3, $00, $00
 
 vblank__handler__25CC:
-	push af
-	push bc
-	push de
-	push hl
+    push af
+    push bc
+    push de
+    push hl
 
     ; TODO: maybe testing whether to load gamepad input vs keyboard input?
-	ld   a, [_RAM_C10E_]
-	or   a
-	jr   nz, .todo_skip_something__25E0
-    	ld   a, [gamepad_buttons__RAM_C103]
-    	ld   [_RAM_C592_], a
-    	and  $0F
-    	xor  $0F
+    ld   a, [_RAM_C10E_]
+    or   a
+    jr   nz, .todo_skip_something__25E0
+        ld   a, [gamepad_buttons__RAM_C103]
+        ld   [_RAM_C592_], a
+        and  $0F
+        xor  $0F
     .todo_skip_something__25E0:
 
-	call gfx__oam_dma__HRAM_FF80	; Code is loaded from gfx__oam_dma_in_ROM__2751
+    call gfx__oam_dma__HRAM_FF80    ; Code is loaded from gfx__oam_dma_in_ROM__2751
     ; Update Y scroll
-	ld   a, [gfx__shadow_y_scroll__RAM_C102]
-	ldh  [rSCY], a
+    ld   a, [gfx__shadow_y_scroll__RAM_C102]
+    ldh  [rSCY], a
 
     ; Load and jump to currently selected vblank sub-routine
-	ld   a, [vblank__dispatch_select__RAM_C27C]
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   hl, vblank__dispatch_table__2557
-	add  hl, de
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	jp   hl
+    ld   a, [vblank__dispatch_select__RAM_C27C]
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   hl, vblank__dispatch_table__2557
+    add  hl, de
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    jp   hl
 
     ; 1st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
     vblank__cmd_default__25F7:
-    	ld   a, [gfx__rBGP_cache__RAM_C27D]
-    	ldh  [rBGP], a
-    	ld   a, [_RAM_C399_]
-    	ldh  [rLYC], a
-    	call input_read_gamepad_buttons__ROM_24F4
+        ld   a, [gfx__rBGP_cache__RAM_C27D]
+        ldh  [rBGP], a
+        ld   a, [_RAM_C399_]
+        ldh  [rLYC], a
+        call input_read_gamepad_buttons__ROM_24F4
         ; MAYBE: Increment frame counter
-    	ld   hl, vblank__frame_counter_maybe__RAM_C100
-    	inc  [hl]
+        ld   hl, vblank__frame_counter_maybe__RAM_C100
+        inc  [hl]
 
-    	call _LABEL_2FE6_
-    	call _LABEL_357E_
-    	ld   a, [_RAM_C3AA_]
-    	or   a
-    	jr   z, _LABEL_2659_
-    	ld   a, [gamepad_buttons__RAM_C103]
-    	bit  0, a
-    	jr   z, _LABEL_2628_
-    	call _LABEL_1E88_
-    	ld   a, [_RAM_C3DE_]
-    	cp   $0D
-    	call nc, audio__todo__380D
-    	jr   _LABEL_2659_
+        call _LABEL_2FE6_
+        call _LABEL_357E_
+        ld   a, [_RAM_C3AA_]
+        or   a
+        jr   z, _LABEL_2659_
+        ld   a, [gamepad_buttons__RAM_C103]
+        bit  0, a
+        jr   z, _LABEL_2628_
+        call _LABEL_1E88_
+        ld   a, [_RAM_C3DE_]
+        cp   $0D
+        call nc, audio__todo__380D
+        jr   _LABEL_2659_
 
     _LABEL_2628_:
-    	ld   a, [_RAM_C3DE_]
-    	cp   $0D
-    	jr   z, _LABEL_2659_
-    	cp   $0E
-    	jr   z, _LABEL_2659_
-    	ld   a, [_RAM_C3AB_]
-    	dec  a
-    	jr   z, _LABEL_263E_
+        ld   a, [_RAM_C3DE_]
+        cp   $0D
+        jr   z, _LABEL_2659_
+        cp   $0E
+        jr   z, _LABEL_2659_
+        ld   a, [_RAM_C3AB_]
+        dec  a
+        jr   z, _LABEL_263E_
 
-    	ld   [_RAM_C3AB_], a
-    	jr   _LABEL_2659_
+        ld   [_RAM_C3AB_], a
+        jr   _LABEL_2659_
 
     _LABEL_263E_:
-    	ld   hl, _RAM_C3AA_
-    	dec  [hl]
-    	xor  a
-    	cp   [hl]
-    	jr   nz, _LABEL_264B_
+        ld   hl, _RAM_C3AA_
+        dec  [hl]
+        xor  a
+        cp   [hl]
+        jr   nz, _LABEL_264B_
 
-    	call _LABEL_1E88_
-    	jr   _LABEL_2659_
+        call _LABEL_1E88_
+        jr   _LABEL_2659_
 
     _LABEL_264B_:
-    	ld   b, $04
-    	ld   a, $2C
-    	ld   c, $11
-    	call _LABEL_33FC_
-    	ld   a, $3C
-    	ld   [_RAM_C3AB_], a
+        ld   b, $04
+        ld   a, $2C
+        ld   c, $11
+        call _LABEL_33FC_
+        ld   a, $3C
+        ld   [_RAM_C3AB_], a
     _LABEL_2659_:
-    	ld   a, [_RAM_C3DF_]
-    	or   a
-    	jr   z, _LABEL_2662_
+        ld   a, [_RAM_C3DF_]
+        or   a
+        jr   z, _LABEL_2662_
 
-    	call _LABEL_379C_
+        call _LABEL_379C_
 
     _LABEL_2662_:
-    	pop  hl
-    	pop  de
-    	pop  bc
-    	pop  af
-    	reti
+        pop  hl
+        pop  de
+        pop  bc
+        pop  af
+        reti
 
 ; 5th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_04_TODO__LABEL_2667_:
-	ld   de, _RAM_C283_
-	ld   hl, $98EA
-	ld   b, $07
+    ld   de, _RAM_C283_
+    ld   hl, $98EA
+    ld   b, $07
 _LABEL_266F_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_266F_
-	ld   hl, $994A
-	ld   b, $07
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_266F_
+    ld   hl, $994A
+    ld   b, $07
 _LABEL_267C_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_267C_
-	ld   hl, $99A3
-	ld   b, $0E
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_267C_
+    ld   hl, $99A3
+    ld   b, $0E
 _LABEL_2689_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_2689_
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_2689_
+    jp   vblank__cmd_default__25F7
 
 ; Data from 2694 to 26C5 (50 bytes)
 vblank__cmd_03_TODO__LABEL_2694_:
@@ -6388,290 +6388,290 @@ vblank__cmd_03_TODO__LABEL_2694_:
 
 ; 3rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_02_TODO__LABEL_26C6_:
-	xor  a
-	ld   [$99EB], a
-	ld   hl, $99EC
-	ld   a, [_RAM_C47C_]
-	or   a
-	jr   z, _LABEL_26E5_
-	ld   a, [_RAM_C355_]
-	cp   $F6
-	jr   nz, _LABEL_26E0_
-	dec  hl
-	ld   [hl], $0D
-	inc  hl
-	jr   _LABEL_26E5_
+    xor  a
+    ld   [$99EB], a
+    ld   hl, $99EC
+    ld   a, [_RAM_C47C_]
+    or   a
+    jr   z, _LABEL_26E5_
+    ld   a, [_RAM_C355_]
+    cp   $F6
+    jr   nz, _LABEL_26E0_
+    dec  hl
+    ld   [hl], $0D
+    inc  hl
+    jr   _LABEL_26E5_
 
 _LABEL_26E0_:
-	ld   a, $2D
-	ld   [_RAM_C356_], a
+    ld   a, $2D
+    ld   [_RAM_C356_], a
 _LABEL_26E5_:
-	ld   a, [_RAM_C356_]
-	cp   $3A
-	jr   c, _LABEL_26F4_
-	sub  $0A
-	push af
-	ld   a, $11
-	dec  hl
-	ldi  [hl], a
-	pop  af
+    ld   a, [_RAM_C356_]
+    cp   $3A
+    jr   c, _LABEL_26F4_
+    sub  $0A
+    push af
+    ld   a, $11
+    dec  hl
+    ldi  [hl], a
+    pop  af
 _LABEL_26F4_:
-	sub  $20
-	ldi  [hl], a
-	ld   a, [_RAM_C357_]
-	sub  $20
-	ldi  [hl], a
-	ld   de, _RAM_C358_
-	ld   hl, $99E4
-	ld   a, [_RAM_C355_]
-	bit  7, a
-	jr   nz, _LABEL_270E_
-	cp   $26
-	jr   nc, _LABEL_2711_
+    sub  $20
+    ldi  [hl], a
+    ld   a, [_RAM_C357_]
+    sub  $20
+    ldi  [hl], a
+    ld   de, _RAM_C358_
+    ld   hl, $99E4
+    ld   a, [_RAM_C355_]
+    bit  7, a
+    jr   nz, _LABEL_270E_
+    cp   $26
+    jr   nc, _LABEL_2711_
 _LABEL_270E_:
-	ld   [hl], $00
-	inc  hl
+    ld   [hl], $00
+    inc  hl
 _LABEL_2711_:
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_271B_
-	sub  $20
-	ldi  [hl], a
-	inc  de
-	jr   _LABEL_2711_
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_271B_
+    sub  $20
+    ldi  [hl], a
+    inc  de
+    jr   _LABEL_2711_
 
 _LABEL_271B_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   vblank__cmd_default__25F7
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   vblank__cmd_default__25F7
 
 
 gfx__clear_tilemap_0__2722:
-	call gfx__turn_off_screen_2827
-	ld   hl, _TILEMAP0
-	ld   bc, $0400
+    call gfx__turn_off_screen_2827
+    ld   hl, _TILEMAP0
+    ld   bc, $0400
     .clear_loop__272B:
-    	xor  a
-    	ldi  [hl], a
-    	dec  bc
-    	ld   a, b
-    	or   c
-    	jr   nz,   .clear_loop__272B
-	jp   gfx__turn_on_screen_bg_obj__2540
+        xor  a
+        ldi  [hl], a
+        dec  bc
+        ld   a, b
+        or   c
+        jr   nz,   .clear_loop__272B
+    jp   gfx__turn_on_screen_bg_obj__2540
 
 
 _LABEL_2735_:
-	ld   hl, _TILEMAP0
-	ld   bc, $0240
+    ld   hl, _TILEMAP0
+    ld   bc, $0240
 _LABEL_273B_:
-	xor  a
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_273B_
-	ret
+    xor  a
+    ldi  [hl], a
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_273B_
+    ret
 
 gfx__copy_oam_dma_to_RAM__2743:
     ; Destination Address
     ; Num Bytes to copy
     ; Source Address
-	ld   c, LOW(gfx__oam_dma__HRAM_FF80)
-	ld   b, (gfx__oam_dma_in_ROM_end__275B - gfx__oam_dma_in_ROM__2751) ; $0A
-	ld   hl, gfx__oam_dma_in_ROM__2751	; Loading Code into RAM
+    ld   c, LOW(gfx__oam_dma__HRAM_FF80)
+    ld   b, (gfx__oam_dma_in_ROM_end__275B - gfx__oam_dma_in_ROM__2751) ; $0A
+    ld   hl, gfx__oam_dma_in_ROM__2751  ; Loading Code into RAM
     .oam_dma_copy_loop__274A:
-    	ldi  a, [hl]
-    	ldh  [c], a
-    	inc  c
-    	dec  b
-    	jr   nz, .oam_dma_copy_loop__274A
+        ldi  a, [hl]
+        ldh  [c], a
+        inc  c
+        dec  b
+        jr   nz, .oam_dma_copy_loop__274A
     ret
 
 ; Executed in RAM at ff80
 gfx__oam_dma_in_ROM__2751:
-	ld   a, $C0
-	ldh  [rDMA], a
-	ld   a, $28
+    ld   a, $C0
+    ldh  [rDMA], a
+    ld   a, $28
     ; Executed in RAM at ff86
     .oam_dma_wait_loop__2757:
-    	dec  a
-    	jr   nz, .oam_dma_wait_loop__2757
+        dec  a
+        jr   nz, .oam_dma_wait_loop__2757
     ret
     gfx__oam_dma_in_ROM_end__275B:
 
 
 gfx__clear_shadow_oam__275B:
-	ld   hl, shadow_oam_base__RAM_C000
-	ld   b, 160 ; $A0
-	xor  a
+    ld   hl, shadow_oam_base__RAM_C000
+    ld   b, 160 ; $A0
+    xor  a
     .shadow_oam_clear_loop__2761:
-    	ldi  [hl], a
-    	dec  b
-    	jr   nz, .shadow_oam_clear_loop__2761
-    	ld   [_RAM_C107_], a
-	ret
+        ldi  [hl], a
+        dec  b
+        jr   nz, .shadow_oam_clear_loop__2761
+        ld   [_RAM_C107_], a
+    ret
 
 
 _LABEL_2769_:
-	call gfx__clear_shadow_oam__275B
-	ld   a, [keyboard_cur_mode__RAM_C280]
-	cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
-	jr   z, _LABEL_27A7_
-	ld   a, [_RAM_C114_]
-	dec  a
-	jr   z, _LABEL_277E_
-	ld   [_RAM_C114_], a
-	jr   _LABEL_278B_
+    call gfx__clear_shadow_oam__275B
+    ld   a, [keyboard_cur_mode__RAM_C280]
+    cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
+    jr   z, _LABEL_27A7_
+    ld   a, [_RAM_C114_]
+    dec  a
+    jr   z, _LABEL_277E_
+    ld   [_RAM_C114_], a
+    jr   _LABEL_278B_
 
 _LABEL_277E_:
-	ld   a, $1E
-	ld   [_RAM_C114_], a
-	ld   a, [_RAM_C113_]
-	xor  $01
-	ld   [_RAM_C113_], a
+    ld   a, $1E
+    ld   [_RAM_C114_], a
+    ld   a, [_RAM_C113_]
+    xor  $01
+    ld   [_RAM_C113_], a
 _LABEL_278B_:
-	ld   a, [_RAM_C113_]
-	or   a
-	ret  z
-	ld   hl, shadow_oam_base__RAM_C000
-	ld   a, [_RAM_C282_]
-	ldi  [hl], a
-	ld   a, [_RAM_C281_]
-	ldi  [hl], a
-	ld   a, [keyboard_cur_mode__RAM_C280]  ; Why is this getting loaded into shadow oam?
-	ldi  [hl], a
-	xor  a
-	ldi  [hl], a
-	ld   a, $04
-	ld   [_RAM_C107_], a
-	ret
+    ld   a, [_RAM_C113_]
+    or   a
+    ret  z
+    ld   hl, shadow_oam_base__RAM_C000
+    ld   a, [_RAM_C282_]
+    ldi  [hl], a
+    ld   a, [_RAM_C281_]
+    ldi  [hl], a
+    ld   a, [keyboard_cur_mode__RAM_C280]  ; Why is this getting loaded into shadow oam?
+    ldi  [hl], a
+    xor  a
+    ldi  [hl], a
+    ld   a, $04
+    ld   [_RAM_C107_], a
+    ret
 
 _LABEL_27A7_:
-	ld   a, $41
-	ld   [_RAM_C23F_], a
-	ld   a, [_RAM_C116_]
-	add  $32
-	ld   e, a
-	ld   a, [_RAM_C281_]
-	sub  $05
-	ld   c, a
-	ld   a, [_RAM_C282_]
-	sub  $05
-	ld   b, a
-	call _LABEL_1504_
-	ld   a, [_RAM_C114_]
-	dec  a
-	jr   z, _LABEL_27CB_
-	ld   [_RAM_C114_], a
-	ret
+    ld   a, $41
+    ld   [_RAM_C23F_], a
+    ld   a, [_RAM_C116_]
+    add  $32
+    ld   e, a
+    ld   a, [_RAM_C281_]
+    sub  $05
+    ld   c, a
+    ld   a, [_RAM_C282_]
+    sub  $05
+    ld   b, a
+    call _LABEL_1504_
+    ld   a, [_RAM_C114_]
+    dec  a
+    jr   z, _LABEL_27CB_
+    ld   [_RAM_C114_], a
+    ret
 
 _LABEL_27CB_:
-	ld   a, $05
-	ld   [_RAM_C114_], a
-	ld   a, [_RAM_C116_]
-	inc  a
-	cp   $07
-	jr   nz, _LABEL_27D9_
-	xor  a
+    ld   a, $05
+    ld   [_RAM_C114_], a
+    ld   a, [_RAM_C116_]
+    inc  a
+    cp   $07
+    jr   nz, _LABEL_27D9_
+    xor  a
 _LABEL_27D9_:
-	ld   [_RAM_C116_], a
-	ret
+    ld   [_RAM_C116_], a
+    ret
 
 _LABEL_27DD_:
-	ld   a, c
-	ld   [_RAM_C281_], a
-	ld   a, b
-	ld   [_RAM_C282_], a
-	ld   hl, (_TILEDATA8000 + $10)
-	ld   a, $01
+    ld   a, c
+    ld   [_RAM_C281_], a
+    ld   a, b
+    ld   [_RAM_C282_], a
+    ld   hl, (_TILEDATA8000 + $10)
+    ld   a, $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	ld   de, _DATA_130B_
-	ld   b, $20
+    ld   de, _DATA_130B_
+    ld   b, $20
 _LABEL_27F2_:
-	ld   a, [de]
-	xor  $FF
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_27F2_
-	xor  a
-	ldi  [hl], a
-	ldi  [hl], a
-	ld   a, $2A
-	ld   b, $06
+    ld   a, [de]
+    xor  $FF
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_27F2_
+    xor  a
+    ldi  [hl], a
+    ldi  [hl], a
+    ld   a, $2A
+    ld   b, $06
 _LABEL_2801_:
-	ld   [hl], $7E
-	inc  hl
-	ldi  [hl], a
-	xor  $7E
-	dec  b
-	jr   nz, _LABEL_2801_
-	xor  a
-	ldi  [hl], a
-	ldi  [hl], a
+    ld   [hl], $7E
+    inc  hl
+    ldi  [hl], a
+    xor  $7E
+    dec  b
+    jr   nz, _LABEL_2801_
+    xor  a
+    ldi  [hl], a
+    ldi  [hl], a
 
-	ld   de, (gfx__tile_patterns_250_font_thermometer_etc__5000 + (56 * $10)) ; _DATA_5380_ ; Source: 56th tile from start
-	ld   b, $10 ; One tile pattern of bytes
+    ld   de, (gfx__tile_patterns_250_font_thermometer_etc__5000 + (56 * $10)) ; _DATA_5380_ ; Source: 56th tile from start
+    ld   b, $10 ; One tile pattern of bytes
     .copy_invert_color_loop__2812:
-    	ld   a, [de]
-    	xor  $FF
-    	inc  de
-    	ldi  [hl], a
-    	dec  b
-    	jr   nz, .copy_invert_color_loop__2812
-	ld   [_RAM_C113_], a
-	inc  a
-	ld   [keyboard_cur_mode__RAM_C280], a  ; What is getting loaded here?
-	ld   a, $05
-	ld   [_RAM_C114_], a
-	ret
+        ld   a, [de]
+        xor  $FF
+        inc  de
+        ldi  [hl], a
+        dec  b
+        jr   nz, .copy_invert_color_loop__2812
+    ld   [_RAM_C113_], a
+    inc  a
+    ld   [keyboard_cur_mode__RAM_C280], a  ; What is getting loaded here?
+    ld   a, $05
+    ld   [_RAM_C114_], a
+    ret
 
 
 gfx__turn_off_screen_2827:
     ; Check if Screen is already OFF, if it is then return immediately
-	ldh  a, [rLCDC]
-	bit  LCDCF_B_ON, a ; 7, a
-	ret  z
+    ldh  a, [rLCDC]
+    bit  LCDCF_B_ON, a ; 7, a
+    ret  z
 
     ; Save IE state and turn OFF VBlank interrupt
-	ldh  a, [rIE]
-	ldh  [ie_reg_cache__HRAM_FF8A], a
-	and  ~IEF_VBLANK ; $FE
-	ldh  [rIE], a
+    ldh  a, [rIE]
+    ldh  [ie_reg_cache__HRAM_FF8A], a
+    and  ~IEF_VBLANK ; $FE
+    ldh  [rIE], a
 
     ; Wait until start of VBlank (scanline 145)
     .ly_wait_loop__2834:
-    	ldh  a, [rLY]
-    	cp   145 ; $91
-    	jr   nz, .ly_wait_loop__2834
+        ldh  a, [rLY]
+        cp   145 ; $91
+        jr   nz, .ly_wait_loop__2834
 
     ; Turn Screen OFF
-	ldh  a, [rLCDC]
-	and  ~LCDCF_ON ; $7F
-	ldh  [rLCDC], a
+    ldh  a, [rLCDC]
+    and  ~LCDCF_ON ; $7F
+    ldh  [rLCDC], a
 
     ; Restore Previous IE state
-	ldh  a, [ie_reg_cache__HRAM_FF8A]
-	ldh  [rIE], a
-	ret
+    ldh  a, [ie_reg_cache__HRAM_FF8A]
+    ldh  [rIE], a
+    ret
 
 
 ; 10th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_currency__launch__2845:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__copy_some_tile_patterns_todo__0424
-	ld   a, $03
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__copy_some_tile_patterns_todo__0424
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_D459_
+    jp   _LABEL_D459_
 
 
 ; * Checks to see if they keyboard peripheral is attached to Serial IO
@@ -6779,29 +6779,29 @@ else
     ;     }
     ;     serial_io__send_command_A_wait_reply_byte_result_in_A__3356("R")
     ; } while (serial_reply != 'D')
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	cp   KYBD_STATUS__UNSET  ; $02
-	jr   nz, .serial_io__send_cmd_R__2866
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    cp   KYBD_STATUS__UNSET  ; $02
+    jr   nz, .serial_io__send_cmd_R__2866
 
-	ld   a, [gamepad_buttons__RAM_C103]
-	or   a
-	jr   z, .serial_io__send_cmd_R__2866
+    ld   a, [gamepad_buttons__RAM_C103]
+    or   a
+    jr   z, .serial_io__send_cmd_R__2866
 
-	xor  a  ; = KYBD_STATUS__NOT_FOUND
-	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
-	ret
+    xor  a  ; = KYBD_STATUS__NOT_FOUND
+    ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+    ret
 
     ; Put Workboy hardware in READ mode
     .serial_io__send_cmd_R__2866:
-    	ld   a, WORKBOY_CMD_R_TODO  ; $52
-    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
-    	cp   WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO  ; $44
+        ld   a, WORKBOY_CMD_R_TODO  ; $52
+        call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+        cp   WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO  ; $44
         ; Loop again if Serial Reply wasn't "D"
-    	jr   nz, serial_io__startup_check_and_read_rtc__2854
+        jr   nz, serial_io__startup_check_and_read_rtc__2854
 
     ; Keyboard detected, flag it as connected
-	ld   a, KYBD_STATUS__OK  ; $01
-	ld   [serial_io__keyboard_detected_status__RAM_C10A], a
+    ld   a, KYBD_STATUS__OK  ; $01
+    ld   [serial_io__keyboard_detected_status__RAM_C10A], a
 
     ; Prepare to receive 21 bytes of RTC data into RTC buffer
     ; Rx bytes are in ascii hex, one nybble per character
@@ -6809,21 +6809,21 @@ else
     ; Ok, why does it write RTC to the Workboy hardware in Packed BCD format
     ; and read RTC from the hardware in ASCII text format? That's weird
     ;
-	ld   de, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
-	ld   c, 21 ; $15  ; Read 21 Bytes from serial
+    ld   de, serial__rtc_transfer_sub_buffer_16_bytes__RAM_C2AE
+    ld   c, 21 ; $15  ; Read 21 Bytes from serial
     .serial_read_loop__2879:
-    	ld   a, $00
-    	call serial_io__read_2_bytes_conv_ascii_to_hex_ret_A__29E3
-    	ld   [de], a
-    	inc  de
-    	dec  c
-    	jr   nz, .serial_read_loop__2879
+        ld   a, $00
+        call serial_io__read_2_bytes_conv_ascii_to_hex_ret_A__29E3
+        ld   [de], a
+        inc  de
+        dec  c
+        jr   nz, .serial_read_loop__2879
 ENDC ; End Workboy hardware version
 
-	call time__convert_from_BCD__seconds__2916
-	call time__convert_from_BCD__minutes__2942
-	call time__convert_from_BCD_and_something_TODO__hours__296E
-	call time__validate_RTC_data__2CED
+    call time__convert_from_BCD__seconds__2916
+    call time__convert_from_BCD__minutes__2942
+    call time__convert_from_BCD_and_something_TODO__hours__296E
+    call time__validate_RTC_data__2CED
 
     ; Load and maybe convert Date fields from serial xfer buffer
     date__convert_from_bcd_to_decimal_maybe__288F_:
@@ -6838,17 +6838,17 @@ ENDC ; End Workboy hardware version
             ENDR
         ELSE
             ; ((sioxfer_time__days__RAM_C2B3 >> 6) & 0x03)
-        	ld   a, [sioxfer_time__days__RAM_C2B3]
-        	or   a  ; Clear carry flag
-        	rl   a  ; Rotate upper 2 bits through carry into lower 2 bits
-        	rl   a
-        	rl   a
-        	and  $03
-        	ld   c, a
+            ld   a, [sioxfer_time__days__RAM_C2B3]
+            or   a  ; Clear carry flag
+            rl   a  ; Rotate upper 2 bits through carry into lower 2 bits
+            rl   a
+            rl   a
+            and  $03
+            ld   c, a
         ENDC
-    	ld   a, [sioxfer_time__year__RAM_C2BD]
-    	add  c
-    	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
+        ld   a, [sioxfer_time__year__RAM_C2BD]
+        add  c
+        ld   [date__year__digit_decimal__maybe__RAM_C13A], a
 
         ; Load Days value from sioxfer buffer
         ; Convert from BCD to Decimal
@@ -6857,210 +6857,210 @@ ENDC ; End Workboy hardware version
         ; + (sioxfer_time__days__RAM_C2B3 & 0x0F)
         ;
         ; Upper BCD Digit
-    	ld   a, [sioxfer_time__days__RAM_C2B3]
-    	and  $30
-    	call util__rr_downshift_A_by_4__2909
-    	add  a    ; A x 10 -> E
-    	ld   e, a
-    	add  a
-    	add  a
-    	add  e
-    	ld   e, a
+        ld   a, [sioxfer_time__days__RAM_C2B3]
+        and  $30
+        call util__rr_downshift_A_by_4__2909
+        add  a    ; A x 10 -> E
+        ld   e, a
+        add  a
+        add  a
+        add  e
+        ld   e, a
         ; Lower BCD Digit
-    	ld   a, [sioxfer_time__days__RAM_C2B3]
-    	and  $0F
-    	add  e
-    	ld   [date__days__decimal__maybe__RAM_C139], a
+        ld   a, [sioxfer_time__days__RAM_C2B3]
+        and  $0F
+        add  e
+        ld   [date__days__decimal__maybe__RAM_C139], a
 
         ; Load Month + Day of Week from sioxfer buffer
         ; Convert from BCD to Decimal
-    	ld   a, [sioxfer_time__month__RAM_C2B4]
+        ld   a, [sioxfer_time__month__RAM_C2B4]
         ; Mask to only Month data (0x1F) and convert bit 4 BCD style
-    	ld   e, a
-    	and  $0F
-    	bit  4, e
-    	jr   z, _LABEL_28C6_
-    	add  $0A
+        ld   e, a
+        and  $0F
+        bit  4, e
+        jr   z, _LABEL_28C6_
+        add  $0A
     _LABEL_28C6_:
-    	ld   [date__month__decimal__maybe__RAM_C138], a
+        ld   [date__month__decimal__maybe__RAM_C138], a
         ; Extract Day of Week from upper 3 bits of Month byte
-    	ld   a, [sioxfer_time__month__RAM_C2B4]
-    	and  $E0
-    	or   a
-    	rr   a
-    	call util__rr_downshift_A_by_4__2909
-    	ld   [_RAM_C137_], a
-    	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
-    	ld   a, [date__days__decimal__maybe__RAM_C139]
-    	ld   e, a
-    	ld   a, [_RAM_C137_]
+        ld   a, [sioxfer_time__month__RAM_C2B4]
+        and  $E0
+        or   a
+        rr   a
+        call util__rr_downshift_A_by_4__2909
+        ld   [_RAM_C137_], a
+        ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
+        ld   a, [date__days__decimal__maybe__RAM_C139]
+        ld   e, a
+        ld   a, [_RAM_C137_]
     _LABEL_28E1_:
-    	dec  e
-    	jr   z, _LABEL_28ED_
-    	dec  a
-    	cp   $FF
-    	jr   nz, _LABEL_28E1_
-    	ld   a, $06
-    	jr   _LABEL_28E1_
+        dec  e
+        jr   z, _LABEL_28ED_
+        dec  a
+        cp   $FF
+        jr   nz, _LABEL_28E1_
+        ld   a, $06
+        jr   _LABEL_28E1_
 
     _LABEL_28ED_:
-    	ld   [_RAM_C137_], a
-    	ld   a, [date__days__decimal__maybe__RAM_C139]
-    	or   a
-    	jp   z, time__handle_reset_invalid_RTC_data__2D4E
-    	cp   $20
-    	jp   nc, time__handle_reset_invalid_RTC_data__2D4E
-    	ld   a, [date__month__decimal__maybe__RAM_C138]
-    	or   a
-    	jp   z, time__handle_reset_invalid_RTC_data__2D4E
-    	cp   $0D
-    	jp   nc, time__handle_reset_invalid_RTC_data__2D4E
-    	ret
+        ld   [_RAM_C137_], a
+        ld   a, [date__days__decimal__maybe__RAM_C139]
+        or   a
+        jp   z, time__handle_reset_invalid_RTC_data__2D4E
+        cp   $20
+        jp   nc, time__handle_reset_invalid_RTC_data__2D4E
+        ld   a, [date__month__decimal__maybe__RAM_C138]
+        or   a
+        jp   z, time__handle_reset_invalid_RTC_data__2D4E
+        cp   $0D
+        jp   nc, time__handle_reset_invalid_RTC_data__2D4E
+        ret
 
 
 util__rr_downshift_A_by_4__2909:
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ret
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ret
 
 
 ; Converts stored seconds in BCD format to Decimal and Ascii (saved to RAM)
 time__convert_from_BCD__seconds__2916:
-	ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
+    ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
     ; Extract High BCD digit from seconds
-	and  $F0
-	call util__rr_downshift_A_by_4__2909
-	ld   b, a
-	ld   e, a
-	or   a
+    and  $F0
+    call util__rr_downshift_A_by_4__2909
+    ld   b, a
+    ld   e, a
+    or   a
     ; If (Seconds_BCD >> 4) == 0
-	jr   z, .seconds_high_BCD_digit_skip_multiply__292A
-	ld   a, $00
+    jr   z, .seconds_high_BCD_digit_skip_multiply__292A
+    ld   a, $00
     ; (Seconds_BCD >> 4) * 10
     .multiply_A_by_ten_loop__2925:
-	add  10  ; $0A
-	dec  e
-	jr   nz, .multiply_A_by_ten_loop__2925
+    add  10  ; $0A
+    dec  e
+    jr   nz, .multiply_A_by_ten_loop__2925
 
     .seconds_high_BCD_digit_skip_multiply__292A:
-	ld   c, a  ; C now has (Seconds_BCD >> 4) * 10
-	ld   a, b
+    ld   c, a  ; C now has (Seconds_BCD >> 4) * 10
+    ld   a, b
     ; Convert High BCD Digit to ASCII
     ; (Seconds_BCD >> 4) + 48
-	add  "0" ; 48  ; $30
-	ld   [time__seconds__high_digit_ascii__RAM_C39F], a
+    add  "0" ; 48  ; $30
+    ld   [time__seconds__high_digit_ascii__RAM_C39F], a
 
     ; Extract Low BCD digit from seconds
-	ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
+    ld   a, [sioxfer_time__seconds__BCD__RAM_C2B0]
     ; (Seconds_BCD &= 0x0F)
-	and  $0F
-	ld   b, a
+    and  $0F
+    ld   b, a
     ; Seconds BCD converted to decimal
     ; (Seconds_BCD &= 0x0F) + ((Seconds_BCD >> 4) * 10)
-	add  c
-	ld   [time__seconds__decimal__RAM_C3A1], a
+    add  c
+    ld   [time__seconds__decimal__RAM_C3A1], a
 
     ; Convert Low BCD Digit to ASCII
-	ld   a, b
-	add  "0" ; 48  ; $30
-	ld   [time__seconds__low_digit_ascii__RAM_C3A0], a
-	ret
+    ld   a, b
+    add  "0" ; 48  ; $30
+    ld   [time__seconds__low_digit_ascii__RAM_C3A0], a
+    ret
 
 
 ; Converts stored minutes in BCD format to Decimal and Ascii (saved to RAM)
 time__convert_from_BCD__minutes__2942:
-	ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
+    ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
     ; Extract High BCD digit from minutes
-	and  $F0
-	call util__rr_downshift_A_by_4__2909
-	ld   b, a
-	ld   e, a
-	or   a
+    and  $F0
+    call util__rr_downshift_A_by_4__2909
+    ld   b, a
+    ld   e, a
+    or   a
     ; If (Minutes_BCD >> 4) == 0
-	jr   z, .minutes_high_BCD_digit_skip_multiply__2956
-	ld   a, $00
+    jr   z, .minutes_high_BCD_digit_skip_multiply__2956
+    ld   a, $00
     ; (Minutes_BCD >> 4) * 10
     .multiply_A_by_ten_loop__2951:
-	add  10  ; $0A
-	dec  e
-	jr   nz, .multiply_A_by_ten_loop__2951
+    add  10  ; $0A
+    dec  e
+    jr   nz, .multiply_A_by_ten_loop__2951
 
     .minutes_high_BCD_digit_skip_multiply__2956:
-	ld   c, a  ; C now has (Minutes_BCD >> 4) * 10
-	ld   a, b
+    ld   c, a  ; C now has (Minutes_BCD >> 4) * 10
+    ld   a, b
     ; Convert High BCD Digit to ASCII
     ; (Minutes_BCD >> 4) + 48
-	add  "0" ; 48  ; $30
-	ld   [time__minutes__high_digit_ascii__RAM_C39D], a
+    add  "0" ; 48  ; $30
+    ld   [time__minutes__high_digit_ascii__RAM_C39D], a
 
     ; Extract Low BCD digit from minutes
-	ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
+    ld   a, [sioxfer_time__minutes__BCD__RAM_C2B1]
     ; (Minutes_BCD &= 0x0F)
-	and  $0F
-	ld   b, a
+    and  $0F
+    ld   b, a
     ; minutes BCD converted to decimal
     ; (Minutes_BCD &= 0x0F) + ((minutes_BCD >> 4) * 10)
-	add  c
-	ld   [time__minutes__decimal__RAM_C3A2], a
+    add  c
+    ld   [time__minutes__decimal__RAM_C3A2], a
 
     ; Convert Low BCD Digit to ASCII
-	ld   a, b
-	add  "0" ; 48  ; $30
-	ld   [time__minutes__low_digit_ascii__RAM_C39E], a
-	ret
+    ld   a, b
+    add  "0" ; 48  ; $30
+    ld   [time__minutes__low_digit_ascii__RAM_C39E], a
+    ret
 
 
 ; Converts stored hours in BCD format to Decimal and Ascii (saved to RAM)
 time__convert_from_BCD_and_something_TODO__hours__296E:
-	ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
+    ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
     ; Extract High BCD digit from hours
-	and  $30
-	call util__rr_downshift_A_by_4__2909
-	ld   b, a
-	ld   e, a
-	or   a
+    and  $30
+    call util__rr_downshift_A_by_4__2909
+    ld   b, a
+    ld   e, a
+    or   a
     ; If (Hours_BCD >> 4) == 0
-	jr   z, .hours_high_BCD_digit_skip_multiply__2982
-	ld   a, $00
+    jr   z, .hours_high_BCD_digit_skip_multiply__2982
+    ld   a, $00
     ; (Hours_BCD >> 4) * 10
     .multiply_A_by_ten_loop__297D:
-	add  $0A
-	dec  e
-	jr   nz, .multiply_A_by_ten_loop__297D
+    add  $0A
+    dec  e
+    jr   nz, .multiply_A_by_ten_loop__297D
 
     .hours_high_BCD_digit_skip_multiply__2982:
-	ld   c, a  ; C now has (Hours_BCD >> 4) * 10
-	ld   a, b
+    ld   c, a  ; C now has (Hours_BCD >> 4) * 10
+    ld   a, b
     ; Convert High BCD Digit to ASCII
     ; (Hours_BCD >> 4) + 48
     add  "0" ; 48  ; $30
-	ld   [time__hours__high_digit_ascii__RAM_C39B], a
+    ld   [time__hours__high_digit_ascii__RAM_C39B], a
 
     ; Extract Low BCD digit from hours
-	ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
-	and  $0F
+    ld   a, [sioxfer_time__hours__BCD__RAM_C2B2]
+    and  $0F
     ; (Hours_BCD &= 0x0F)
-	ld   b, a
+    ld   b, a
     ; Hours BCD converted to decimal x 5 (TODO: why x 5 ?)
     ; ((Hours_BCD &= 0x0F) + ((Hours_BCD >> 4) * 10)) * 5
     add  c
     ; *= 5
-	ld   c, a
-	add  a
-	add  a
-	add  c
-	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+    ld   c, a
+    add  a
+    add  a
+    add  c
+    ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
 
     ; Convert Low BCD Digit to ASCII
-	ld   a, b
-	add  "0" ; 48  ; $30
-	ld   [time__hours__low_digit_ascii__RAM_C39C], a
+    ld   a, b
+    add  "0" ; 48  ; $30
+    ld   [time__hours__low_digit_ascii__RAM_C39C], a
 
 
 ; TODO: What is this
@@ -7076,33 +7076,33 @@ time__convert_from_BCD_and_something_TODO__hours__296E:
 ;
     ; C = trunc(Minutes / 12)
     ; A = Minutes % 12
-	ld   a, [time__minutes__decimal__RAM_C3A2]
-	ld   c, $00
+    ld   a, [time__minutes__decimal__RAM_C3A2]
+    ld   c, $00
     ._LABEL_29A2_:
-    	cp   12  ; $0C
-    	jr   c, .minute_less_than_12__29AB
-    	sub  12  ; $0C
-    	inc  c
-    	jr   ._LABEL_29A2_
+        cp   12  ; $0C
+        jr   c, .minute_less_than_12__29AB
+        sub  12  ; $0C
+        inc  c
+        jr   ._LABEL_29A2_
 
     .minute_less_than_12__29AB:
-	ld   b, a ; (Minutes % 12)
+    ld   b, a ; (Minutes % 12)
 
-	ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
-	add  c  ; (Hours * 5) + trunc(Minutes / 12)
-	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+    ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
+    add  c  ; (Hours * 5) + trunc(Minutes / 12)
+    ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
     ; If ( >= 60) then -= 60
-	cp   60  ; $3C
-	jr   c, .hours_less_than_60__29BC
-	sub  60  ; $3C
-	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+    cp   60  ; $3C
+    jr   c, .hours_less_than_60__29BC
+    sub  60  ; $3C
+    ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
 
     .hours_less_than_60__29BC:
     ; 12 - (Minutes % 12)
-	ld   a, 12  ; $0C
-	sub  b
-	ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
-	ret
+    ld   a, 12  ; $0C
+    sub  b
+    ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
+    ret
 
 
 ; Sends out 0x00 and waits for non-0x00 and non-0xFF response
@@ -7120,26 +7120,26 @@ time__convert_from_BCD_and_something_TODO__hours__296E:
 ;
 ; Returns RX byte in A
 serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
-	call delay_2_94msec__334A
+    call delay_2_94msec__334A
     ; ? Start a transfer without loading data in rSB first ?
     ; Maybe it's just a mistake and they load rSB after instead of before?
-	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-	ldh  [rSC], a
-	ld   a, $00
-	ldh  [rSB], a
-	call delay_2_94msec__334A
-	ldh  a, [rSB]
-	push af
+    ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+    ldh  [rSC], a
+    ld   a, $00
+    ldh  [rSB], a
+    call delay_2_94msec__334A
+    ldh  a, [rSB]
+    push af
     ; TODO: ? Is this doing something non-Standard for MBC1 instead of turning of SRAM enable
-	ld   a, MBC1_RAM_OFF  ; $00
-	ld   [rMBC1_RAM_ENABLE_ALT], a  ; $0002
-	pop  af
+    ld   a, MBC1_RAM_OFF  ; $00
+    ld   [rMBC1_RAM_ENABLE_ALT], a  ; $0002
+    pop  af
     ; Loop until a non-0x00 and non-0xFF serial response
-	cp   WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
-	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	cp   WORKBOY_SCAN_KEY_NONE   ; $FF
-	jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	ret
+    cp   WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
+    jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
+    cp   WORKBOY_SCAN_KEY_NONE   ; $FF
+    jr   z, serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
+    ret
 
 
 ; Read 2 bytes over serial to obtain a single ascii coded hex byte
@@ -7148,20 +7148,20 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
 ; Rx bytes are in ascii hex, one nybble per character
 serial_io__read_2_bytes_conv_ascii_to_hex_ret_A__29E3:
     ; Read First serial byte (high nybble) & shift into upper nybble
-	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	call ascii_to_hex_in_A_ret_A__29FC
-	sla  a
-	sla  a
-	sla  a
-	sla  a
-	push af
+    call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
+    call ascii_to_hex_in_A_ret_A__29FC
+    sla  a
+    sla  a
+    sla  a
+    sla  a
+    push af
     ; Read Second serial byte (low nybble) & OR with previously upper nybble
-	call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
-	call ascii_to_hex_in_A_ret_A__29FC
-	ld   b, a
-	pop  af
-	or   b
-	ret
+    call serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3
+    call ascii_to_hex_in_A_ret_A__29FC
+    ld   b, a
+    pop  af
+    or   b
+    ret
 
 ascii_to_hex_in_A_ret_A__29FC:
     ; Convert from Ascii encoded Hex char to decimal
@@ -7169,216 +7169,216 @@ ascii_to_hex_in_A_ret_A__29FC:
     ; If (Value < ('A' - '0')) return
     ; else Value -= ('A' - ':'_
     ;
-	sub  $30 ; -= 48  ("0")
-	cp   $11 ;  < 17   ('A' - '0')
-	jr   c, .skip_if_less_than_hex_A__2A04
-	sub  $07 ; -= 7    ('A' - ':'_
+    sub  $30 ; -= 48  ("0")
+    cp   $11 ;  < 17   ('A' - '0')
+    jr   c, .skip_if_less_than_hex_A__2A04
+    sub  $07 ; -= 7    ('A' - ':'_
 .skip_if_less_than_hex_A__2A04:
 ret
 
 
 _LABEL_2A05_:
-	xor  a
-	ld   [_RAM_C306_], a
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
-	ld   a, [de]
-	cp   $2A
-	jr   nz, _LABEL_2A27_
-	inc  de
-	ld   a, [de]
-	cp   $2A
-	jr   nz, _LABEL_2A22_
-	pop  de
-	ld   [_RAM_C307_], a
-	xor  a
-	ret
+    xor  a
+    ld   [_RAM_C306_], a
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
+    ld   a, [de]
+    cp   $2A
+    jr   nz, _LABEL_2A27_
+    inc  de
+    ld   a, [de]
+    cp   $2A
+    jr   nz, _LABEL_2A22_
+    pop  de
+    ld   [_RAM_C307_], a
+    xor  a
+    ret
 
 _LABEL_2A22_:
-	ld   a, $01
-	ld   [_RAM_C306_], a
+    ld   a, $01
+    ld   [_RAM_C306_], a
 _LABEL_2A27_:
-	ld   a, [_RAM_C306_]
-	or   a
-	jr   z, _LABEL_2A77_
-	ld   hl, _RAM_C308_
+    ld   a, [_RAM_C306_]
+    or   a
+    jr   z, _LABEL_2A77_
+    ld   hl, _RAM_C308_
 _LABEL_2A30_:
-	ld   a, [de]
-	cp   $20
-	jr   z, _LABEL_2A39_
-	cp   $41
-	jr   c, _LABEL_2A3D_
+    ld   a, [de]
+    cp   $20
+    jr   z, _LABEL_2A39_
+    cp   $41
+    jr   c, _LABEL_2A3D_
 _LABEL_2A39_:
-	ldi  [hl], a
-	inc  de
-	jr   _LABEL_2A30_
+    ldi  [hl], a
+    inc  de
+    jr   _LABEL_2A30_
 
 _LABEL_2A3D_:
-	ld   [hl], $00
-	call _LABEL_2AEB_
-	ld   a, [de]
-	inc  de
-	sub  $41
-	ld   [_RAM_C25F_], a
-	call _LABEL_2AB5_
-	ld   hl, _SRAM_6006_
-	push de
+    ld   [hl], $00
+    call _LABEL_2AEB_
+    ld   a, [de]
+    inc  de
+    sub  $41
+    ld   [_RAM_C25F_], a
+    call _LABEL_2AB5_
+    ld   hl, _SRAM_6006_
+    push de
 _LABEL_2A50_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	or   a
-	jr   nz, _LABEL_2A50_
-	pop  de
-	ld   a, [_RAM_C25F_]
-	cp   $03
-	jr   z, _LABEL_2A62_
-	ld   b, $02
-	jr   _LABEL_2A64_
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    or   a
+    jr   nz, _LABEL_2A50_
+    pop  de
+    ld   a, [_RAM_C25F_]
+    cp   $03
+    jr   z, _LABEL_2A62_
+    ld   b, $02
+    jr   _LABEL_2A64_
 
 _LABEL_2A62_:
-	ld   b, $01
+    ld   b, $01
 _LABEL_2A64_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   nz, _LABEL_2A64_
-	dec  b
-	jr   nz, _LABEL_2A64_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	ld   a, $01
-	ret
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   nz, _LABEL_2A64_
+    dec  b
+    jr   nz, _LABEL_2A64_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    ld   a, $01
+    ret
 
 _LABEL_2A77_:
-	ld   hl, _RAM_C327_
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
+    ld   hl, _RAM_C327_
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
 _LABEL_2A82_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   z, _LABEL_2A90_
-	cp   $2E
-	jr   z, _LABEL_2A90_
-	cp   $41
-	jr   c, _LABEL_2A93_
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   z, _LABEL_2A90_
+    cp   $2E
+    jr   z, _LABEL_2A90_
+    cp   $41
+    jr   c, _LABEL_2A93_
 _LABEL_2A90_:
-	ldi  [hl], a
-	jr   _LABEL_2A82_
+    ldi  [hl], a
+    jr   _LABEL_2A82_
 
 _LABEL_2A93_:
-	xor  a
-	ld   [hl], a
-	dec  de
-	ld   hl, _RAM_C33C_
+    xor  a
+    ld   [hl], a
+    dec  de
+    ld   hl, _RAM_C33C_
 _LABEL_2A99_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   z, _LABEL_2AA2_
-	ldi  [hl], a
-	jr   _LABEL_2A99_
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   z, _LABEL_2AA2_
+    ldi  [hl], a
+    jr   _LABEL_2A99_
 
 _LABEL_2AA2_:
-	xor  a
-	ld   [hl], a
-	call _LABEL_2AEB_
-	call _LABEL_2AB5_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	ld   a, $01
-	ret
+    xor  a
+    ld   [hl], a
+    call _LABEL_2AEB_
+    call _LABEL_2AB5_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    ld   a, $01
+    ret
 
 _LABEL_2AB5_:
-	ld   b, $00
-	ld   a, [de]
-	inc  de
-	cp   $2D
-	jr   nz, _LABEL_2AC1_
-	ld   b, $80
-	ld   a, [de]
-	inc  de
+    ld   b, $00
+    ld   a, [de]
+    inc  de
+    cp   $2D
+    jr   nz, _LABEL_2AC1_
+    ld   b, $80
+    ld   a, [de]
+    inc  de
 _LABEL_2AC1_:
-	sub  $30
-	ld   c, a
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_2ADC_
-	cp   $78
-	jr   z, _LABEL_2AE2_
-	ld   a, c
-	add  a
-	ld   c, a
-	add  a
-	add  a
-	add  c
-	ld   c, a
-	dec  de
-	ld   a, [de]
-	inc  de
-	inc  de
-	sub  $30
-	add  c
-	ld   c, a
+    sub  $30
+    ld   c, a
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_2ADC_
+    cp   $78
+    jr   z, _LABEL_2AE2_
+    ld   a, c
+    add  a
+    ld   c, a
+    add  a
+    add  a
+    add  c
+    ld   c, a
+    dec  de
+    ld   a, [de]
+    inc  de
+    inc  de
+    sub  $30
+    add  c
+    ld   c, a
 _LABEL_2ADC_:
-	ld   a, c
-	add  b
-	ld   [_RAM_C305_], a
-	ret
+    ld   a, c
+    add  b
+    ld   [_RAM_C305_], a
+    ret
 
 _LABEL_2AE2_:
-	inc  de
-	ld   a, b
-	add  $40
-	add  c
-	ld   [_RAM_C305_], a
-	ret
+    inc  de
+    ld   a, b
+    add  $40
+    add  c
+    ld   [_RAM_C305_], a
+    ret
 
 _LABEL_2AEB_:
-	call _LABEL_2AFC_
-	add  $04
-	ld   [_RAM_C281_], a
-	call _LABEL_2AFC_
-	add  $0C
-	ld   [_RAM_C282_], a
-	ret
+    call _LABEL_2AFC_
+    add  $04
+    ld   [_RAM_C281_], a
+    call _LABEL_2AFC_
+    add  $0C
+    ld   [_RAM_C282_], a
+    ret
 
 _LABEL_2AFC_:
-	ld   a, [de]
-	inc  de
-	sub  $2F
-	ld   c, a
-	ld   a, $92
+    ld   a, [de]
+    inc  de
+    sub  $2F
+    ld   c, a
+    ld   a, $92
 _LABEL_2B03_:
-	add  $64
-	dec  c
-	jr   nz, _LABEL_2B03_
-	ld   b, a
-	ld   a, [de]
-	inc  de
-	sub  $2F
-	ld   c, a
-	ld   a, b
+    add  $64
+    dec  c
+    jr   nz, _LABEL_2B03_
+    ld   b, a
+    ld   a, [de]
+    inc  de
+    sub  $2F
+    ld   c, a
+    ld   a, b
 _LABEL_2B0F_:
-	add  $0A
-	dec  c
-	jr   nz, _LABEL_2B0F_
-	ld   b, a
-	ld   a, [de]
-	inc  de
-	sub  $30
-	add  b
-	ret
+    add  $0A
+    dec  c
+    jr   nz, _LABEL_2B0F_
+    ld   b, a
+    ld   a, [de]
+    inc  de
+    sub  $30
+    add  b
+    ret
 
 ; Data from 2B1B to 2B3A (32 bytes)
 _DATA_2B1B_:
@@ -7387,337 +7387,337 @@ db $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $00, $78, $0
 
 ; 7th entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_thermometer__launch__2B3B:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__turn_off_screen_2827
-	ld   hl, (_TILEDATA8000 + $10)
-	ld   c, $08
-	ld   b, $0E
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__turn_off_screen_2827
+    ld   hl, (_TILEDATA8000 + $10)
+    ld   c, $08
+    ld   b, $0E
 _LABEL_2B49_:
-	push bc
-	ld   a, b
-	or   a
-	jr   z, _LABEL_2B53_
-	xor  a
+    push bc
+    ld   a, b
+    or   a
+    jr   z, _LABEL_2B53_
+    xor  a
 _LABEL_2B4F_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_2B4F_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_2B4F_
 _LABEL_2B53_:
-	pop  bc
-	push bc
-	ld   a, $10
-	sub  b
-	ld   b, a
-	ld   de, _DATA_2B1B_
+    pop  bc
+    push bc
+    ld   a, $10
+    sub  b
+    ld   b, a
+    ld   de, _DATA_2B1B_
 _LABEL_2B5C_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_2B5C_
-	pop  bc
-	dec  b
-	dec  b
-	dec  c
-	jr   nz, _LABEL_2B49_
-	ld   a, $20
-	ld   [_RAM_C355_], a
-	ld   [main_menu__gamepad_polling_counter__C115], a
-	ld   a, $0B
-	call _LABEL_3918_
-	ld   a, $02
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_2B5C_
+    pop  bc
+    dec  b
+    dec  b
+    dec  c
+    jr   nz, _LABEL_2B49_
+    ld   a, $20
+    ld   [_RAM_C355_], a
+    ld   [main_menu__gamepad_polling_counter__C115], a
+    ld   a, $0B
+    call _LABEL_3918_
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_BE47_
+    jp   _LABEL_BE47_
 
 _LABEL_2B7D_:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
     ; Return if keyboard is not connected
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; == KYBD_STATUS__NOT_FOUND
-	ret  z
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; == KYBD_STATUS__NOT_FOUND
+    ret  z
 
-	ld   a, [_SRAM_231_]
-	or   a
-	ret  z
-	ld   a, $02
+    ld   a, [_SRAM_231_]
+    or   a
+    ret  z
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	call _LABEL_ADDA_
-	ld   a, [_RAM_C58C_]
-	or   a
-	ret  z
-	call _LABEL_3EF_
-	call _LABEL_2735_
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   a, $02
+    call _LABEL_ADDA_
+    ld   a, [_RAM_C58C_]
+    or   a
+    ret  z
+    call _LABEL_3EF_
+    call _LABEL_2735_
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_ACA0_
+    jp   _LABEL_ACA0_
 
 _LABEL_2BA9_:
-	ld   a, [de]
-	inc  de
-	sub  $30
-	add  a
-	ld   c, a
-	add  a
-	add  a
-	add  c
-	ld   c, a
-	ld   a, [de]
-	inc  de
-	sub  $30
-	add  c
-	ldi  [hl], a
-	ret
+    ld   a, [de]
+    inc  de
+    sub  $30
+    add  a
+    ld   c, a
+    add  a
+    add  a
+    add  c
+    ld   c, a
+    ld   a, [de]
+    inc  de
+    sub  $30
+    add  c
+    ldi  [hl], a
+    ret
 
 _LABEL_2BBA_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_2BBC_:
-	cp   $0A
-	jr   c, _LABEL_2BC5_
-	sub  $0A
-	inc  b
-	jr   _LABEL_2BBC_
+    cp   $0A
+    jr   c, _LABEL_2BC5_
+    sub  $0A
+    inc  b
+    jr   _LABEL_2BBC_
 
 _LABEL_2BC5_:
-	ld   c, a
-	ld   a, b
-	add  $30
-	ldi  [hl], a
-	ld   a, c
-	add  $30
-	ldi  [hl], a
-	ret
+    ld   c, a
+    ld   a, b
+    add  $30
+    ldi  [hl], a
+    ld   a, c
+    add  $30
+    ldi  [hl], a
+    ret
 
 ; 23rd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_16_TODO__LABEL_2BCF_:
-	ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
-	ld   l, a
-	ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
-	ld   h, a
-	ld   de, _RAM_C15A_
-	ld   b, $03
+    ld   a, [gfx__dest_addr_lo__RAM_C133_maybe]
+    ld   l, a
+    ld   a, [gfx__dest_addr_hi__RAM_C134_maybe]
+    ld   h, a
+    ld   de, _RAM_C15A_
+    ld   b, $03
 _LABEL_2BDC_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2BE5_
-	inc  hl
-	jr   _LABEL_2BE6_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2BE5_
+    inc  hl
+    jr   _LABEL_2BE6_
 
 _LABEL_2BE5_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2BE6_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2BEF_
-	inc  hl
-	jr   _LABEL_2BF0_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2BEF_
+    inc  hl
+    jr   _LABEL_2BF0_
 
 _LABEL_2BEF_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2BF0_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2BF9_
-	inc  hl
-	jr   _LABEL_2BFA_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2BF9_
+    inc  hl
+    jr   _LABEL_2BFA_
 
 _LABEL_2BF9_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2BFA_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C03_
-	inc  hl
-	jr   _LABEL_2C04_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C03_
+    inc  hl
+    jr   _LABEL_2C04_
 
 _LABEL_2C03_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C04_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C0D_
-	inc  hl
-	jr   _LABEL_2C0E_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C0D_
+    inc  hl
+    jr   _LABEL_2C0E_
 
 _LABEL_2C0D_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C0E_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C17_
-	inc  hl
-	jr   _LABEL_2C18_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C17_
+    inc  hl
+    jr   _LABEL_2C18_
 
 _LABEL_2C17_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C18_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C21_
-	inc  hl
-	jr   _LABEL_2C22_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C21_
+    inc  hl
+    jr   _LABEL_2C22_
 
 _LABEL_2C21_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C22_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C2B_
-	inc  hl
-	jr   _LABEL_2C2C_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C2B_
+    inc  hl
+    jr   _LABEL_2C2C_
 
 _LABEL_2C2B_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C2C_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C35_
-	inc  hl
-	jr   _LABEL_2C36_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C35_
+    inc  hl
+    jr   _LABEL_2C36_
 
 _LABEL_2C35_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C36_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C3F_
-	inc  hl
-	jr   _LABEL_2C40_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C3F_
+    inc  hl
+    jr   _LABEL_2C40_
 
 _LABEL_2C3F_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C40_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C49_
-	inc  hl
-	jr   _LABEL_2C4A_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C49_
+    inc  hl
+    jr   _LABEL_2C4A_
 
 _LABEL_2C49_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C4A_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C53_
-	inc  hl
-	jr   _LABEL_2C54_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C53_
+    inc  hl
+    jr   _LABEL_2C54_
 
 _LABEL_2C53_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C54_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C5D_
-	inc  hl
-	jr   _LABEL_2C5E_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C5D_
+    inc  hl
+    jr   _LABEL_2C5E_
 
 _LABEL_2C5D_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C5E_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C67_
-	inc  hl
-	jr   _LABEL_2C68_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C67_
+    inc  hl
+    jr   _LABEL_2C68_
 
 _LABEL_2C67_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C68_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C71_
-	inc  hl
-	jr   _LABEL_2C72_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C71_
+    inc  hl
+    jr   _LABEL_2C72_
 
 _LABEL_2C71_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C72_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C7B_
-	inc  hl
-	jr   _LABEL_2C7C_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C7B_
+    inc  hl
+    jr   _LABEL_2C7C_
 
 _LABEL_2C7B_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C7C_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C85_
-	inc  hl
-	jr   _LABEL_2C86_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C85_
+    inc  hl
+    jr   _LABEL_2C86_
 
 _LABEL_2C85_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C86_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C8F_
-	inc  hl
-	jr   _LABEL_2C90_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C8F_
+    inc  hl
+    jr   _LABEL_2C90_
 
 _LABEL_2C8F_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C90_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2C99_
-	inc  hl
-	jr   _LABEL_2C9A_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2C99_
+    inc  hl
+    jr   _LABEL_2C9A_
 
 _LABEL_2C99_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2C9A_:
-	ld   a, [de]
-	inc  de
-	cp   $FF
-	jr   nz, _LABEL_2CA3_
-	inc  hl
-	jr   _LABEL_2CA4_
+    ld   a, [de]
+    inc  de
+    cp   $FF
+    jr   nz, _LABEL_2CA3_
+    inc  hl
+    jr   _LABEL_2CA4_
 
 _LABEL_2CA3_:
-	ldi  [hl], a
+    ldi  [hl], a
 _LABEL_2CA4_:
-	ld   a, b
-	ld   bc, $000C
-	add  hl, bc
-	ld   b, a
-	dec  b
-	jp   nz, _LABEL_2BDC_
-	jp   vblank__cmd_default__25F7
+    ld   a, b
+    ld   bc, $000C
+    add  hl, bc
+    ld   b, a
+    dec  b
+    jp   nz, _LABEL_2BDC_
+    jp   vblank__cmd_default__25F7
 
 ; Data from 2CB1 to 2CEC (60 bytes)
 db $FA, $98, $C3, $B7, $20, $1B, $21, $A0, $98, $11, $5C, $C3, $06, $03, $C5, $06
@@ -7731,60 +7731,60 @@ time__validate_RTC_data__2CED:
     ;
     ld   a, [time__hours__high_digit_ascii__RAM_C39B]
     ; If (ascii hours High digit < "0") then invalid
-	cp   "0"  ; $30
-	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+    cp   "0"  ; $30
+    jr   c, time__handle_reset_invalid_RTC_data__2D4E
     ; If (ascii hours High digit >= "3") then invalid
-	cp   "3"  ; $33
-	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+    cp   "3"  ; $33
+    jr   nc, time__handle_reset_invalid_RTC_data__2D4E
     ; If (ascii hours High digit != "2")
-	cp   "2"  ; $32
-	jr   nz, .hour_high_is_one__2D03
+    cp   "2"  ; $32
+    jr   nz, .hour_high_is_one__2D03
 
         ; High digit is 2, so max value for low is 5 instead of 9
-    	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
+        ld   a, [time__hours__low_digit_ascii__RAM_C39C]
         ; Must be 24 hour format if low hour digit can be up to "4"
         ; If (ascii hours Low digit >= "5")
-    	cp   "5"  ; $35
-    	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+        cp   "5"  ; $35
+        jr   nc, time__handle_reset_invalid_RTC_data__2D4E
 
     .hour_high_is_one__2D03:
-	ld   a, [time__hours__low_digit_ascii__RAM_C39C]
+    ld   a, [time__hours__low_digit_ascii__RAM_C39C]
     ; If (ascii hours Low digit < "0") then invalid
-	cp   "0"  ; $30
-	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+    cp   "0"  ; $30
+    jr   c, time__handle_reset_invalid_RTC_data__2D4E
     ; If (ascii hours Low digit > "9") then invalid
-	cp   ("9" + 1)  ; $3A  (char after "9")
-	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+    cp   ("9" + 1)  ; $3A  (char after "9")
+    jr   nc, time__handle_reset_invalid_RTC_data__2D4E
 
     ; Then validate MINUTE and SECONDS digits
     ;
-	ld   b, $02
-	ld   hl, time__minutes__high_digit_ascii__RAM_C39D
+    ld   b, $02
+    ld   hl, time__minutes__high_digit_ascii__RAM_C39D
     ; First  pass does: Minutes High (time__minutes__high_digit_ascii__RAM_C39D)
     ;                 : Minutes Low  (time__minutes__low_digit_ascii__RAM_C39E)
     ; Second pass does: Seconds High (time__seconds__high_digit_ascii__RAM_C39F)
     ;                 : Seconds Low  (time__seconds__low_digit_ascii__RAM_C3A0)
     .minutes_then_seconds_validate_loop__2D13_:
         ; High Digit
-    	ldi  a, [hl]
+        ldi  a, [hl]
         ; If (ascii High digit < "0") then invalid
-    	cp   "0"  ; $30
-    	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+        cp   "0"  ; $30
+        jr   c, time__handle_reset_invalid_RTC_data__2D4E
         ; If (ascii High digit >= "6") then invalid
-    	cp   "6"  ; $36
-    	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+        cp   "6"  ; $36
+        jr   nc, time__handle_reset_invalid_RTC_data__2D4E
 
         ; Low Digits
-    	ldi  a, [hl]
+        ldi  a, [hl]
         ; If (ascii Low digit < "0") then invalid
-    	cp   "0"  ; $30
-    	jr   c, time__handle_reset_invalid_RTC_data__2D4E
+        cp   "0"  ; $30
+        jr   c, time__handle_reset_invalid_RTC_data__2D4E
         ; If (ascii Low digit > "9")
         cp   ("9" + 1)  ; $3A  (char after "9")
-    	jr   nc, time__handle_reset_invalid_RTC_data__2D4E
-    	dec  b
-    	jr   nz, .minutes_then_seconds_validate_loop__2D13_
-	ret
+        jr   nc, time__handle_reset_invalid_RTC_data__2D4E
+        dec  b
+        jr   nz, .minutes_then_seconds_validate_loop__2D13_
+    ret
 
 
 ; Data from 2D29 to 2D47 (31 bytes)
@@ -7805,189 +7805,189 @@ db    "1", "2", "0", "0", "0", "0"
 
 time__handle_reset_invalid_RTC_data__2D4E:
     ; Reset Time to 12:00:00
-	ld   hl, time__data_reset_hours_min_sec_to_1200__2D48
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   b, $06 ; Copy length: Hours(2), Min(2), Sec(2)
+    ld   hl, time__data_reset_hours_min_sec_to_1200__2D48
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   b, $06 ; Copy length: Hours(2), Min(2), Sec(2)
     .rtc_time_copy_loop__2D56:
-    	ldi  a, [hl]
-    	ld   [de], a
-    	inc  de
-    	dec  b
-    	jr   nz, .rtc_time_copy_loop__2D56
+        ldi  a, [hl]
+        ld   [de], a
+        inc  de
+        dec  b
+        jr   nz, .rtc_time_copy_loop__2D56
 
     ; 12 for alternate hours format
-	ld   a, 12  ; $0C
-	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+    ld   a, 12  ; $0C
+    ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
     ; Zero out Minutes & Seconds
-	xor  a
-	ld   [time__minutes__decimal__RAM_C3A2], a
-	ld   [time__seconds__decimal__RAM_C3A1], a
+    xor  a
+    ld   [time__minutes__decimal__RAM_C3A2], a
+    ld   [time__seconds__decimal__RAM_C3A1], a
 
     ; TODO: Not yet sure what these are
-	ld   a, $5C
-	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
-	ld   a, $01
-	ld   [date__month__decimal__maybe__RAM_C138], a
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   a, $03
-	ld   [_RAM_C137_], a
-	call rtc__load_data_to_rtc_transfer_buffer__0EB1
+    ld   a, $5C
+    ld   [date__year__digit_decimal__maybe__RAM_C13A], a
+    ld   a, $01
+    ld   [date__month__decimal__maybe__RAM_C138], a
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ld   a, $03
+    ld   [_RAM_C137_], a
+    call rtc__load_data_to_rtc_transfer_buffer__0EB1
 
     ; TODO: Validating 4 bytes of something in SRAM
     ;
     ; Set MBC SRAM Bank to 0
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   hl, $A1F5
-	ld   de, _DATA_E42A_
-	ld   b, $04
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   hl, $A1F5
+    ld   de, _DATA_E42A_
+    ld   b, $04
     .loop__2D89:
-    	ld   a, [de]
-    	inc  de
-    	cp   [hl]
-    	ret  z
-    	inc  hl
-    	dec  b
-    	jr   nz, .loop__2D89
+        ld   a, [de]
+        inc  de
+        cp   [hl]
+        ret  z
+        inc  hl
+        dec  b
+        jr   nz, .loop__2D89
 
     ; Show a message about low batteries and time being wrong
-	call gfx__clear_tilemap_0__2722
-	ld   de, msg__timedate_wrong__2d92  ; $2D29
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    call gfx__clear_tilemap_0__2722
+    ld   de, msg__timedate_wrong__2d92  ; $2D29
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
-	ld   de, msg__batteries_low__2d39 ; $2D39
-	ld   hl, (_TILEMAP0 + $80)
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, msg__batteries_low__2d39 ; $2D39
+    ld   hl, (_TILEMAP0 + $80)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     .keyboard__wait_for_keypress__2DA2:
-    	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-    	inc  a
-    	jr   z, .keyboard__wait_for_keypress__2DA2
-	ret
+        rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+        inc  a
+        jr   z, .keyboard__wait_for_keypress__2DA2
+    ret
 
 
 _LABEL_2DA7_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	or   a
-	jr   nz, _LABEL_2DA7_
-	call audio__todo__380D
-	call gfx__clear_tilemap_0__2722
-	ld   hl, $0148
-	call _LABEL_1076_
-	push de
-	ld   de, $00A4
-	ld   hl, $98A0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00A5
-	ld   hl, $98E0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   a, [gamepad_buttons__RAM_C103]
+    or   a
+    jr   nz, _LABEL_2DA7_
+    call audio__todo__380D
+    call gfx__clear_tilemap_0__2722
+    ld   hl, $0148
+    call _LABEL_1076_
+    push de
+    ld   de, $00A4
+    ld   hl, $98A0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00A5
+    ld   hl, $98E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_2DC8_:
-	ld   a, [gamepad_buttons__RAM_C103]
-	or   a
-	jr   z, _LABEL_2DC8_
-	pop  de
-	push af
-	push de
-	ld   a, [_RAM_C232_]
-	ld   d, $00
-	ld   e, a
-	ld   hl, _DATA_1071_
-	add  hl, de
-	ld   a, [hl]
-	pop  de
-	ld   [de], a
-	pop  af
-	bit  0, a
-	jr   nz, _LABEL_2DEA_
-	ld   hl, $FFFE
-	ld   sp, hl
-	jp   alt_menu__show_when_no_keyboard_found__10C3
+    ld   a, [gamepad_buttons__RAM_C103]
+    or   a
+    jr   z, _LABEL_2DC8_
+    pop  de
+    push af
+    push de
+    ld   a, [_RAM_C232_]
+    ld   d, $00
+    ld   e, a
+    ld   hl, _DATA_1071_
+    add  hl, de
+    ld   a, [hl]
+    pop  de
+    ld   [de], a
+    pop  af
+    bit  0, a
+    jr   nz, _LABEL_2DEA_
+    ld   hl, $FFFE
+    ld   sp, hl
+    jp   alt_menu__show_when_no_keyboard_found__10C3
 
 _LABEL_2DEA_:
-	call gfx__clear_tilemap_0__2722
-	di
+    call gfx__clear_tilemap_0__2722
+    di
 _LABEL_2DEE_:
-	call serial_io__receive_byte_in_A_with_int__2E84
-	cp   $53
-	jr   nz, _LABEL_2DFB_
-	call _LABEL_2E0C_
-	jp   _LABEL_0_
+    call serial_io__receive_byte_in_A_with_int__2E84
+    cp   $53
+    jr   nz, _LABEL_2DFB_
+    call _LABEL_2E0C_
+    jp   _LABEL_0_
 
 _LABEL_2DFB_:
-	cp   $52
-	jr   nz, _LABEL_2E05_
-	call _LABEL_2E2B_
-	jp   _LABEL_0_
+    cp   $52
+    jr   nz, _LABEL_2E05_
+    call _LABEL_2E2B_
+    jp   _LABEL_0_
 
 _LABEL_2E05_:
-	xor  a
-	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-	jp   _LABEL_2DEE_
+    xor  a
+    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+    jp   _LABEL_2DEE_
 
 _LABEL_2E0C_:
-	ld   a, $53
-	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-	call _LABEL_2E69_
-	call _LABEL_2E69_
-	xor  a
-	call _LABEL_2E55_
-	ld   a, $01
-	call _LABEL_2E55_
-	ld   a, $02
-	call _LABEL_2E55_
-	ld   a, $03
-	call _LABEL_2E55_
-	ret
+    ld   a, $53
+    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+    call _LABEL_2E69_
+    call _LABEL_2E69_
+    xor  a
+    call _LABEL_2E55_
+    ld   a, $01
+    call _LABEL_2E55_
+    ld   a, $02
+    call _LABEL_2E55_
+    ld   a, $03
+    call _LABEL_2E55_
+    ret
 
 _LABEL_2E2B_:
-	ld   a, $57
-	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-	xor  a
-	call _LABEL_2E44_
-	ld   a, $01
-	call _LABEL_2E44_
-	ld   a, $02
-	call _LABEL_2E44_
-	ld   a, $03
-	call _LABEL_2E44_
-	ret
+    ld   a, $57
+    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+    xor  a
+    call _LABEL_2E44_
+    ld   a, $01
+    call _LABEL_2E44_
+    ld   a, $02
+    call _LABEL_2E44_
+    ld   a, $03
+    call _LABEL_2E44_
+    ret
 
 _LABEL_2E44_:
-	call mbc_sram_ON_set_srambank_to_A__2E9B
-	ld   de, _SRAM_0_
+    call mbc_sram_ON_set_srambank_to_A__2E9B
+    ld   de, _SRAM_0_
 _LABEL_2E4A_:
-	call serial_io__receive_byte_in_A_with_int__2E84
-	ld   [de], a
-	inc  de
-	ld   a, d
-	cp   $C0
-	jr   nz, _LABEL_2E4A_
-	ret
+    call serial_io__receive_byte_in_A_with_int__2E84
+    ld   [de], a
+    inc  de
+    ld   a, d
+    cp   $C0
+    jr   nz, _LABEL_2E4A_
+    ret
 
 _LABEL_2E55_:
-	call mbc_sram_ON_set_srambank_to_A__2E9B
-	ld   de, _SRAM_0_
+    call mbc_sram_ON_set_srambank_to_A__2E9B
+    ld   de, _SRAM_0_
 _LABEL_2E5B_:
-	ld   a, [de]
-	call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-	call _LABEL_2E69_
-	inc  de
-	ld   a, d
-	cp   $C0
-	jr   nz, _LABEL_2E5B_
-	ret
+    ld   a, [de]
+    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+    call _LABEL_2E69_
+    inc  de
+    ld   a, d
+    cp   $C0
+    jr   nz, _LABEL_2E5B_
+    ret
 
 _LABEL_2E69_:
-	push bc
-	ld   bc, $01FF
+    push bc
+    ld   bc, $01FF
 _LABEL_2E6D_:
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_2E6D_
-	pop  bc
-	ret
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_2E6D_
+    pop  bc
+    ret
 
 
 ; Sends byte in A over Serial IO and waits for reply via interrupt
@@ -7996,15 +7996,15 @@ _LABEL_2E6D_:
 serial_io__send_byte_with_int_receive_byte_in_A__2E74:
     ; Load serial byte to send from A
     ; Clear all pending interrupts
-	ldh  [rSB], a
-	xor  a
-	ldh  [rIF], a
+    ldh  [rSB], a
+    xor  a
+    ldh  [rIF], a
     ; Enable Serial Interrupt and start a transfer
-	ld   a, IEF_SERIAL ; $08
-	ldh  [rIE], a
-	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-	ldh  [rSC], a
-	jp   serial_io__wait_interrupt__2E92
+    ld   a, IEF_SERIAL ; $08
+    ldh  [rIE], a
+    ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+    ldh  [rSC], a
+    jp   serial_io__wait_interrupt__2E92
 
 
 ; Receive a byte over Serial IO and waits via interrupt
@@ -8013,23 +8013,23 @@ serial_io__send_byte_with_int_receive_byte_in_A__2E74:
 serial_io__receive_byte_in_A_with_int__2E84:
     ; Put 0x00 in outgoing Serial RX
     ; Clear all pending interrupts
-	ld   a, $00
-	ldh  [rSB], a
-	ldh  [rIF], a
+    ld   a, $00
+    ldh  [rSB], a
+    ldh  [rIF], a
     ; Enable Serial Interrupt and wait for a transfer
-	ld   a, IEF_SERIAL ; $08
-	ldh  [rIE], a
-	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
-	ldh  [rSC], a
+    ld   a, IEF_SERIAL ; $08
+    ldh  [rIE], a
+    ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
+    ldh  [rSC], a
 
     ; Wait for a serial interrupt
     serial_io__wait_interrupt__2E92:
-    	ldh  a, [rIF]
-    	and  IEF_SERIAL ; $08
-    	jr   z, serial_io__wait_interrupt__2E92
+        ldh  a, [rIF]
+        and  IEF_SERIAL ; $08
+        jr   z, serial_io__wait_interrupt__2E92
     ; Return resulting byte in A
-	ldh  a, [rSB]
-	ret
+    ldh  a, [rSB]
+    ret
 
 
 ; Sets MBC1 SRAM bank:
@@ -8043,16 +8043,16 @@ mbc_sram_ON_set_srambank_to_A__2E9B:
     ; Enable SRAM
     ; Select SRAM Bank switch mode and then
     ; write value in C to SRAM Bank select
-	ld   c, a
-	ld   a, MBC1_RAM_ON          ; $0A
-	ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+    ld   c, a
+    ld   a, MBC1_RAM_ON          ; $0A
+    ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
 
-	ld   a, MBC1_MODE_RAMBANKED  ; $01
-	ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+    ld   a, MBC1_MODE_RAMBANKED  ; $01
+    ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
 
-	ld   a, c
-	ld   [rRAMB], a              ; [$4000]
-	ret
+    ld   a, c
+    ld   [rRAMB], a              ; [$4000]
+    ret
 
 
 ; Data from 2EAB to 2F40 (150 bytes)
@@ -8068,311 +8068,311 @@ db $33, $80, $02, $02, $35, $00, $36, $00, $37, $00, $38, $00, $02, $02, $39, $0
 db $3A, $00, $3B, $00, $3C, $00
 
 gfx__startup_title_screen_setup_and_draw__2F41:
-	call gfx__turn_off_screen_2827
-	ld   a, $07
+    call gfx__turn_off_screen_2827
+    ld   a, $07
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, _TILEDATA9000
-	ld   bc, _DATA_1D252_
-	xor  a ; Copy 256 tiles
-	call gfx__copy_tile_patterns__1437
-	ld   de, _DATA_1DC62_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call _LABEL_F68_
-	ld   a, $03
+    ld   hl, _TILEDATA9000
+    ld   bc, _DATA_1D252_
+    xor  a ; Copy 256 tiles
+    call gfx__copy_tile_patterns__1437
+    ld   de, _DATA_1DC62_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call _LABEL_F68_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
     ; Copies rows of text from RAM to hardware tile map
     ; Source is RAM because it copies there in order to patch the displayed version text
-	jp   gfx__title_screen_copy_text_D6D6_
+    jp   gfx__title_screen_copy_text_D6D6_
 
 stat_interrupt__handler__2F64:
-	push af
-	push bc
-	ldh  a, [rLYC]
-	ld   c, a
-	ld   a, [_RAM_C399_]
-	cp   c
-	jr   z, _LABEL_2F7B_
-	ld   a, [gfx__rBGP_cache__RAM_C27D]
-	ld   b, $07
+    push af
+    push bc
+    ldh  a, [rLYC]
+    ld   c, a
+    ld   a, [_RAM_C399_]
+    cp   c
+    jr   z, _LABEL_2F7B_
+    ld   a, [gfx__rBGP_cache__RAM_C27D]
+    ld   b, $07
 _LABEL_2F74_:
-	dec  b
-	jr   nz, _LABEL_2F74_
-	ldh  [rBGP], a
-	jr   _LABEL_2F8B_
+    dec  b
+    jr   nz, _LABEL_2F74_
+    ldh  [rBGP], a
+    jr   _LABEL_2F8B_
 
 _LABEL_2F7B_:
-	ld   a, [_RAM_C39A_]
-	add  c
-	ldh  [rLYC], a
-	ld   b, $05
+    ld   a, [_RAM_C39A_]
+    add  c
+    ldh  [rLYC], a
+    ld   b, $05
 _LABEL_2F83_:
-	dec  b
-	jr   nz, _LABEL_2F83_
-	ld   a, [_RAM_C24F_]
-	ldh  [rBGP], a
+    dec  b
+    jr   nz, _LABEL_2F83_
+    ld   a, [_RAM_C24F_]
+    ldh  [rBGP], a
 _LABEL_2F8B_:
-	pop  bc
-	pop  af
-	reti
+    pop  bc
+    pop  af
+    reti
 
 ; 1st entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_clock__launch__2F8E:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	ld   hl, $FFFE
-	ld   sp, hl
-	call gfx__turn_off_screen_2827
-	ld   a, $FF
-	ldh  [rOBP0], a
-	ld   a, $AA
-	ldh  [rOBP1], a
-	ld   a, $03
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    di
+    ld   a, $04
+    ldh  [rSTAT], a
+    ld   a, $01
+    ldh  [rIE], a
+    ei
+    ld   hl, $FFFE
+    ld   sp, hl
+    call gfx__turn_off_screen_2827
+    ld   a, $FF
+    ldh  [rOBP0], a
+    ld   a, $AA
+    ldh  [rOBP1], a
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
 
-	ld   hl, _TILEDATA8000
-	ld   de, _DATA_EECC_
-	ld   bc, _DATA_EED4_
-	ld   a, 84 ; $54 ; Copy 84 tiles
-	call gfx__interleave_copy_tile_patterns__144C
-	ld   a, $04
-	call _LABEL_3918_
-	ld   a, $03
+    ld   hl, _TILEDATA8000
+    ld   de, _DATA_EECC_
+    ld   bc, _DATA_EED4_
+    ld   a, 84 ; $54 ; Copy 84 tiles
+    call gfx__interleave_copy_tile_patterns__144C
+    ld   a, $04
+    call _LABEL_3918_
+    ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_F69E_
+    jp   _LABEL_F69E_
 
 ; Data from 2FCB to 2FE5 (27 bytes)
 db $FA, $03, $C1, $B7, $20, $FA, $CF, $FE, $FF, $C2, $00, $02, $FA, $03, $C1, $B7
 db $28, $F4, $FA, $03, $C1, $B7, $20, $FA, $C3, $00, $02
 
 _LABEL_2FE6_:
-	ld   a, [_RAM_C3A6_]
-	dec  a
-	ld   [_RAM_C3A6_], a
-	jr   nz, _LABEL_2FF7_
-	ld   a, $DB
-	ld   [_RAM_C3A6_], a
-	call _LABEL_2FF7_
+    ld   a, [_RAM_C3A6_]
+    dec  a
+    ld   [_RAM_C3A6_], a
+    jr   nz, _LABEL_2FF7_
+    ld   a, $DB
+    ld   [_RAM_C3A6_], a
+    call _LABEL_2FF7_
 _LABEL_2FF7_:
-	ld   a, [_RAM_C3A5_]
-	dec  a
-	ld   [_RAM_C3A5_], a
-	ret  nz
-	ld   a, $3C
-	ld   [_RAM_C3A5_], a
-	call _LABEL_303F_
+    ld   a, [_RAM_C3A5_]
+    dec  a
+    ld   [_RAM_C3A5_], a
+    ret  nz
+    ld   a, $3C
+    ld   [_RAM_C3A5_], a
+    call _LABEL_303F_
     ; Seconds++
-	ld   a, [time__seconds__decimal__RAM_C3A1]
-	inc  a
-	cp   60  ; $3C
-	jr   nz, .seconds_no_60_rollover__303B
+    ld   a, [time__seconds__decimal__RAM_C3A1]
+    inc  a
+    cp   60  ; $3C
+    jr   nz, .seconds_no_60_rollover__303B
         ; Seconds == 60
-    	ld   a, $01
-    	ld   [_RAM_C3A9_], a  ; TODO: Flag seconds rollover something...
+        ld   a, $01
+        ld   [_RAM_C3A9_], a  ; TODO: Flag seconds rollover something...
 
         ; Minutes++
-    	ld   a, [time__minutes__decimal__RAM_C3A2]
-    	inc  a
-    	cp   60  ; $3C
-    	jr   nz, .minutes_no_rollover__301D
-        	xor  a
+        ld   a, [time__minutes__decimal__RAM_C3A2]
+        inc  a
+        cp   60  ; $3C
+        jr   nz, .minutes_no_rollover__301D
+            xor  a
 
         .minutes_no_rollover__301D:
-    	ld   [time__minutes__decimal__RAM_C3A2], a
+        ld   [time__minutes__decimal__RAM_C3A2], a
 
         ; TODO
         ; X--
-    	ld   a, [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3]
-    	dec  a
-    	ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
-    	jr   nz, .not_zero_skip_some_rollover_todo__303A_
+        ld   a, [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3]
+        dec  a
+        ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
+        jr   nz, .not_zero_skip_some_rollover_todo__303A_
             ; if (X == 0) {
             ;    X = 12
             ;    Y++
             ;    if (Y == 60) Y = 0
-        	ld   a, 12  ; $0C
-        	ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
-        	ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
-        	inc  a
-        	cp   60  ; $3C
-        	jr   nz, .not_zero_skip_another_rollover_todo__3037_
-        	xor  a
+            ld   a, 12  ; $0C
+            ld   [time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3], a
+            ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
+            inc  a
+            cp   60  ; $3C
+            jr   nz, .not_zero_skip_another_rollover_todo__3037_
+            xor  a
             .not_zero_skip_another_rollover_todo__3037_:
-            	ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
+                ld   [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4], a
 
         .not_zero_skip_some_rollover_todo__303A_:
-    	xor  a
+        xor  a
 
     .seconds_no_60_rollover__303B:
-	ld   [time__seconds__decimal__RAM_C3A1], a
-	ret
+    ld   [time__seconds__decimal__RAM_C3A1], a
+    ret
 
 _LABEL_303F_:
-	ld   a, $01
-	ld   [_RAM_C3A7_], a
-	ld   hl, time__seconds__low_digit_ascii__RAM_C3A0
-	ld   a, [hl]
-	inc  a
-	cp   $3A
-	jr   z, _LABEL_304F_
-	ld   [hl], a
-	ret
+    ld   a, $01
+    ld   [_RAM_C3A7_], a
+    ld   hl, time__seconds__low_digit_ascii__RAM_C3A0
+    ld   a, [hl]
+    inc  a
+    cp   $3A
+    jr   z, _LABEL_304F_
+    ld   [hl], a
+    ret
 
 _LABEL_304F_:
-	ld   a, $30
-	ldd  [hl], a
-	ld   a, [hl]
-	inc  a
-	cp   $36
-	jr   z, _LABEL_305A_
-	ld   [hl], a
-	ret
+    ld   a, $30
+    ldd  [hl], a
+    ld   a, [hl]
+    inc  a
+    cp   $36
+    jr   z, _LABEL_305A_
+    ld   [hl], a
+    ret
 
 _LABEL_305A_:
-	ld   a, $30
-	ldd  [hl], a
-	ld   a, [hl]
-	inc  a
-	cp   $3A
-	jr   z, _LABEL_3065_
-	ld   [hl], a
-	ret
+    ld   a, $30
+    ldd  [hl], a
+    ld   a, [hl]
+    inc  a
+    cp   $3A
+    jr   z, _LABEL_3065_
+    ld   [hl], a
+    ret
 
 _LABEL_3065_:
-	ld   a, $30
-	ldd  [hl], a
-	ld   a, [hl]
-	inc  a
-	cp   $36
-	jr   z, _LABEL_3070_
-	ld   [hl], a
-	ret
+    ld   a, $30
+    ldd  [hl], a
+    ld   a, [hl]
+    inc  a
+    cp   $36
+    jr   z, _LABEL_3070_
+    ld   [hl], a
+    ret
 
 _LABEL_3070_:
-	ld   a, $30
-	ldd  [hl], a
-	ld   a, [hl]
-	inc  a
-	cp   $34
-	jr   nz, _LABEL_3090_
-	dec  hl
-	ld   a, [hl]
-	cp   $32
-	jr   nz, _LABEL_308C_
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $30
-	ld   a, $02
+    ld   a, $30
+    ldd  [hl], a
+    ld   a, [hl]
+    inc  a
+    cp   $34
+    jr   nz, _LABEL_3090_
+    dec  hl
+    ld   a, [hl]
+    cp   $32
+    jr   nz, _LABEL_308C_
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $30
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_AED1_
+    jp   _LABEL_AED1_
 
 _LABEL_308C_:
-	inc  hl
-	ld   [hl], $34
-	ret
+    inc  hl
+    ld   [hl], $34
+    ret
 
 _LABEL_3090_:
-	cp   $3A
-	jr   z, _LABEL_3096_
-	ld   [hl], a
-	ret
+    cp   $3A
+    jr   z, _LABEL_3096_
+    ld   [hl], a
+    ret
 
 _LABEL_3096_:
-	ld   [hl], $30
-	dec  hl
-	inc  [hl]
-	ret
+    ld   [hl], $30
+    dec  hl
+    inc  [hl]
+    ret
 
 ; 11th entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_0A_TODO__LABEL_309B_:
-	call _LABEL_30A1_
-	jp   vblank__cmd_default__25F7
+    call _LABEL_30A1_
+    jp   vblank__cmd_default__25F7
 
 _LABEL_30A1_:
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   hl, $99E6
-	ld   b, $03
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   hl, $99E6
+    ld   b, $03
 _LABEL_30A9_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_30A9_
-	ret
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_30A9_
+    ret
 
 _LABEL_30B8_:
-	ld   c, $58
-	ld   b, $48
-	inc  a
-	cp   $11
-	jr   c, _LABEL_30D7_
-	cp   $1F
-	jr   c, _LABEL_30DD_
-	cp   $2F
-	jr   c, _LABEL_30E7_
-	ld   e, a
-	ld   a, $3E
-	sub  e
-	add  $10
-	ld   e, a
-	ld   a, c
-	sub  $1E
-	ld   c, a
-	jp   _LABEL_F574_
+    ld   c, $58
+    ld   b, $48
+    inc  a
+    cp   $11
+    jr   c, _LABEL_30D7_
+    cp   $1F
+    jr   c, _LABEL_30DD_
+    cp   $2F
+    jr   c, _LABEL_30E7_
+    ld   e, a
+    ld   a, $3E
+    sub  e
+    add  $10
+    ld   e, a
+    ld   a, c
+    sub  $1E
+    ld   c, a
+    jp   _LABEL_F574_
 
 _LABEL_30D7_:
-	add  $10
-	ld   e, a
-	jp   _LABEL_1504_
+    add  $10
+    ld   e, a
+    jp   _LABEL_1504_
 
 _LABEL_30DD_:
-	ld   e, a
-	ld   a, $20
-	sub  e
-	add  $10
-	ld   e, a
-	jp   _LABEL_F5D6_
+    ld   e, a
+    ld   a, $20
+    sub  e
+    add  $10
+    ld   e, a
+    jp   _LABEL_F5D6_
 
 _LABEL_30E7_:
-	sub  $1E
-	add  $10
-	ld   e, a
-	ld   a, c
-	sub  $1E
-	ld   c, a
-	jp   _LABEL_F636_
+    sub  $1E
+    add  $10
+    ld   e, a
+    ld   a, c
+    sub  $1E
+    ld   c, a
+    jp   _LABEL_F636_
 
 
 ; Maps the hardware keycodes into their physical order (left->right, top -> bottom)
@@ -8409,156 +8409,156 @@ db $0B, $37, $38, $39, $2E, $25, $3D, $7F, $3C, $3E, $0F, $3F ; 12 Keys: Row 4  
 db $0C, $30, $20, $40, $10, $12, $11                          ;  7 Keys: Row 5     : Caps + 0 + Space + @? + Left + Down + Right
 
 _LABEL_3192_:
-	ld   a, [_RAM_C19B_]
-	or   a
-	ret  z
-	ld   hl, _RAM_C19C_
+    ld   a, [_RAM_C19B_]
+    or   a
+    ret  z
+    ld   hl, _RAM_C19C_
 _LABEL_319A_:
-	push af
-	push hl
+    push af
+    push hl
 _LABEL_319C_:
-	ld   a, [hl]
-	inc  a
-	jr   nz, _LABEL_31A8_
-	pop  hl
-	ld   de, $0005
-	add  hl, de
-	push hl
-	jr   _LABEL_319C_
+    ld   a, [hl]
+    inc  a
+    jr   nz, _LABEL_31A8_
+    pop  hl
+    ld   de, $0005
+    add  hl, de
+    push hl
+    jr   _LABEL_319C_
 
 _LABEL_31A8_:
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   b, $04
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   b, $04
 _LABEL_31AD_:
-	ld   a, [de]
-	cp   [hl]
-	jr   nz, _LABEL_31E0_
-	inc  de
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_31AD_
-	ld   a, [hl]
-	ld   c, a
-	pop  hl
-	pop  af
-	ld   [hl], $FF
-	ld   hl, _RAM_C19B_
-	dec  [hl]
-	ld   a, c
-	cp   $01
-	jr   nz, _LABEL_31D1_
-	ld   a, $3C
-	ld   [_RAM_C3AA_], a
-	ld   a, $01
-	ld   [_RAM_C3AB_], a
-	jr   _LABEL_31EA_
+    ld   a, [de]
+    cp   [hl]
+    jr   nz, _LABEL_31E0_
+    inc  de
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_31AD_
+    ld   a, [hl]
+    ld   c, a
+    pop  hl
+    pop  af
+    ld   [hl], $FF
+    ld   hl, _RAM_C19B_
+    dec  [hl]
+    ld   a, c
+    cp   $01
+    jr   nz, _LABEL_31D1_
+    ld   a, $3C
+    ld   [_RAM_C3AA_], a
+    ld   a, $01
+    ld   [_RAM_C3AB_], a
+    jr   _LABEL_31EA_
 
 _LABEL_31D1_:
-	add  $0B
-	call _LABEL_376C_
-	ld   a, $01
-	ld   [_RAM_C3AB_], a
-	ld   [_RAM_C3AA_], a
-	jr   _LABEL_31EA_
+    add  $0B
+    call _LABEL_376C_
+    ld   a, $01
+    ld   [_RAM_C3AB_], a
+    ld   [_RAM_C3AA_], a
+    jr   _LABEL_31EA_
 
 _LABEL_31E0_:
-	pop  hl
-	ld   de, $0005
-	add  hl, de
-	pop  af
-	dec  a
-	jr   nz, _LABEL_319A_
-	ret
+    pop  hl
+    ld   de, $0005
+    add  hl, de
+    pop  af
+    dec  a
+    jr   nz, _LABEL_319A_
+    ret
 
 _LABEL_31EA_:
-	ld   a, [vblank__dispatch_select__RAM_C27C]
-	push af
-	call gfx__clear_shadow_oam__275B
-	xor  a
-	ld   [_RAM_C398_], a
-	ld   a, $1A
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   de, _DATA_617_
-	ld   hl, $98A0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00D6
-	ld   hl, $98C0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0617
-	ld   hl, $98E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   b, $06
+    ld   a, [vblank__dispatch_select__RAM_C27C]
+    push af
+    call gfx__clear_shadow_oam__275B
+    xor  a
+    ld   [_RAM_C398_], a
+    ld   a, $1A
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   de, _DATA_617_
+    ld   hl, $98A0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00D6
+    ld   hl, $98C0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0617
+    ld   hl, $98E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   b, $06
 _LABEL_3212_:
-	push bc
-	ld   a, $14
+    push bc
+    ld   a, $14
 _LABEL_3215_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  a
-	jr   nz, _LABEL_3215_
-	ld   de, $2152
-	ld   hl, $98C1
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $14
+    rst  $18    ; Call VSYNC__RST_18
+    dec  a
+    jr   nz, _LABEL_3215_
+    ld   de, $2152
+    ld   hl, $98C1
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $14
 _LABEL_3222_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  a
-	jr   nz, _LABEL_3222_
-	ld   de, $00D6
-	ld   hl, $98C0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_3212_
-	ld   a, $01
-	ld   [_RAM_C398_], a
-	ld   a, $1A
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	pop  af
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    rst  $18    ; Call VSYNC__RST_18
+    dec  a
+    jr   nz, _LABEL_3222_
+    ld   de, $00D6
+    ld   hl, $98C0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_3212_
+    ld   a, $01
+    ld   [_RAM_C398_], a
+    ld   a, $1A
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    pop  af
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 _LABEL_3241_:
-	xor  a
-	ld   [_RAM_C3A9_], a
-	call _LABEL_3192_
-	ld   a, [_RAM_C59B_]
-	or   a
-	ret  z
-	ld   hl, $C59C
-	ld   b, a
+    xor  a
+    ld   [_RAM_C3A9_], a
+    call _LABEL_3192_
+    ld   a, [_RAM_C59B_]
+    or   a
+    ret  z
+    ld   hl, $C59C
+    ld   b, a
 _LABEL_3251_:
-	push bc
-	push hl
-	ld   b, $04
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
+    push bc
+    push hl
+    ld   b, $04
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
 _LABEL_3258_:
-	ld   a, [de]
-	inc  de
-	cp   [hl]
-	jr   nz, _LABEL_326E_
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_3258_
-	pop  hl
-	pop  bc
-	ld   a, $3C
-	ld   [_RAM_C3AA_], a
-	ld   a, $01
-	ld   [_RAM_C3AB_], a
-	ret
+    ld   a, [de]
+    inc  de
+    cp   [hl]
+    jr   nz, _LABEL_326E_
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_3258_
+    pop  hl
+    pop  bc
+    ld   a, $3C
+    ld   [_RAM_C3AA_], a
+    ld   a, $01
+    ld   [_RAM_C3AB_], a
+    ret
 
 _LABEL_326E_:
-	pop  hl
-	pop  bc
-	inc  hl
-	inc  hl
-	inc  hl
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_3251_
-	ret
+    pop  hl
+    pop  bc
+    inc  hl
+    inc  hl
+    inc  hl
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_3251_
+    ret
 
 
 ; ### MEGADUCK-HARDWARE-PATCHING: KEYBOARD-READ
@@ -8567,9 +8567,9 @@ _LABEL_326E_:
 ; - If no key or error will be WORKBOY_SCAN_KEY_NONE (0xFF)
 serial_io__poll_keyboard__3278:
     ; TODO: Check for something and skip serial keyboard poll request if set
-	ld   a, [_RAM_C3A9_]
-	or   a
-	call nz, _LABEL_3241_
+    ld   a, [_RAM_C3A9_]
+    or   a
+    call nz, _LABEL_3241_
 
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         ; Since there isn't quite enough space to do the full set of save/change/restore bank
@@ -8581,149 +8581,149 @@ serial_io__poll_keyboard__3278:
         ; the returned keyboard data into a format the workboy ROM expects
     ELSE
         ; Load keyboard key request and send it
-    	ld   a, WORKBOY_CMD_O_READKEY  ; $4F
-    	call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+        ld   a, WORKBOY_CMD_O_READKEY  ; $4F
+        call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
     ENDC
 
     ; Check returned Key value, return if blank/unset
     ; Also make sure it's not zero
-	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-	ret  z
-	or   a
-	jr   nz, .serial_io__translate_returned_scan_key__328C
-	dec  a ; Wraps 0 around to WORKBOY_SCAN_KEY_NONE/$FF
-	ret
+    cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    ret  z
+    or   a
+    jr   nz, .serial_io__translate_returned_scan_key__328C
+    dec  a ; Wraps 0 around to WORKBOY_SCAN_KEY_NONE/$FF
+    ret
 
 
     .serial_io__translate_returned_scan_key__328C:
         ; Look up physical index of the key on the keyboard
-    	ld   hl, keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3
-    	ld   c, $00
-    	ld   b, a
+        ld   hl, keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3
+        ld   c, $00
+        ld   b, a
         ; Result of this check will be C as the zero based index into the table
         .check_for_key_in_table_loop__3292:
-        	ldi  a, [hl]
-        	cp   b
-        	jr   z, .done_key_in_table_found__3299
-        	inc  c
-        	jr     .check_for_key_in_table_loop__3292
+            ldi  a, [hl]
+            cp   b
+            jr   z, .done_key_in_table_found__3299
+            inc  c
+            jr     .check_for_key_in_table_loop__3292
 
     .done_key_in_table_found__3299:
         ; Now convert the key index to ascii
-    	ld   a, [keycode_to_ascii_lut_ptr_lo__C3AC]
-    	ld   l, a
-    	ld   a, [keycode_to_ascii_lut_ptr_hi__C3AD]
-    	ld   h, a
-    	ld   b, $00
+        ld   a, [keycode_to_ascii_lut_ptr_lo__C3AC]
+        ld   l, a
+        ld   a, [keycode_to_ascii_lut_ptr_hi__C3AD]
+        ld   h, a
+        ld   b, $00
         ; Adding the keycodes index in keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3
-    	add  hl, bc
-    	ld   a, [hl]    ; A now stores the ascii value for the key
+        add  hl, bc
+        ld   a, [hl]    ; A now stores the ascii value for the key
 
         ; Update current / previous key
-    	ld   c, a
-    	ld   a, [keyboard__prob_current_key__RAM_C476]
-    	ld   [keyboard__prob_previous_key__RAM_C477], a
-    	ld   a, c
-    	ld   [keyboard__prob_current_key__RAM_C476], a
+        ld   c, a
+        ld   a, [keyboard__prob_current_key__RAM_C476]
+        ld   [keyboard__prob_previous_key__RAM_C477], a
+        ld   a, c
+        ld   [keyboard__prob_current_key__RAM_C476], a
 
-    	or   a    ; Is current key zero? Return
-    	ret  z
-    	cp   $0A  ; Is it >= 10? (Not a function key) Return
-    	ret  nc
-    	push af
+        or   a    ; Is current key zero? Return
+        ret  z
+        cp   $0A  ; Is it >= 10? (Not a function key) Return
+        ret  nc
+        push af
 
     ; Probably Begin handling all kinds of function key related actions and eventual dispatch
-    	call audio__todo__380D
-    	pop  af
-    	cp   $09  ; Is it the Telephone function key?
-    	jr   nz, _LABEL_32C7_
-        	push af
-        	ld   a, [_RAM_C19A_]
-        	or   a
-        	jr   z, _LABEL_32C8_
-        	pop  af
-        	ret
+        call audio__todo__380D
+        pop  af
+        cp   $09  ; Is it the Telephone function key?
+        jr   nz, _LABEL_32C7_
+            push af
+            ld   a, [_RAM_C19A_]
+            or   a
+            jr   z, _LABEL_32C8_
+            pop  af
+            ret
 
     _LABEL_32C7_:
-    	push af
+        push af
     _LABEL_32C8_:
-    	xor  a
-    	ld   [_RAM_C19A_], a
-    	ld   [_RAM_C23F_], a
-    	ld   a, [_RAM_C10F_]
-    	or   a
-    	jr   z, _LABEL_32D7_
-    	pop  af
-    	ret
+        xor  a
+        ld   [_RAM_C19A_], a
+        ld   [_RAM_C23F_], a
+        ld   a, [_RAM_C10F_]
+        or   a
+        jr   z, _LABEL_32D7_
+        pop  af
+        ret
 
     _LABEL_32D7_:
-    	ld   a, $01
-    	ld   [_RAM_C110_], a
-    	ld   a, [_RAM_C117_]
-    	or   a
-    	call nz, _LABEL_E67B_
-    	pop  af
-    	ld   c, a
-    	xor  a
-    	ld   [_RAM_C117_], a
-    	ld   [_RAM_C260_], a
-    	ld   [_RAM_C5F3_], a
-    	ld   [vblank__dispatch_select__RAM_C27C], a
-    	ld   [gfx__shadow_y_scroll__RAM_C102], a
-    	di
-    	ld   a, $04
-    	ldh  [rSTAT], a
-    	ld   a, $01
-    	ldh  [rIE], a
-    	ei
-    	ld   hl, $FFFE
-    	ld   sp, hl
-    	ld   a, $1B
-    	ldh  [rBGP], a
-    	ld   [gfx__rBGP_cache__RAM_C27D], a
-    	ld   a, $D2
-    	ldh  [rOBP0], a
-    	ld   a, c
-    	ld   hl, main_menu__lookup_table__app_key_to_app_index__399_ - 1   ; TODO: what's happening here... launching an app?
-    	add  l
-    	ld   l, a
-    	ld   a, h
-    	adc  $00
-    	ld   h, a
-    	ld   a, [hl]
-    	jr   _LABEL_331B_
+        ld   a, $01
+        ld   [_RAM_C110_], a
+        ld   a, [_RAM_C117_]
+        or   a
+        call nz, _LABEL_E67B_
+        pop  af
+        ld   c, a
+        xor  a
+        ld   [_RAM_C117_], a
+        ld   [_RAM_C260_], a
+        ld   [_RAM_C5F3_], a
+        ld   [vblank__dispatch_select__RAM_C27C], a
+        ld   [gfx__shadow_y_scroll__RAM_C102], a
+        di
+        ld   a, $04
+        ldh  [rSTAT], a
+        ld   a, $01
+        ldh  [rIE], a
+        ei
+        ld   hl, $FFFE
+        ld   sp, hl
+        ld   a, $1B
+        ldh  [rBGP], a
+        ld   [gfx__rBGP_cache__RAM_C27D], a
+        ld   a, $D2
+        ldh  [rOBP0], a
+        ld   a, c
+        ld   hl, main_menu__lookup_table__app_key_to_app_index__399_ - 1   ; TODO: what's happening here... launching an app?
+        add  l
+        ld   l, a
+        ld   a, h
+        adc  $00
+        ld   h, a
+        ld   a, [hl]
+        jr   _LABEL_331B_
 
     _LABEL_331B_:
-    	push af
-    	ld   b, $00
+        push af
+        ld   b, $00
     _LABEL_331E_:
-    	cp   $03
-    	jr   c, _LABEL_3327_
-    	sub  $03
-    	inc  b
-    	jr   _LABEL_331E_
+        cp   $03
+        jr   c, _LABEL_3327_
+        sub  $03
+        inc  b
+        jr   _LABEL_331E_
 
     _LABEL_3327_:
-    	ld   [main_menu__icon_cur_column__C111], a
-    	ld   a, b
-    	ld   [main_menu__icon_cur_row__C112], a
-    	call gfx__clear_shadow_oam__275B
-    	pop  af
-    	cp   $09
-    	jp   z, app_submenu__money__03BA
-    	cp   $04
-    	jp   z, app_submenu__scheduling__15BE
-    	add  a
-    	ld   hl, main_menu__app_launch_jump_table__03A2
-    	add  l
-    	ld   l, a
-    	ld   a, h
-    	adc  $00
-    	ld   h, a
-    	ldi  a, [hl]
-    	ld   h, [hl]
-    	ld   l, a
-    	jp   hl
+        ld   [main_menu__icon_cur_column__C111], a
+        ld   a, b
+        ld   [main_menu__icon_cur_row__C112], a
+        call gfx__clear_shadow_oam__275B
+        pop  af
+        cp   $09
+        jp   z, app_submenu__money__03BA
+        cp   $04
+        jp   z, app_submenu__scheduling__15BE
+        add  a
+        ld   hl, main_menu__app_launch_jump_table__03A2
+        add  l
+        ld   l, a
+        ld   a, h
+        adc  $00
+        ld   h, a
+        ldi  a, [hl]
+        ld   h, [hl]
+        ld   l, a
+        jp   hl
 
 
 ; Delay approx: ~2.94 msec, ~27 scanlines
@@ -8731,15 +8731,15 @@ serial_io__poll_keyboard__3278:
 ;
 ; Preserves ALL except some flags
 delay_2_94msec__334A:
-	push bc
-	ld   bc, $03FF
+    push bc
+    ld   bc, $03FF
     .delay_loop__334E:
-    	dec  c
-    	jr   nz, .delay_loop__334E
-    	dec  b
-    	jr   nz, .delay_loop__334E
-	pop  bc
-	ret
+        dec  c
+        jr   nz, .delay_loop__334E
+        dec  b
+        jr   nz, .delay_loop__334E
+    pop  bc
+    ret
 
 
 ; Sends command in A over serial IO
@@ -8755,80 +8755,80 @@ serial_io__send_command_A_wait_reply_byte_result_in_A__3356:
         SECTION "megaduck__helpers_patch_done__338A", ROM0[$338A]
         megaduck__helpers_patch_done__338A:
     ELSE
-    	push bc
-    	ld   c, a
+        push bc
+        ld   c, a
         ; If keyboard is connected send the poll request, otherwise skip sending and return
-    	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-    	or   a  ; != KYBD_STATUS__NOT_FOUND
-    	jr   nz, .send_command_and_wait_reply__3361
+        ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+        or   a  ; != KYBD_STATUS__NOT_FOUND
+        jr   nz, .send_command_and_wait_reply__3361
 
-    	dec  a  ; Likely returning: WORKBOY_SCAN_KEY_NONE (0xFF) due to keyboard not present
-    	pop  bc
-    	ret
+        dec  a  ; Likely returning: WORKBOY_SCAN_KEY_NONE (0xFF) due to keyboard not present
+        pop  bc
+        ret
 
         ; C: Serial command byte to send is in C
         .send_command_and_wait_reply__3361:
             ; Send the serial command and wait for response
-        	ld   a, c
-        	ldh  [rSB], a
-        	ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-        	ldh  [rSC], a
-        	call delay_2_94msec__334A
+            ld   a, c
+            ldh  [rSB], a
+            ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+            ldh  [rSC], a
+            call delay_2_94msec__334A
             ; Load serial reply
-        	ldh  a, [rSB]
-        	pop  bc
-        	push af
+            ldh  a, [rSB]
+            pop  bc
+            push af
             ; Turn off serial IO
-        	ld   a, ( SERIAL_XFER_OFF ) ; $00
-        	ldh  [rSC], a
+            ld   a, ( SERIAL_XFER_OFF ) ; $00
+            ldh  [rSC], a
 
             ; Check returned serial byte, return if zero
             ; also return if blank/unset (0xFF)
-        	pop  af
-        	or   a
-        	ret  z
-        	cp   WORKBOY_SCAN_KEY_NONE  ;  $FF
-        	ret  z
+            pop  af
+            or   a
+            ret  z
+            cp   WORKBOY_SCAN_KEY_NONE  ;  $FF
+            ret  z
 
-        	push af
-        	ld   a, [_RAM_C110_]  ; TODO: What is this testing after a serial transfer? set to 4 on initial startup, then 1 on startup, and later 0 or 1 occasionally
-        	or   a
-        	jr   z, .return_serial_reply_byte_in_A__3388
-        	ld   a, $24
-        	ld   bc, $0211
-        	call _LABEL_33FC_
+            push af
+            ld   a, [_RAM_C110_]  ; TODO: What is this testing after a serial transfer? set to 4 on initial startup, then 1 on startup, and later 0 or 1 occasionally
+            or   a
+            jr   z, .return_serial_reply_byte_in_A__3388
+            ld   a, $24
+            ld   bc, $0211
+            call _LABEL_33FC_
 
         .return_serial_reply_byte_in_A__3388:
-        	pop  af
-        	ret
+            pop  af
+            ret
     ENDC
 
 ; 2nd entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_calculator__launch__338A:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__clear_shadow_oam__275B
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, $02
-	call _LABEL_3918_
-	ld   bc, $5830
-	call _LABEL_2044_
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__clear_shadow_oam__275B
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, $02
+    call _LABEL_3918_
+    ld   bc, $5830
+    call _LABEL_2044_
 
     ; If keyboard is not connected, skip setting the OBJ/sprite palette
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; == KYBD_STATUS__NOT_FOUND
-	jr   z, .skip_setting_rOBP0__33A9
-    	ld   a, $FF
-    	ldh  [rOBP0], a
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; == KYBD_STATUS__NOT_FOUND
+    jr   z, .skip_setting_rOBP0__33A9
+        ld   a, $FF
+        ldh  [rOBP0], a
 
     .skip_setting_rOBP0__33A9:
-	ld   a, $02
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	jp   _LABEL_B9F0_
+    jp   _LABEL_B9F0_
 
 ; Data from 33B1 to 33C8 (24 bytes)
 db $00, $01, $FF, $63, $00, $03, $01, $63, $88, $88, $FF, $FF, $00, $00, $44, $44
@@ -8874,602 +8874,602 @@ _DATA_33F7_:
 db $02, $80, $F0, $95, $0B
 
 _LABEL_33FC_:
-	push af
-	ld   a, c
-	ld   [_RAM_C3D2_], a
-	pop  af
-	cp   $D0
-	jr   nz, _LABEL_340B_
-	ld   a, $FF
-	ld   de, $0000
+    push af
+    ld   a, c
+    ld   [_RAM_C3D2_], a
+    pop  af
+    cp   $D0
+    jr   nz, _LABEL_340B_
+    ld   a, $FF
+    ld   de, $0000
 _LABEL_340B_:
-	cp   $FF
-	jr   z, _LABEL_341A_
-	add  a
-	ld   h, $00
-	ld   l, a
-	ld   de, _DATA_382D_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
+    cp   $FF
+    jr   z, _LABEL_341A_
+    add  a
+    ld   h, $00
+    ld   l, a
+    ld   de, _DATA_382D_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
 _LABEL_341A_:
-	ld   a, e
-	ld   [_RAM_C3D3_], a
-	ld   a, d
-	and  $07
-	ld   [_RAM_C3D4_], a
-	ld   a, $FF
-	ldh  [rAUDVOL], a
-	ld   h, $00
-	ld   l, b
-	add  hl, hl
-	ld   de, _DATA_33C9_
-	add  hl, de
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	ldi  a, [hl]
-	cp   $02
-	jp   z, _LABEL_349C_
-	jr   c, _LABEL_3443_
-	cp   $04
-	jp   z, _LABEL_3556_
-	jp   _LABEL_34F3_
+    ld   a, e
+    ld   [_RAM_C3D3_], a
+    ld   a, d
+    and  $07
+    ld   [_RAM_C3D4_], a
+    ld   a, $FF
+    ldh  [rAUDVOL], a
+    ld   h, $00
+    ld   l, b
+    add  hl, hl
+    ld   de, _DATA_33C9_
+    add  hl, de
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    ldi  a, [hl]
+    cp   $02
+    jp   z, _LABEL_349C_
+    jr   c, _LABEL_3443_
+    cp   $04
+    jp   z, _LABEL_3556_
+    jp   _LABEL_34F3_
 
 _LABEL_3443_:
-	ld   a, [_RAM_C3D5_]
-	ld   [_RAM_C3BB_], a
-	xor  a
-	ld   [_RAM_C3B2_], a
-	ld   a, [_RAM_C3D6_]
-	or   a
-	ret  z
-	ldi  a, [hl]
-	ldh  [rAUD1LEN], a
-	ldi  a, [hl]
-	ldh  [rAUD1ENV], a
-	ld   c, [hl]
-	inc  hl
-	ld   b, [hl]
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3B5_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3B6_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3B7_], a
-	ld   [_RAM_C3B8_], a
-	ld   a, c
-	ld   [_RAM_C3B3_], a
-	ld   a, b
-	ld   [_RAM_C3B4_], a
-	xor  a
-	ldh  [rAUD1SWEEP], a
-	ld   a, [_RAM_C3D3_]
-	ldh  [rAUD1LOW], a
-	ld   [_RAM_C3B9_], a
-	ld   a, [_RAM_C3D2_]
-	ld   c, a
-	ldh  a, [rAUDTERM]
-	and  $EE
-	or   c
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	or   $81
-	ldh  [rAUDENA], a
-	ld   a, [_RAM_C3D4_]
-	ld   [_RAM_C3BA_], a
-	or   $80
-	ldh  [rAUD1HIGH], a
-	ret
+    ld   a, [_RAM_C3D5_]
+    ld   [_RAM_C3BB_], a
+    xor  a
+    ld   [_RAM_C3B2_], a
+    ld   a, [_RAM_C3D6_]
+    or   a
+    ret  z
+    ldi  a, [hl]
+    ldh  [rAUD1LEN], a
+    ldi  a, [hl]
+    ldh  [rAUD1ENV], a
+    ld   c, [hl]
+    inc  hl
+    ld   b, [hl]
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3B5_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3B6_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3B7_], a
+    ld   [_RAM_C3B8_], a
+    ld   a, c
+    ld   [_RAM_C3B3_], a
+    ld   a, b
+    ld   [_RAM_C3B4_], a
+    xor  a
+    ldh  [rAUD1SWEEP], a
+    ld   a, [_RAM_C3D3_]
+    ldh  [rAUD1LOW], a
+    ld   [_RAM_C3B9_], a
+    ld   a, [_RAM_C3D2_]
+    ld   c, a
+    ldh  a, [rAUDTERM]
+    and  $EE
+    or   c
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    or   $81
+    ldh  [rAUDENA], a
+    ld   a, [_RAM_C3D4_]
+    ld   [_RAM_C3BA_], a
+    or   $80
+    ldh  [rAUD1HIGH], a
+    ret
 
 _LABEL_349C_:
-	ld   a, [_RAM_C3D5_]
-	ld   [_RAM_C3C5_], a
-	xor  a
-	ld   [_RAM_C3BC_], a
-	ld   a, [_RAM_C3D7_]
-	or   a
-	ret  z
-	ldi  a, [hl]
-	ldh  [rAUD2LEN], a
-	ldi  a, [hl]
-	ldh  [rAUD2ENV], a
-	ld   c, [hl]
-	inc  hl
-	ld   b, [hl]
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3BF_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3C0_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3C1_], a
-	ld   [_RAM_C3C2_], a
-	ld   a, c
-	ld   [_RAM_C3BD_], a
-	ld   a, b
-	ld   [_RAM_C3BE_], a
-	ld   a, [_RAM_C3D3_]
-	ldh  [rAUD2LOW], a
-	ld   [_RAM_C3C3_], a
-	ld   a, [_RAM_C3D2_]
-	add  a
-	ld   c, a
-	ldh  a, [rAUDTERM]
-	and  $DD
-	or   c
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	or   $82
-	ldh  [rAUDENA], a
-	ld   a, [_RAM_C3D4_]
-	ld   [_RAM_C3C4_], a
-	or   $80
-	ldh  [rAUD2HIGH], a
-	ret
+    ld   a, [_RAM_C3D5_]
+    ld   [_RAM_C3C5_], a
+    xor  a
+    ld   [_RAM_C3BC_], a
+    ld   a, [_RAM_C3D7_]
+    or   a
+    ret  z
+    ldi  a, [hl]
+    ldh  [rAUD2LEN], a
+    ldi  a, [hl]
+    ldh  [rAUD2ENV], a
+    ld   c, [hl]
+    inc  hl
+    ld   b, [hl]
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3BF_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3C0_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3C1_], a
+    ld   [_RAM_C3C2_], a
+    ld   a, c
+    ld   [_RAM_C3BD_], a
+    ld   a, b
+    ld   [_RAM_C3BE_], a
+    ld   a, [_RAM_C3D3_]
+    ldh  [rAUD2LOW], a
+    ld   [_RAM_C3C3_], a
+    ld   a, [_RAM_C3D2_]
+    add  a
+    ld   c, a
+    ldh  a, [rAUDTERM]
+    and  $DD
+    or   c
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    or   $82
+    ldh  [rAUDENA], a
+    ld   a, [_RAM_C3D4_]
+    ld   [_RAM_C3C4_], a
+    or   $80
+    ldh  [rAUD2HIGH], a
+    ret
 
 _LABEL_34F3_:
-	ld   a, [_RAM_C3D5_]
-	ld   [_RAM_C3CF_], a
-	ldi  a, [hl]
-	ldh  [rAUD3LEVEL], a
-	ld   c, [hl]
-	inc  hl
-	ld   b, [hl]
-	inc  hl
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	push bc
-	ld   bc, $1000 | LOW(_AUD3WAVERAM)
+    ld   a, [_RAM_C3D5_]
+    ld   [_RAM_C3CF_], a
+    ldi  a, [hl]
+    ldh  [rAUD3LEVEL], a
+    ld   c, [hl]
+    inc  hl
+    ld   b, [hl]
+    inc  hl
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    push bc
+    ld   bc, $1000 | LOW(_AUD3WAVERAM)
 _LABEL_3507_:
-	ldi  a, [hl]
-	ldh  [c], a
-	inc  c
-	dec  b
-	jr   nz, _LABEL_3507_
-	pop  bc
-	xor  a
-	ld   [_RAM_C3C6_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3C9_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3CA_], a
-	ld   a, [bc]
-	inc  bc
-	ld   [_RAM_C3CB_], a
-	ld   [_RAM_C3CC_], a
-	ld   a, c
-	ld   [_RAM_C3C7_], a
-	ld   a, b
-	ld   [_RAM_C3C8_], a
-	ld   a, $80
-	ldh  [rAUD3ENA], a
-	ld   a, [_RAM_C3D3_]
-	ld   [_RAM_C3CD_], a
-	ldh  [rAUD3LOW], a
-	ld   a, [_RAM_C3D2_]
-	add  a
-	add  a
-	ld   c, a
-	ldh  a, [rAUDTERM]
-	and  $BB
-	or   c
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	or   $84
-	ldh  [rAUDENA], a
-	ld   a, [_RAM_C3D4_]
-	ld   [_RAM_C3CE_], a
-	or   $80
-	ldh  [rAUD3HIGH], a
-	ret
+    ldi  a, [hl]
+    ldh  [c], a
+    inc  c
+    dec  b
+    jr   nz, _LABEL_3507_
+    pop  bc
+    xor  a
+    ld   [_RAM_C3C6_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3C9_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3CA_], a
+    ld   a, [bc]
+    inc  bc
+    ld   [_RAM_C3CB_], a
+    ld   [_RAM_C3CC_], a
+    ld   a, c
+    ld   [_RAM_C3C7_], a
+    ld   a, b
+    ld   [_RAM_C3C8_], a
+    ld   a, $80
+    ldh  [rAUD3ENA], a
+    ld   a, [_RAM_C3D3_]
+    ld   [_RAM_C3CD_], a
+    ldh  [rAUD3LOW], a
+    ld   a, [_RAM_C3D2_]
+    add  a
+    add  a
+    ld   c, a
+    ldh  a, [rAUDTERM]
+    and  $BB
+    or   c
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    or   $84
+    ldh  [rAUDENA], a
+    ld   a, [_RAM_C3D4_]
+    ld   [_RAM_C3CE_], a
+    or   $80
+    ldh  [rAUD3HIGH], a
+    ret
 
 _LABEL_3556_:
-	ld   a, [_RAM_C3D5_]
-	ld   [_RAM_C3D1_], a
-	ldi  a, [hl]
-	ldh  [rAUD4ENV], a
-	ldi  a, [hl]
-	ldh  [rAUD4POLY], a
-	ld   a, [_RAM_C3D2_]
-	add  a
-	add  a
-	add  a
-	ld   c, a
-	ldh  a, [rAUDTERM]
-	and  $77
-	or   c
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	or   $88
-	ldh  [rAUDENA], a
-	ld   a, $80
-	ldh  [rAUD4GO], a
-	ld   [_RAM_C3D0_], a
-	ret
+    ld   a, [_RAM_C3D5_]
+    ld   [_RAM_C3D1_], a
+    ldi  a, [hl]
+    ldh  [rAUD4ENV], a
+    ldi  a, [hl]
+    ldh  [rAUD4POLY], a
+    ld   a, [_RAM_C3D2_]
+    add  a
+    add  a
+    add  a
+    ld   c, a
+    ldh  a, [rAUDTERM]
+    and  $77
+    or   c
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    or   $88
+    ldh  [rAUDENA], a
+    ld   a, $80
+    ldh  [rAUD4GO], a
+    ld   [_RAM_C3D0_], a
+    ret
 
 _LABEL_357E_:
-	ld   a, [_RAM_C3B2_]
-	inc  a
-	jp   z, _LABEL_3626_
-	ld   a, [_RAM_C3BB_]
-	dec  a
-	ld   [_RAM_C3BB_], a
-	jp   z, _LABEL_3615_
-	ld   a, [_RAM_C3D6_]
-	or   a
-	jr   nz, _LABEL_35A4_
-	ldh  a, [rAUDTERM]
-	and  $EE
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $FE
-	ldh  [rAUDENA], a
-	jp   _LABEL_3626_
+    ld   a, [_RAM_C3B2_]
+    inc  a
+    jp   z, _LABEL_3626_
+    ld   a, [_RAM_C3BB_]
+    dec  a
+    ld   [_RAM_C3BB_], a
+    jp   z, _LABEL_3615_
+    ld   a, [_RAM_C3D6_]
+    or   a
+    jr   nz, _LABEL_35A4_
+    ldh  a, [rAUDTERM]
+    and  $EE
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $FE
+    ldh  [rAUDENA], a
+    jp   _LABEL_3626_
 
 _LABEL_35A4_:
-	ld   a, [_RAM_C3B8_]
-	dec  a
-	jr   z, _LABEL_35AF_
-	ld   [_RAM_C3B8_], a
-	jr   _LABEL_3626_
+    ld   a, [_RAM_C3B8_]
+    dec  a
+    jr   z, _LABEL_35AF_
+    ld   [_RAM_C3B8_], a
+    jr   _LABEL_3626_
 
 _LABEL_35AF_:
-	ld   a, [_RAM_C3B7_]
-	ld   [_RAM_C3B8_], a
-	ld   a, [_RAM_C3B5_]
-	ld   c, a
-	bit  7, a
-	jr   z, _LABEL_35D2_
-	ld   a, [_RAM_C3B9_]
-	add  c
-	ld   [_RAM_C3B9_], a
-	ldh  [rAUD1LOW], a
-	ld   a, [_RAM_C3BA_]
-	sbc  $FF
-	ld   [_RAM_C3BA_], a
-	ldh  [rAUD1HIGH], a
-	jr   _LABEL_35E5_
+    ld   a, [_RAM_C3B7_]
+    ld   [_RAM_C3B8_], a
+    ld   a, [_RAM_C3B5_]
+    ld   c, a
+    bit  7, a
+    jr   z, _LABEL_35D2_
+    ld   a, [_RAM_C3B9_]
+    add  c
+    ld   [_RAM_C3B9_], a
+    ldh  [rAUD1LOW], a
+    ld   a, [_RAM_C3BA_]
+    sbc  $FF
+    ld   [_RAM_C3BA_], a
+    ldh  [rAUD1HIGH], a
+    jr   _LABEL_35E5_
 
 _LABEL_35D2_:
-	ld   a, [_RAM_C3B9_]
-	add  c
-	ld   [_RAM_C3B9_], a
-	ldh  [rAUD1LOW], a
-	ld   a, [_RAM_C3BA_]
-	adc  $00
-	ld   [_RAM_C3BA_], a
-	ldh  [rAUD1HIGH], a
+    ld   a, [_RAM_C3B9_]
+    add  c
+    ld   [_RAM_C3B9_], a
+    ldh  [rAUD1LOW], a
+    ld   a, [_RAM_C3BA_]
+    adc  $00
+    ld   [_RAM_C3BA_], a
+    ldh  [rAUD1HIGH], a
 _LABEL_35E5_:
-	ld   a, [_RAM_C3B6_]
-	dec  a
-	jr   z, _LABEL_35F0_
-	ld   [_RAM_C3B6_], a
-	jr   _LABEL_3626_
+    ld   a, [_RAM_C3B6_]
+    dec  a
+    jr   z, _LABEL_35F0_
+    ld   [_RAM_C3B6_], a
+    jr   _LABEL_3626_
 
 _LABEL_35F0_:
-	ld   a, [_RAM_C3B3_]
-	ld   l, a
-	ld   a, [_RAM_C3B4_]
-	ld   h, a
-	ldi  a, [hl]
-	cp   $63
-	jr   z, _LABEL_3615_
-	ld   [_RAM_C3B5_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3B6_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3B7_], a
-	ld   [_RAM_C3B8_], a
-	ld   a, l
-	ld   [_RAM_C3B3_], a
-	ld   a, h
-	ld   [_RAM_C3B4_], a
-	jr   _LABEL_3626_
+    ld   a, [_RAM_C3B3_]
+    ld   l, a
+    ld   a, [_RAM_C3B4_]
+    ld   h, a
+    ldi  a, [hl]
+    cp   $63
+    jr   z, _LABEL_3615_
+    ld   [_RAM_C3B5_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3B6_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3B7_], a
+    ld   [_RAM_C3B8_], a
+    ld   a, l
+    ld   [_RAM_C3B3_], a
+    ld   a, h
+    ld   [_RAM_C3B4_], a
+    jr   _LABEL_3626_
 
 _LABEL_3615_:
-	ldh  a, [rAUDTERM]
-	and  $EE
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $FE
-	ldh  [rAUDENA], a
-	ld   a, $FF
-	ld   [_RAM_C3B2_], a
+    ldh  a, [rAUDTERM]
+    and  $EE
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $FE
+    ldh  [rAUDENA], a
+    ld   a, $FF
+    ld   [_RAM_C3B2_], a
 _LABEL_3626_:
-	ld   a, [_RAM_C3BC_]
-	inc  a
-	jp   z, _LABEL_36C2_
-	ld   a, [_RAM_C3C5_]
-	dec  a
-	ld   [_RAM_C3C5_], a
-	jp   z, _LABEL_36B1_
-	ld   a, [_RAM_C3D7_]
-	or   a
-	jr   nz, _LABEL_3640_
-	jp   _LABEL_36C2_
+    ld   a, [_RAM_C3BC_]
+    inc  a
+    jp   z, _LABEL_36C2_
+    ld   a, [_RAM_C3C5_]
+    dec  a
+    ld   [_RAM_C3C5_], a
+    jp   z, _LABEL_36B1_
+    ld   a, [_RAM_C3D7_]
+    or   a
+    jr   nz, _LABEL_3640_
+    jp   _LABEL_36C2_
 
 _LABEL_3640_:
-	ld   a, [_RAM_C3C2_]
-	dec  a
-	jr   z, _LABEL_364B_
-	ld   [_RAM_C3C2_], a
-	jr   _LABEL_36C2_
+    ld   a, [_RAM_C3C2_]
+    dec  a
+    jr   z, _LABEL_364B_
+    ld   [_RAM_C3C2_], a
+    jr   _LABEL_36C2_
 
 _LABEL_364B_:
-	ld   a, [_RAM_C3C1_]
-	ld   [_RAM_C3C2_], a
-	ld   a, [_RAM_C3BF_]
-	ld   c, a
-	bit  7, a
-	jr   z, _LABEL_366E_
-	ld   a, [_RAM_C3C3_]
-	add  c
-	ld   [_RAM_C3C3_], a
-	ldh  [rAUD2LOW], a
-	ld   a, [_RAM_C3C4_]
-	sbc  $FF
-	ld   [_RAM_C3C4_], a
-	ldh  [rAUD2HIGH], a
-	jr   _LABEL_3681_
+    ld   a, [_RAM_C3C1_]
+    ld   [_RAM_C3C2_], a
+    ld   a, [_RAM_C3BF_]
+    ld   c, a
+    bit  7, a
+    jr   z, _LABEL_366E_
+    ld   a, [_RAM_C3C3_]
+    add  c
+    ld   [_RAM_C3C3_], a
+    ldh  [rAUD2LOW], a
+    ld   a, [_RAM_C3C4_]
+    sbc  $FF
+    ld   [_RAM_C3C4_], a
+    ldh  [rAUD2HIGH], a
+    jr   _LABEL_3681_
 
 _LABEL_366E_:
-	ld   a, [_RAM_C3C3_]
-	add  c
-	ld   [_RAM_C3C3_], a
-	ldh  [rAUD2LOW], a
-	ld   a, [_RAM_C3C4_]
-	adc  $00
-	ld   [_RAM_C3C4_], a
-	ldh  [rAUD2HIGH], a
+    ld   a, [_RAM_C3C3_]
+    add  c
+    ld   [_RAM_C3C3_], a
+    ldh  [rAUD2LOW], a
+    ld   a, [_RAM_C3C4_]
+    adc  $00
+    ld   [_RAM_C3C4_], a
+    ldh  [rAUD2HIGH], a
 _LABEL_3681_:
-	ld   a, [_RAM_C3C0_]
-	dec  a
-	jr   z, _LABEL_368C_
-	ld   [_RAM_C3C0_], a
-	jr   _LABEL_36C2_
+    ld   a, [_RAM_C3C0_]
+    dec  a
+    jr   z, _LABEL_368C_
+    ld   [_RAM_C3C0_], a
+    jr   _LABEL_36C2_
 
 _LABEL_368C_:
-	ld   a, [_RAM_C3BD_]
-	ld   l, a
-	ld   a, [_RAM_C3BE_]
-	ld   h, a
-	ldi  a, [hl]
-	cp   $63
-	jr   z, _LABEL_36B1_
-	ld   [_RAM_C3BF_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3C0_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3C1_], a
-	ld   [_RAM_C3C2_], a
-	ld   a, l
-	ld   [_RAM_C3BD_], a
-	ld   a, h
-	ld   [_RAM_C3BE_], a
-	jr   _LABEL_36C2_
+    ld   a, [_RAM_C3BD_]
+    ld   l, a
+    ld   a, [_RAM_C3BE_]
+    ld   h, a
+    ldi  a, [hl]
+    cp   $63
+    jr   z, _LABEL_36B1_
+    ld   [_RAM_C3BF_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3C0_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3C1_], a
+    ld   [_RAM_C3C2_], a
+    ld   a, l
+    ld   [_RAM_C3BD_], a
+    ld   a, h
+    ld   [_RAM_C3BE_], a
+    jr   _LABEL_36C2_
 
 _LABEL_36B1_:
-	ldh  a, [rAUDTERM]
-	and  $DD
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $FD
-	ldh  [rAUDENA], a
-	ld   a, $FF
-	ld   [_RAM_C3BC_], a
+    ldh  a, [rAUDTERM]
+    and  $DD
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $FD
+    ldh  [rAUDENA], a
+    ld   a, $FF
+    ld   [_RAM_C3BC_], a
 _LABEL_36C2_:
-	ld   a, [_RAM_C3CC_]
-	dec  a
-	jr   z, _LABEL_36CE_
-	ld   [_RAM_C3CC_], a
-	jp   _LABEL_374E_
+    ld   a, [_RAM_C3CC_]
+    dec  a
+    jr   z, _LABEL_36CE_
+    ld   [_RAM_C3CC_], a
+    jp   _LABEL_374E_
 
 _LABEL_36CE_:
-	ld   a, [_RAM_C3CF_]
-	dec  a
-	ld   [_RAM_C3CF_], a
-	jr   z, _LABEL_373D_
-	ld   a, [_RAM_C3CB_]
-	ld   [_RAM_C3CC_], a
-	ld   a, [_RAM_C3C9_]
-	ld   c, a
-	bit  7, a
-	jr   z, _LABEL_36FA_
-	ld   a, [_RAM_C3CD_]
-	add  c
-	ld   [_RAM_C3CD_], a
-	ldh  [rAUD3LOW], a
-	ld   a, [_RAM_C3CE_]
-	sbc  $FF
-	ld   [_RAM_C3CE_], a
-	ldh  [rAUD3HIGH], a
-	jr   _LABEL_370D_
+    ld   a, [_RAM_C3CF_]
+    dec  a
+    ld   [_RAM_C3CF_], a
+    jr   z, _LABEL_373D_
+    ld   a, [_RAM_C3CB_]
+    ld   [_RAM_C3CC_], a
+    ld   a, [_RAM_C3C9_]
+    ld   c, a
+    bit  7, a
+    jr   z, _LABEL_36FA_
+    ld   a, [_RAM_C3CD_]
+    add  c
+    ld   [_RAM_C3CD_], a
+    ldh  [rAUD3LOW], a
+    ld   a, [_RAM_C3CE_]
+    sbc  $FF
+    ld   [_RAM_C3CE_], a
+    ldh  [rAUD3HIGH], a
+    jr   _LABEL_370D_
 
 _LABEL_36FA_:
-	ld   a, [_RAM_C3CD_]
-	add  c
-	ld   [_RAM_C3CD_], a
-	ldh  [rAUD3LOW], a
-	ld   a, [_RAM_C3CE_]
-	adc  $00
-	ld   [_RAM_C3CE_], a
-	ldh  [rAUD3HIGH], a
+    ld   a, [_RAM_C3CD_]
+    add  c
+    ld   [_RAM_C3CD_], a
+    ldh  [rAUD3LOW], a
+    ld   a, [_RAM_C3CE_]
+    adc  $00
+    ld   [_RAM_C3CE_], a
+    ldh  [rAUD3HIGH], a
 _LABEL_370D_:
-	ld   a, [_RAM_C3CA_]
-	dec  a
-	jr   z, _LABEL_3718_
-	ld   [_RAM_C3CA_], a
-	jr   _LABEL_374E_
+    ld   a, [_RAM_C3CA_]
+    dec  a
+    jr   z, _LABEL_3718_
+    ld   [_RAM_C3CA_], a
+    jr   _LABEL_374E_
 
 _LABEL_3718_:
-	ld   a, [_RAM_C3C7_]
-	ld   l, a
-	ld   a, [_RAM_C3C8_]
-	ld   h, a
-	ldi  a, [hl]
-	cp   $63
-	jr   z, _LABEL_373D_
-	ld   [_RAM_C3C9_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3CA_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3CB_], a
-	ld   [_RAM_C3CC_], a
-	ld   a, l
-	ld   [_RAM_C3C7_], a
-	ld   a, h
-	ld   [_RAM_C3C8_], a
-	jr   _LABEL_374E_
+    ld   a, [_RAM_C3C7_]
+    ld   l, a
+    ld   a, [_RAM_C3C8_]
+    ld   h, a
+    ldi  a, [hl]
+    cp   $63
+    jr   z, _LABEL_373D_
+    ld   [_RAM_C3C9_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3CA_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3CB_], a
+    ld   [_RAM_C3CC_], a
+    ld   a, l
+    ld   [_RAM_C3C7_], a
+    ld   a, h
+    ld   [_RAM_C3C8_], a
+    jr   _LABEL_374E_
 
 _LABEL_373D_:
-	ldh  a, [rAUDTERM]
-	and  $BB
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $FB
-	ldh  [rAUDENA], a
-	ld   a, $FF
-	ld   [_RAM_C3C6_], a
+    ldh  a, [rAUDTERM]
+    and  $BB
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $FB
+    ldh  [rAUDENA], a
+    ld   a, $FF
+    ld   [_RAM_C3C6_], a
 _LABEL_374E_:
-	ld   a, [_RAM_C3D0_]
-	inc  a
-	ret  z
-	ld   a, [_RAM_C3D1_]
-	dec  a
-	ld   [_RAM_C3D1_], a
-	ret  nz
-	dec  a
-	ld   [_RAM_C3D0_], a
-	ldh  a, [rAUDTERM]
-	and  $77
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $F7
-	ldh  [rAUDENA], a
-	ret
+    ld   a, [_RAM_C3D0_]
+    inc  a
+    ret  z
+    ld   a, [_RAM_C3D1_]
+    dec  a
+    ld   [_RAM_C3D1_], a
+    ret  nz
+    dec  a
+    ld   [_RAM_C3D0_], a
+    ldh  a, [rAUDTERM]
+    and  $77
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $F7
+    ldh  [rAUDENA], a
+    ret
 
 _LABEL_376C_:
-	ld   [_RAM_C3DE_], a
-	push af
-	call audio__todo__380D
-	xor  a
-	ld   [_RAM_C3DC_], a
-	ld   a, $03
-	ld   [_RAM_C3DD_], a
-	pop  af
-	add  a
-	add  a
-	ld   e, a
-	ld   d, $00
-	ld   hl, _DATA_388D_
-	add  hl, de
-	ldi  a, [hl]
-	ld   [_RAM_C3DA_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3DB_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3D8_], a
-	ldi  a, [hl]
-	ld   [_RAM_C3D9_], a
-	ld   a, $01
-	ld   [_RAM_C3DF_], a
-	ret
+    ld   [_RAM_C3DE_], a
+    push af
+    call audio__todo__380D
+    xor  a
+    ld   [_RAM_C3DC_], a
+    ld   a, $03
+    ld   [_RAM_C3DD_], a
+    pop  af
+    add  a
+    add  a
+    ld   e, a
+    ld   d, $00
+    ld   hl, _DATA_388D_
+    add  hl, de
+    ldi  a, [hl]
+    ld   [_RAM_C3DA_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3DB_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3D8_], a
+    ldi  a, [hl]
+    ld   [_RAM_C3D9_], a
+    ld   a, $01
+    ld   [_RAM_C3DF_], a
+    ret
 
 _LABEL_379C_:
-	ld   a, [_RAM_C3B2_]
-	inc  a
-	jr   nz, _LABEL_37D4_
-	ld   a, [_RAM_C3D8_]
-	ld   l, a
-	ld   a, [_RAM_C3D9_]
-	ld   h, a
+    ld   a, [_RAM_C3B2_]
+    inc  a
+    jr   nz, _LABEL_37D4_
+    ld   a, [_RAM_C3D8_]
+    ld   l, a
+    ld   a, [_RAM_C3D9_]
+    ld   h, a
 _LABEL_37AA_:
-	ldi  a, [hl]
-	cp   $FF
-	jp   z, audio__todo__380D
-	cp   $F0
-	jr   c, _LABEL_37B8_
-	and  $0F
-	jr   _LABEL_37AA_
+    ldi  a, [hl]
+    cp   $FF
+    jp   z, audio__todo__380D
+    cp   $F0
+    jr   c, _LABEL_37B8_
+    and  $0F
+    jr   _LABEL_37AA_
 
 _LABEL_37B8_:
-	ld   [_RAM_C3D6_], a
-	sub  $30
-	ld   c, a
-	ldi  a, [hl]
-	ld   [_RAM_C3D5_], a
-	ld   a, l
-	ld   [_RAM_C3D8_], a
-	ld   a, h
-	ld   [_RAM_C3D9_], a
-	ld   a, [_RAM_C3DC_]
-	ld   b, a
-	ld   a, c
-	ld   c, $11
-	call _LABEL_33FC_
+    ld   [_RAM_C3D6_], a
+    sub  $30
+    ld   c, a
+    ldi  a, [hl]
+    ld   [_RAM_C3D5_], a
+    ld   a, l
+    ld   [_RAM_C3D8_], a
+    ld   a, h
+    ld   [_RAM_C3D9_], a
+    ld   a, [_RAM_C3DC_]
+    ld   b, a
+    ld   a, c
+    ld   c, $11
+    call _LABEL_33FC_
 _LABEL_37D4_:
-	ld   a, [_RAM_C3BC_]
-	inc  a
-	jr   nz, _LABEL_380C_
-	ld   a, [_RAM_C3DA_]
-	ld   l, a
-	ld   a, [_RAM_C3DB_]
-	ld   h, a
+    ld   a, [_RAM_C3BC_]
+    inc  a
+    jr   nz, _LABEL_380C_
+    ld   a, [_RAM_C3DA_]
+    ld   l, a
+    ld   a, [_RAM_C3DB_]
+    ld   h, a
 _LABEL_37E2_:
-	ldi  a, [hl]
-	cp   $FF
-	jp   z, audio__todo__380D
-	cp   $F0
-	jr   c, _LABEL_37F0_
-	and  $0F
-	jr   _LABEL_37E2_
+    ldi  a, [hl]
+    cp   $FF
+    jp   z, audio__todo__380D
+    cp   $F0
+    jr   c, _LABEL_37F0_
+    and  $0F
+    jr   _LABEL_37E2_
 
 _LABEL_37F0_:
-	ld   [_RAM_C3D7_], a
-	sub  $30
-	ld   c, a
-	ldi  a, [hl]
-	ld   [_RAM_C3D5_], a
-	ld   a, l
-	ld   [_RAM_C3DA_], a
-	ld   a, h
-	ld   [_RAM_C3DB_], a
-	ld   a, [_RAM_C3DD_]
-	ld   b, a
-	ld   a, c
-	ld   c, $11
-	call _LABEL_33FC_
+    ld   [_RAM_C3D7_], a
+    sub  $30
+    ld   c, a
+    ldi  a, [hl]
+    ld   [_RAM_C3D5_], a
+    ld   a, l
+    ld   [_RAM_C3DA_], a
+    ld   a, h
+    ld   [_RAM_C3DB_], a
+    ld   a, [_RAM_C3DD_]
+    ld   b, a
+    ld   a, c
+    ld   c, $11
+    call _LABEL_33FC_
 _LABEL_380C_:
-	ret
+    ret
 
 audio__todo__380D:
-	ld   a, $FF
-	ld   [_RAM_C3DE_], a
-	ldh  a, [rAUDTERM]
-	xor  a
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $FE
-	ldh  [rAUDENA], a
-	ldh  a, [rAUDTERM]
-	xor  a
-	ldh  [rAUDTERM], a
-	ldh  a, [rAUDENA]
-	and  $FD
-	ldh  [rAUDENA], a
-	xor  a
-	ld   [_RAM_C3DF_], a
-	ret
+    ld   a, $FF
+    ld   [_RAM_C3DE_], a
+    ldh  a, [rAUDTERM]
+    xor  a
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $FE
+    ldh  [rAUDENA], a
+    ldh  a, [rAUDTERM]
+    xor  a
+    ldh  [rAUDTERM], a
+    ldh  a, [rAUDENA]
+    and  $FD
+    ldh  [rAUDENA], a
+    xor  a
+    ld   [_RAM_C3DF_], a
+    ret
 
 ; Data from 382D to 388C (96 bytes)
 _DATA_382D_:
@@ -9498,84 +9498,84 @@ db $50, $01, $BC, $63, $00, $40, $01, $4F, $62, $00, $50, $01, $24, $65, $4C, $5
 db $05, $14, $66, $00, $40, $01, $0C, $74, $00, $40, $01
 
 _LABEL_3918_:
-	push af
-	push af
-	call gfx__turn_off_screen_2827
-	pop  af
-	ld   e, a
-	add  a
-	add  a
-	add  e
-	ld   d, $00
-	ld   e, a
-	ld   hl, $38CD
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	inc  hl
-	ld   c, [hl]
-	inc  hl
-	ld   b, [hl]
-	inc  hl
-	ld   a, [hl]
+    push af
+    push af
+    call gfx__turn_off_screen_2827
+    pop  af
+    ld   e, a
+    add  a
+    add  a
+    add  e
+    ld   d, $00
+    ld   e, a
+    ld   hl, $38CD
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    inc  hl
+    ld   c, [hl]
+    inc  hl
+    ld   b, [hl]
+    inc  hl
+    ld   a, [hl]
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	pop  af
-	push de
-	ld   hl, _TILEDATA9000
-	cp   $07
-	jr   nz, _LABEL_3959_
+    pop  af
+    push de
+    ld   hl, _TILEDATA9000
+    cp   $07
+    jr   nz, _LABEL_3959_
 
-	ld   a, $3B ; Copy 59 tiles
-	ld   bc, gfx__tile_patterns_59_font__5FA0
-	ld   hl, _TILEDATA9000
-	call gfx__copy_tile_patterns__1437
+    ld   a, $3B ; Copy 59 tiles
+    ld   bc, gfx__tile_patterns_59_font__5FA0
+    ld   hl, _TILEDATA9000
+    call gfx__copy_tile_patterns__1437
 
-	ld   a, 153 ; $99 ; Copy 153 tiles
-	ld   de, _DATA_6350_
-	ld   bc, _DATA_6358_
-	ld   hl, $93B0
-	call gfx__interleave_copy_tile_patterns__144C
-	jr   _LABEL_395D_
+    ld   a, 153 ; $99 ; Copy 153 tiles
+    ld   de, _DATA_6350_
+    ld   bc, _DATA_6358_
+    ld   hl, $93B0
+    call gfx__interleave_copy_tile_patterns__144C
+    jr   _LABEL_395D_
 
 _LABEL_3959_:
-	xor  a ; Copy 256 tiles
-	call gfx__copy_tile_patterns__1437
+    xor  a ; Copy 256 tiles
+    call gfx__copy_tile_patterns__1437
 _LABEL_395D_:
-	ld   a, $02
+    ld   a, $02
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-    	ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
     ENDC
-	pop  de
-	call gfx__copy_tilemap_screen_from_DE__3969
-	jp   gfx__turn_on_screen_bg_obj__2540
+    pop  de
+    call gfx__copy_tilemap_screen_from_DE__3969
+    jp   gfx__turn_on_screen_bg_obj__2540
 
 
 gfx__copy_tilemap_screen_from_DE__3969:
-	ld   hl, _TILEMAP0
-	ld   b, _TILEMAP_SCREEN_HEIGHT ; $12
+    ld   hl, _TILEMAP0
+    ld   b, _TILEMAP_SCREEN_HEIGHT ; $12
 gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E:
-	push bc
-	ld   b, _TILEMAP_SCREEN_WIDTH ; $14
+    push bc
+    ld   b, _TILEMAP_SCREEN_WIDTH ; $14
     .copy_tilemap_row_loop__3971:
-    	ld   a, [de]
-    	ldi  [hl], a
-    	inc  de
-    	dec  b
-    	jr   nz, .copy_tilemap_row_loop__3971
+        ld   a, [de]
+        ldi  [hl], a
+        inc  de
+        dec  b
+        jr   nz, .copy_tilemap_row_loop__3971
     ; Skip to start of next tilemap Row
-	ld   c, (_TILEMAP_WIDTH - _TILEMAP_SCREEN_WIDTH) ; $0C (32 - 20)
-	add  hl, bc
-	pop  bc
-	dec  b
-	jr   nz, gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E
-	ret
+    ld   c, (_TILEMAP_WIDTH - _TILEMAP_SCREEN_WIDTH) ; $0C (32 - 20)
+    add  hl, bc
+    pop  bc
+    dec  b
+    jr   nz, gfx__copy_tilemap_row_from_DE_at_HL_sz_B__396E
+    ret
 
 
 ; Data from 397F to 398D (15 bytes)
@@ -10284,237 +10284,237 @@ db $FD, $07, $11, $1B, $25, $2F, $47, $5C, $71, $86, $9B, $B0, $C5, $D9, $ED, $0
 db $15, $29, $3D, $51, $65, $79, $8E, $A3, $B7, $CB, $DF, $F1, $04, $18
 
 _LABEL_7D28_:
-	xor  a
-	ld   [_RAM_C306_], a
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
+    xor  a
+    ld   [_RAM_C306_], a
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
 _LABEL_7D34_:
-	ld   hl, $C11B
-	push de
-	ld   a, [de]
-	cp   $2A
-	jr   nz, _LABEL_7DA2_
-	inc  de
-	ld   a, [de]
-	cp   $2A
-	jr   nz, _LABEL_7D49_
-	pop  de
-	ld   [_RAM_C307_], a
-	xor  a
-	ret
+    ld   hl, $C11B
+    push de
+    ld   a, [de]
+    cp   $2A
+    jr   nz, _LABEL_7DA2_
+    inc  de
+    ld   a, [de]
+    cp   $2A
+    jr   nz, _LABEL_7D49_
+    pop  de
+    ld   [_RAM_C307_], a
+    xor  a
+    ret
 
 _LABEL_7D49_:
-	push de
-	ld   hl, _RAM_C308_
+    push de
+    ld   hl, _RAM_C308_
 _LABEL_7D4D_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   z, _LABEL_7D57_
-	cp   $41
-	jr   c, _LABEL_7D5A_
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   z, _LABEL_7D57_
+    cp   $41
+    jr   c, _LABEL_7D5A_
 _LABEL_7D57_:
-	ldi  [hl], a
-	jr   _LABEL_7D4D_
+    ldi  [hl], a
+    jr   _LABEL_7D4D_
 
 _LABEL_7D5A_:
-	xor  a
-	ld   [hl], a
+    xor  a
+    ld   [hl], a
 _LABEL_7D5C_:
-	ld   a, [de]
-	inc  de
-	cp   $41
-	jr   c, _LABEL_7D6B_
-	cp   $5B
-	jr   nc, _LABEL_7D6B_
-	sub  $41
-	ld   [_RAM_C25F_], a
+    ld   a, [de]
+    inc  de
+    cp   $41
+    jr   c, _LABEL_7D6B_
+    cp   $5B
+    jr   nc, _LABEL_7D6B_
+    sub  $41
+    ld   [_RAM_C25F_], a
 _LABEL_7D6B_:
-	or   a
-	jr   nz, _LABEL_7D5C_
-	ld   hl, _RAM_C31D_
+    or   a
+    jr   nz, _LABEL_7D5C_
+    ld   hl, _RAM_C31D_
 _LABEL_7D71_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_7D71_
-	push de
-	ld   hl, _RAM_C31D_
-	ld   de, _SRAM_6006_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_7D71_
+    push de
+    ld   hl, _RAM_C31D_
+    ld   de, _SRAM_6006_
 _LABEL_7D7E_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_7D7E_
-	pop  de
-	ld   hl, _RAM_C322_
-	ld   a, [_RAM_C25F_]
-	cp   $03
-	jr   nz, _LABEL_7D93_
-	xor  a
-	ldi  [hl], a
-	jr   _LABEL_7D99_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_7D7E_
+    pop  de
+    ld   hl, _RAM_C322_
+    ld   a, [_RAM_C25F_]
+    cp   $03
+    jr   nz, _LABEL_7D93_
+    xor  a
+    ldi  [hl], a
+    jr   _LABEL_7D99_
 
 _LABEL_7D93_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_7D93_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_7D93_
 _LABEL_7D99_:
-	pop  de
-	ld   a, $01
-	ld   [_RAM_C306_], a
-	ld   hl, $C11B
+    pop  de
+    ld   a, $01
+    ld   [_RAM_C306_], a
+    ld   hl, $C11B
 _LABEL_7DA2_:
-	ld   a, [de]
-	cp   $20
-	jr   z, _LABEL_7DAE_
-	cp   $41
-	jr   nc, _LABEL_7DAE_
-	inc  de
-	jr   _LABEL_7DA2_
+    ld   a, [de]
+    cp   $20
+    jr   z, _LABEL_7DAE_
+    cp   $41
+    jr   nc, _LABEL_7DAE_
+    inc  de
+    jr   _LABEL_7DA2_
 
 _LABEL_7DAE_:
-	cp   [hl]
-	jr   nz, _LABEL_7DB9_
-	inc  hl
-	ld   a, [hl]
-	or   a
-	jr   z, _LABEL_7DF9_
-	inc  de
-	jr   _LABEL_7DA2_
+    cp   [hl]
+    jr   nz, _LABEL_7DB9_
+    inc  hl
+    ld   a, [hl]
+    or   a
+    jr   z, _LABEL_7DF9_
+    inc  de
+    jr   _LABEL_7DA2_
 
 _LABEL_7DB9_:
-	pop  de
-	inc  de
-	ld   a, [de]
-	cp   $20
-	jr   z, _LABEL_7DC5_
-	cp   $41
-	jr   c, _LABEL_7DD2_
+    pop  de
+    inc  de
+    ld   a, [de]
+    cp   $20
+    jr   z, _LABEL_7DC5_
+    cp   $41
+    jr   c, _LABEL_7DD2_
 _LABEL_7DC4_:
-	inc  de
+    inc  de
 _LABEL_7DC5_:
-	ld   a, [de]
-	cp   $20
-	jr   nz, _LABEL_7DCE_
-	inc  de
-	jp   _LABEL_7D34_
+    ld   a, [de]
+    cp   $20
+    jr   nz, _LABEL_7DCE_
+    inc  de
+    jp   _LABEL_7D34_
 
 _LABEL_7DCE_:
-	cp   $41
-	jr   nc, _LABEL_7DC4_
+    cp   $41
+    jr   nc, _LABEL_7DC4_
 _LABEL_7DD2_:
-	ld   b, $01
-	ld   a, [_RAM_C306_]
-	or   a
-	jr   z, _LABEL_7DE6_
-	ld   a, [_RAM_C322_]
-	or   a
-	jr   nz, _LABEL_7DE4_
-	ld   b, $02
-	jr   _LABEL_7DE6_
+    ld   b, $01
+    ld   a, [_RAM_C306_]
+    or   a
+    jr   z, _LABEL_7DE6_
+    ld   a, [_RAM_C322_]
+    or   a
+    jr   nz, _LABEL_7DE4_
+    ld   b, $02
+    jr   _LABEL_7DE6_
 
 _LABEL_7DE4_:
-	ld   b, $03
+    ld   b, $03
 _LABEL_7DE6_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   nz, _LABEL_7DE6_
-	dec  b
-	jr   nz, _LABEL_7DE6_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	jp   _LABEL_7D28_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   nz, _LABEL_7DE6_
+    dec  b
+    jr   nz, _LABEL_7DE6_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    jp   _LABEL_7D28_
 
 _LABEL_7DF9_:
-	pop  af
-	ld   a, [_RAM_C306_]
-	or   a
-	jr   z, _LABEL_7E2B_
+    pop  af
+    ld   a, [_RAM_C306_]
+    or   a
+    jr   z, _LABEL_7E2B_
 _LABEL_7E00_:
-	ld   a, [de]
-	cp   $20
-	jr   z, _LABEL_7E09_
-	cp   $41
-	jr   c, _LABEL_7E0C_
+    ld   a, [de]
+    cp   $20
+    jr   z, _LABEL_7E09_
+    cp   $41
+    jr   c, _LABEL_7E0C_
 _LABEL_7E09_:
-	inc  de
-	jr   _LABEL_7E00_
+    inc  de
+    jr   _LABEL_7E00_
 
 _LABEL_7E0C_:
-	call _LABEL_2AEB_
-	ld   a, [de]
-	inc  de
-	call _LABEL_2AB5_
+    call _LABEL_2AEB_
+    ld   a, [de]
+    inc  de
+    call _LABEL_2AB5_
 _LABEL_7E14_:
-	ld   a, [de]
-	cp   $2A
-	jr   z, _LABEL_7E20_
-	cp   $41
-	jr   nc, _LABEL_7E20_
-	inc  de
-	jr   _LABEL_7E14_
+    ld   a, [de]
+    cp   $2A
+    jr   z, _LABEL_7E20_
+    cp   $41
+    jr   nc, _LABEL_7E20_
+    inc  de
+    jr   _LABEL_7E14_
 
 _LABEL_7E20_:
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	ld   a, $01
-	ret
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    ld   a, $01
+    ret
 
 _LABEL_7E2B_:
-	ld   hl, _RAM_C327_
-	ld   a, [_RAM_C24C_]
-	ld   e, a
-	ld   a, [_RAM_C24D_]
-	ld   d, a
+    ld   hl, _RAM_C327_
+    ld   a, [_RAM_C24C_]
+    ld   e, a
+    ld   a, [_RAM_C24D_]
+    ld   d, a
 _LABEL_7E36_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   z, _LABEL_7E44_
-	cp   $2E
-	jr   z, _LABEL_7E44_
-	cp   $41
-	jr   c, _LABEL_7E47_
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   z, _LABEL_7E44_
+    cp   $2E
+    jr   z, _LABEL_7E44_
+    cp   $41
+    jr   c, _LABEL_7E47_
 _LABEL_7E44_:
-	ldi  [hl], a
-	jr   _LABEL_7E36_
+    ldi  [hl], a
+    jr   _LABEL_7E36_
 
 _LABEL_7E47_:
-	xor  a
-	ld   [hl], a
-	dec  de
-	ld   hl, _RAM_C33C_
+    xor  a
+    ld   [hl], a
+    dec  de
+    ld   hl, _RAM_C33C_
 _LABEL_7E4D_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   z, _LABEL_7E56_
-	ldi  [hl], a
-	jr   _LABEL_7E4D_
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   z, _LABEL_7E56_
+    ldi  [hl], a
+    jr   _LABEL_7E4D_
 
 _LABEL_7E56_:
-	xor  a
-	ld   [hl], a
-	call _LABEL_2AEB_
-	call _LABEL_2AB5_
-	ld   a, e
-	ld   [_RAM_C24C_], a
-	ld   a, d
-	ld   [_RAM_C24D_], a
-	ld   a, $01
-	ret
+    xor  a
+    ld   [hl], a
+    call _LABEL_2AEB_
+    call _LABEL_2AB5_
+    ld   a, e
+    ld   [_RAM_C24C_], a
+    ld   a, d
+    ld   [_RAM_C24D_], a
+    ld   a, $01
+    ret
 
 ; Data from 7E69 to 7FFF (407 bytes)
 db $00, $00, $B8, $01, $00, $5E, $5F, $8B, $E5, $5D, $CA, $12, $00, $80, $3E, $00
@@ -11006,819 +11006,819 @@ db $65, $73, $00, $41, $6C, $65, $6D, $61, $6E, $00, $46, $72, $61, $6E, $63, $6
 db $73, $00, $45, $73, $70, $61, $6E, $6F, $6C, $00, $49, $74, $61, $6C, $69, $61
 db $6E
 
-	ld   l, a
-	nop
-	jr   nz, _LABEL_9A5C_
-	ld   b, l
-	ld   l, [hl]
-	ld   h, l
-	ld   [hl], d
-	ld   l, a
-	jr   nz, _LABEL_9A63_
-	rra
-	jr   nz, _LABEL_9A8C_
-	ld   h, l
-	ld   h, d
-	ld   [hl], d
-	ld   h, l
-	ld   [hl], d
-	ld   l, a
-	jr   nz, _LABEL_9A6A_
-	jr   nz, _LABEL_9A70_
-	ld   c, l
-	ld   h, c
-	ld   [hl], d
-	ld   a, d
-	ld   l, a
-	jr   nz, _LABEL_9A77_
-	rra
-	jr   nz, _LABEL_9A7A_
-	ld   b, c
-	ld   h, d
+    ld   l, a
+    nop
+    jr   nz, _LABEL_9A5C_
+    ld   b, l
+    ld   l, [hl]
+    ld   h, l
+    ld   [hl], d
+    ld   l, a
+    jr   nz, _LABEL_9A63_
+    rra
+    jr   nz, _LABEL_9A8C_
+    ld   h, l
+    ld   h, d
+    ld   [hl], d
+    ld   h, l
+    ld   [hl], d
+    ld   l, a
+    jr   nz, _LABEL_9A6A_
+    jr   nz, _LABEL_9A70_
+    ld   c, l
+    ld   h, c
+    ld   [hl], d
+    ld   a, d
+    ld   l, a
+    jr   nz, _LABEL_9A77_
+    rra
+    jr   nz, _LABEL_9A7A_
+    ld   b, c
+    ld   h, d
 _LABEL_9A5C_:
-	ld   [hl], d
-	ld   l, c
-	ld   l, h
-	jr   nz, @ + 34
-	ld   e, $20
+    ld   [hl], d
+    ld   l, c
+    ld   l, h
+    jr   nz, @ + 34
+    ld   e, $20
 _LABEL_9A63_:
-	jr   nz, _LABEL_9AB2_
-	ld   h, c
-	ld   a, c
-	ld   l, a
-	jr   nz, _LABEL_9A8A_
+    jr   nz, _LABEL_9AB2_
+    ld   h, c
+    ld   a, c
+    ld   l, a
+    jr   nz, _LABEL_9A8A_
 _LABEL_9A6A_:
-	jr   nz, _LABEL_9A8B_
-	jr   nz, _LABEL_9A8E_
-	ld   c, d
-	ld   [hl], l
+    jr   nz, _LABEL_9A8B_
+    jr   nz, _LABEL_9A8E_
+    ld   c, d
+    ld   [hl], l
 _LABEL_9A70_:
-	ld   l, [hl]
-	ld   l, c
-	ld   l, a
-	jr   nz, _LABEL_9A95_
-	ld   e, $20
+    ld   l, [hl]
+    ld   l, c
+    ld   l, a
+    jr   nz, _LABEL_9A95_
+    ld   e, $20
 _LABEL_9A77_:
-	jr   nz, _LABEL_9AC3_
-	ld   [hl], l
+    jr   nz, _LABEL_9AC3_
+    ld   [hl], l
 _LABEL_9A7A_:
-	ld   l, h
-	ld   l, c
-	ld   l, a
-	jr   nz, _LABEL_9A9F_
-	rra
-	jr   nz, _LABEL_9AC3_
-	ld   h, a
-	ld   l, a
-	ld   [hl], e
-	ld   [hl], h
-	ld   l, a
-	jr   nz, _LABEL_9AA9_
-	rra
+    ld   l, h
+    ld   l, c
+    ld   l, a
+    jr   nz, _LABEL_9A9F_
+    rra
+    jr   nz, _LABEL_9AC3_
+    ld   h, a
+    ld   l, a
+    ld   [hl], e
+    ld   [hl], h
+    ld   l, a
+    jr   nz, _LABEL_9AA9_
+    rra
 _LABEL_9A8A_:
-	ld   d, e
+    ld   d, e
 _LABEL_9A8B_:
-	ld   h, l
+    ld   h, l
 _LABEL_9A8C_:
-	ld   [hl], b
-	ld   [hl], h
+    ld   [hl], b
+    ld   [hl], h
 _LABEL_9A8E_:
-	daa
-	ld   l, l
-	ld   h, d
-	ld   [hl], d
-	ld   h, l
-	ld   e, $20
+    daa
+    ld   l, l
+    ld   h, d
+    ld   [hl], d
+    ld   h, l
+    ld   e, $20
 _LABEL_9A95_:
-	ld   c, a
-	ld   h, e
-	ld   [hl], h
-	ld   [hl], l
-	ld   h, d
-	ld   [hl], d
-	ld   h, l
-	jr   nz, _LABEL_9ABD_
-	ld   c, [hl]
+    ld   c, a
+    ld   h, e
+    ld   [hl], h
+    ld   [hl], l
+    ld   h, d
+    ld   [hl], d
+    ld   h, l
+    jr   nz, _LABEL_9ABD_
+    ld   c, [hl]
 _LABEL_9A9F_:
-	ld   l, a
-	halt
-	ld   l, c
-	ld   h, l
-	ld   l, l
-	ld   h, d
-	ld   [hl], d
-	ld   h, l
-	ld   e, $44
+    ld   l, a
+    halt
+    ld   l, c
+    ld   h, l
+    ld   l, l
+    ld   h, d
+    ld   [hl], d
+    ld   h, l
+    ld   e, $44
 _LABEL_9AA9_:
-	ld   l, c
-	ld   h, e
-	ld   l, c
-	ld   h, l
-	ld   l, l
-	ld   h, d
-	ld   [hl], d
-	ld   h, l
-	rra
+    ld   l, c
+    ld   h, e
+    ld   l, c
+    ld   h, l
+    ld   l, l
+    ld   h, d
+    ld   [hl], d
+    ld   h, l
+    rra
 _LABEL_9AB2_:
-	ld   b, h
-	ld   c, a
-	ld   c, l
-	ld   c, h
-	ld   d, l
-	ld   c, [hl]
-	ld   c, l
-	ld   b, c
-	ld   d, d
-	ld   c, l
-	ld   c, c
+    ld   b, h
+    ld   c, a
+    ld   c, l
+    ld   c, h
+    ld   d, l
+    ld   c, [hl]
+    ld   c, l
+    ld   b, c
+    ld   d, d
+    ld   c, l
+    ld   c, c
 _LABEL_9ABD_:
-	ld   b, l
-	ld   c, d
-	ld   d, l
-	ld   b, l
-	ld   d, [hl]
-	ld   c, c
+    ld   b, l
+    ld   c, d
+    ld   d, l
+    ld   b, l
+    ld   d, [hl]
+    ld   c, c
 _LABEL_9AC3_:
-	ld   b, l
-	ld   d, e
-	ld   b, c
-	ld   b, d
-	ld   b, h
-	ld   c, a
-	ld   c, l
-	jr   nz, _LABEL_9AEC_
-	ld   b, d
-	dec  a
-	ld   d, b
-	ld   [hl], d
-	ld   l, a
-	ld   a, b
-	jr   nz, _LABEL_9AF4_
-	ld   b, c
-	dec  a
-	ld   d, e
-	ld   h, c
-	ld   l, h
-	ld   l, c
-	ld   h, h
-	ld   h, c
-	jr   nz, _LABEL_9AFE_
-	nop
-	jr   nz, @ + 34
-	ld   d, e
-	ld   h, l
-	ld   l, h
-	ld   h, l
-	ld   h, e
-	ld   [hl], h
-	dec  a
-	ld   b, c
-	ld   l, [hl]
-	ld   [hl], h
-	ld   h, l
+    ld   b, l
+    ld   d, e
+    ld   b, c
+    ld   b, d
+    ld   b, h
+    ld   c, a
+    ld   c, l
+    jr   nz, _LABEL_9AEC_
+    ld   b, d
+    dec  a
+    ld   d, b
+    ld   [hl], d
+    ld   l, a
+    ld   a, b
+    jr   nz, _LABEL_9AF4_
+    ld   b, c
+    dec  a
+    ld   d, e
+    ld   h, c
+    ld   l, h
+    ld   l, c
+    ld   h, h
+    ld   h, c
+    jr   nz, _LABEL_9AFE_
+    nop
+    jr   nz, @ + 34
+    ld   d, e
+    ld   h, l
+    ld   l, h
+    ld   h, l
+    ld   h, e
+    ld   [hl], h
+    dec  a
+    ld   b, c
+    ld   l, [hl]
+    ld   [hl], h
+    ld   h, l
 _LABEL_9AEC_:
-	ld   [hl], d
-	ld   l, c
-	ld   l, a
-	ld   [hl], d
-	jr   nz, _LABEL_9B12_
-	jr   nz, _LABEL_9AF4_
+    ld   [hl], d
+    ld   l, c
+    ld   l, a
+    ld   [hl], d
+    jr   nz, _LABEL_9B12_
+    jr   nz, _LABEL_9AF4_
 _LABEL_9AF4_:
-	ld   c, b
-	ld   h, c
-	ld   h, e
-	ld   h, l
-	ld   [hl], d
-	jr   nz, _LABEL_9B3D_
-	ld   l, a
-	ld   [hl], d
-	ld   [hl], d
+    ld   c, b
+    ld   h, c
+    ld   h, e
+    ld   h, l
+    ld   [hl], d
+    jr   nz, _LABEL_9B3D_
+    ld   l, a
+    ld   [hl], d
+    ld   [hl], d
 _LABEL_9AFE_:
-	ld   h, c
-	ld   [hl], d
-	jr   nz, _LABEL_9B22_
-	ld   b, l
-	ld   h, h
-	ld   l, c
-	ld   [hl], h
-	ld   h, c
-	ld   [hl], d
-	nop
-	ld   d, b
-	ld   d, l
-	ld   c, h
-	ld   d, e
-	ld   b, l
-	jr   nz, _LABEL_9B63_
-	jr   nz, _LABEL_9B62_
+    ld   h, c
+    ld   [hl], d
+    jr   nz, _LABEL_9B22_
+    ld   b, l
+    ld   h, h
+    ld   l, c
+    ld   [hl], h
+    ld   h, c
+    ld   [hl], d
+    nop
+    ld   d, b
+    ld   d, l
+    ld   c, h
+    ld   d, e
+    ld   b, l
+    jr   nz, _LABEL_9B63_
+    jr   nz, _LABEL_9B62_
 _LABEL_9B12_:
-	ld   b, c
-	ld   d, d
-	ld   b, c
-	jr   nz, @ + 69
-	ld   c, a
-	ld   c, [hl]
-	ld   b, [hl]
-	ld   c, c
-	ld   d, d
-	ld   c, l
-	nop
-	ld   c, a
-	ld   d, h
-	ld   d, d
-	ld   b, c
+    ld   b, c
+    ld   d, d
+    ld   b, c
+    jr   nz, @ + 69
+    ld   c, a
+    ld   c, [hl]
+    ld   b, [hl]
+    ld   c, c
+    ld   d, d
+    ld   c, l
+    nop
+    ld   c, a
+    ld   d, h
+    ld   d, d
+    ld   b, c
 _LABEL_9B22_:
-	jr   nz, _LABEL_9B78_
-	ld   b, l
-	ld   b, e
-	ld   c, h
-	ld   b, c
-	jr   nz, _LABEL_9B6B_
-	ld   b, d
-	ld   b, c
-	ld   c, [hl]
-	ld   b, h
-	ld   c, a
-	ld   c, [hl]
-	ld   b, c
-	jr   nz, _LABEL_9B33_
+    jr   nz, _LABEL_9B78_
+    ld   b, l
+    ld   b, e
+    ld   c, h
+    ld   b, c
+    jr   nz, _LABEL_9B6B_
+    ld   b, d
+    ld   b, c
+    ld   c, [hl]
+    ld   b, h
+    ld   c, a
+    ld   c, [hl]
+    ld   b, c
+    jr   nz, _LABEL_9B33_
 _LABEL_9B33_:
-	ldi  a, [hl]
-	jr   nz, _LABEL_9B8C_
-	ld   b, l
-	ld   d, d
-	ld   c, c
-	ld   b, [hl]
-	ld   c, c
-	ld   b, e
-	ld   b, c
+    ldi  a, [hl]
+    jr   nz, _LABEL_9B8C_
+    ld   b, l
+    ld   d, d
+    ld   c, c
+    ld   b, [hl]
+    ld   c, c
+    ld   b, e
+    ld   b, c
 _LABEL_9B3D_:
-	ld   d, d
-	jr   nz, _LABEL_9B60_
-	ld   b, e
-	ld   c, c
-	ld   d, h
-	ld   b, c
-	ld   d, e
-	jr   nz, @ + 44
-	nop
-	jr   nz, _LABEL_9B6A_
-	jr   nz, @ + 71
-	ld   d, e
-	ld   b, e
-	ld   b, c
-	ld   c, d
-	ld   b, l
-	jr   nz, _LABEL_9B73_
-	ld   c, c
-	ld   b, h
-	ld   c, c
-	ld   c, a
-	ld   c, l
-	ld   b, c
-	jr   nz, _LABEL_9B7B_
-	jr   nz, @ + 34
-	jr   nz, _LABEL_9BAE_
-	ld   d, b
+    ld   d, d
+    jr   nz, _LABEL_9B60_
+    ld   b, e
+    ld   c, c
+    ld   d, h
+    ld   b, c
+    ld   d, e
+    jr   nz, @ + 44
+    nop
+    jr   nz, _LABEL_9B6A_
+    jr   nz, @ + 71
+    ld   d, e
+    ld   b, e
+    ld   b, c
+    ld   c, d
+    ld   b, l
+    jr   nz, _LABEL_9B73_
+    ld   c, c
+    ld   b, h
+    ld   c, c
+    ld   c, a
+    ld   c, l
+    ld   b, c
+    jr   nz, _LABEL_9B7B_
+    jr   nz, @ + 34
+    jr   nz, _LABEL_9BAE_
+    ld   d, b
 _LABEL_9B60_:
-	ld   b, e
-	ld   c, c
+    ld   b, e
+    ld   c, c
 _LABEL_9B62_:
-	ld   c, a
+    ld   c, a
 _LABEL_9B63_:
-	ld   c, [hl]
-	ld   b, l
-	ld   d, e
-	jr   nz, _LABEL_9BBA_
-	ld   b, l
-	ld   d, e
+    ld   c, [hl]
+    ld   b, l
+    ld   d, e
+    jr   nz, _LABEL_9BBA_
+    ld   b, l
+    ld   d, e
 _LABEL_9B6A_:
-	ld   b, l
+    ld   b, l
 _LABEL_9B6B_:
-	ld   d, d
-	ld   d, [hl]
-	ld   b, c
-	jr   nz, _LABEL_9B90_
-	jr   nz, _LABEL_9B92_
-	ld   d, h
+    ld   d, d
+    ld   d, [hl]
+    ld   b, c
+    jr   nz, _LABEL_9B90_
+    jr   nz, _LABEL_9B92_
+    ld   d, h
 _LABEL_9B73_:
-	ld   d, d
-	ld   b, c
-	ld   c, [hl]
-	ld   d, e
-	ld   b, [hl]
+    ld   d, d
+    ld   b, c
+    ld   c, [hl]
+    ld   d, e
+    ld   b, [hl]
 _LABEL_9B78_:
-	ld   b, l
-	ld   d, d
-	ld   c, c
+    ld   b, l
+    ld   d, d
+    ld   c, c
 _LABEL_9B7B_:
-	ld   d, d
-	jr   nz, _LABEL_9BBF_
-	ld   c, h
-	jr   nz, @ + 82
-	ld   b, e
-	jr   nz, _LABEL_9BA4_
-	jr   nz, _LABEL_9BA6_
-	ld   d, h
-	ld   b, l
-	ld   c, h
-	ld   b, l
-	ld   b, e
-	ld   b, c
+    ld   d, d
+    jr   nz, _LABEL_9BBF_
+    ld   c, h
+    jr   nz, @ + 82
+    ld   b, e
+    jr   nz, _LABEL_9BA4_
+    jr   nz, _LABEL_9BA6_
+    ld   d, h
+    ld   b, l
+    ld   c, h
+    ld   b, l
+    ld   b, e
+    ld   b, c
 _LABEL_9B8C_:
-	ld   d, d
-	ld   b, a
-	ld   b, c
-	ld   d, d
+    ld   d, d
+    ld   b, a
+    ld   b, c
+    ld   d, d
 _LABEL_9B90_:
-	jr   nz, @ + 67
+    jr   nz, @ + 67
 _LABEL_9B92_:
-	ld   c, h
-	jr   nz, _LABEL_9BE5_
-	ld   b, e
-	jr   nz, _LABEL_9BB8_
-	jr   nz, _LABEL_9BBA_
-	jr   nz, @ + 34
-	ld   c, l
-	ld   b, l
-	ld   c, [hl]
-	ld   d, l
-	jr   nz, _LABEL_9BE5_
-	ld   c, a
-	ld   c, [hl]
+    ld   c, h
+    jr   nz, _LABEL_9BE5_
+    ld   b, e
+    jr   nz, _LABEL_9BB8_
+    jr   nz, _LABEL_9BBA_
+    jr   nz, @ + 34
+    ld   c, l
+    ld   b, l
+    ld   c, [hl]
+    ld   d, l
+    jr   nz, _LABEL_9BE5_
+    ld   c, a
+    ld   c, [hl]
 _LABEL_9BA4_:
-	ld   d, h
-	ld   d, d
+    ld   d, h
+    ld   d, d
 _LABEL_9BA6_:
-	ld   c, a
-	ld   c, h
-	jr   nz, _LABEL_9BCA_
-	jr   nz, _LABEL_9BCC_
-	jr   nz, _LABEL_9BCE_
+    ld   c, a
+    ld   c, h
+    jr   nz, _LABEL_9BCA_
+    jr   nz, _LABEL_9BCC_
+    jr   nz, _LABEL_9BCE_
 _LABEL_9BAE_:
-	jr   nz, _LABEL_9BD0_
-	ld   b, h
-	ld   c, c
-	ld   d, d
-	ld   b, l
-	ld   b, e
-	ld   b, e
-	ld   c, c
-	ld   c, a
+    jr   nz, _LABEL_9BD0_
+    ld   b, h
+    ld   c, c
+    ld   d, d
+    ld   b, l
+    ld   b, e
+    ld   b, e
+    ld   c, c
+    ld   c, a
 _LABEL_9BB8_:
-	ld   c, [hl]
-	ld   b, l
+    ld   c, [hl]
+    ld   b, l
 _LABEL_9BBA_:
-	ld   d, e
-	jr   nz, _LABEL_9BDD_
-	jr   nz, _LABEL_9BDF_
+    ld   d, e
+    jr   nz, _LABEL_9BDD_
+    jr   nz, _LABEL_9BDF_
 _LABEL_9BBF_:
-	jr   nz, _LABEL_9BE1_
-	jr   nz, _LABEL_9BE3_
-	jr   nz, _LABEL_9BE5_
-	jr   nz, _LABEL_9BE7_
-	ld   b, e
-	ld   c, c
-	ld   d, h
+    jr   nz, _LABEL_9BE1_
+    jr   nz, _LABEL_9BE3_
+    jr   nz, _LABEL_9BE5_
+    jr   nz, _LABEL_9BE7_
+    ld   b, e
+    ld   c, c
+    ld   d, h
 _LABEL_9BCA_:
-	ld   b, c
-	ld   d, e
+    ld   b, c
+    ld   d, e
 _LABEL_9BCC_:
-	jr   nz, _LABEL_9BEE_
+    jr   nz, _LABEL_9BEE_
 _LABEL_9BCE_:
-	jr   nz, @ + 34
+    jr   nz, @ + 34
 _LABEL_9BD0_:
-	jr   nz, _LABEL_9BF2_
-	jr   nz, @ + 34
-	jr   nz, _LABEL_9BF6_
-	jr   nz, _LABEL_9BF8_
-	ld   b, e
-	ld   b, c
-	ld   c, h
-	ld   b, e
-	ld   d, l
+    jr   nz, _LABEL_9BF2_
+    jr   nz, @ + 34
+    jr   nz, _LABEL_9BF6_
+    jr   nz, _LABEL_9BF8_
+    ld   b, e
+    ld   b, c
+    ld   c, h
+    ld   b, e
+    ld   d, l
 _LABEL_9BDD_:
-	ld   c, h
-	ld   b, c
+    ld   c, h
+    ld   b, c
 _LABEL_9BDF_:
-	ld   b, h
-	ld   c, a
+    ld   b, h
+    ld   c, a
 _LABEL_9BE1_:
-	ld   d, d
-	ld   b, c
+    ld   d, d
+    ld   b, c
 _LABEL_9BE3_:
-	jr   nz, _LABEL_9C05_
+    jr   nz, _LABEL_9C05_
 _LABEL_9BE5_:
-	jr   nz, _LABEL_9C07_
+    jr   nz, _LABEL_9C07_
 _LABEL_9BE7_:
-	jr   nz, _LABEL_9C09_
-	jr   nz, @ + 34
-	ld   b, d
-	ld   b, c
-	ld   d, e
+    jr   nz, _LABEL_9C09_
+    jr   nz, @ + 34
+    ld   b, d
+    ld   b, c
+    ld   d, e
 _LABEL_9BEE_:
-	ld   b, l
-	jr   nz, _LABEL_9C11_
-	ld   b, h
+    ld   b, l
+    jr   nz, _LABEL_9C11_
+    ld   b, h
 _LABEL_9BF2_:
-	ld   b, l
-	jr   nz, _LABEL_9C39_
-	ld   b, c
+    ld   b, l
+    jr   nz, _LABEL_9C39_
+    ld   b, c
 _LABEL_9BF6_:
-	ld   d, h
-	ld   c, a
+    ld   d, h
+    ld   c, a
 _LABEL_9BF8_:
-	ld   d, e
-	jr   nz, _LABEL_9C1B_
-	jr   nz, _LABEL_9C3F_
-	ld   d, l
-	ld   d, e
-	ld   b, e
-	ld   b, c
-	jr   nz, @ + 67
-	jr   nz, @ + 72
+    ld   d, e
+    jr   nz, _LABEL_9C1B_
+    jr   nz, _LABEL_9C3F_
+    ld   d, l
+    ld   d, e
+    ld   b, e
+    ld   b, c
+    jr   nz, @ + 67
+    jr   nz, @ + 72
 _LABEL_9C05_:
-	ld   c, c
-	ld   c, [hl]
+    ld   c, c
+    ld   c, [hl]
 _LABEL_9C07_:
-	jr   nz, @ + 70
+    jr   nz, @ + 70
 _LABEL_9C09_:
-	ld   b, l
-	jr   nz, _LABEL_9C50_
-	ld   b, c
-	ld   d, h
-	ld   c, a
-	ld   d, e
-	nop
+    ld   b, l
+    jr   nz, _LABEL_9C50_
+    ld   b, c
+    ld   d, h
+    ld   c, a
+    ld   d, e
+    nop
 _LABEL_9C11_:
-	jr   nz, _LABEL_9C63_
-	ld   d, l
-	ld   c, h
-	ld   d, e
-	ld   b, c
-	jr   nz, _LABEL_9C39_
-	ld   b, e
-	ld   d, l
+    jr   nz, _LABEL_9C63_
+    ld   d, l
+    ld   c, h
+    ld   d, e
+    ld   b, c
+    jr   nz, _LABEL_9C39_
+    ld   b, e
+    ld   d, l
 _LABEL_9C1B_:
-	ld   b, c
-	ld   c, h
-	ld   d, c
-	jr   nz, _LABEL_9C74_
-	ld   b, l
-	ld   b, e
-	ld   c, h
-	ld   b, c
-	jr   nz, _LABEL_9C26_
+    ld   b, c
+    ld   c, h
+    ld   d, c
+    jr   nz, _LABEL_9C74_
+    ld   b, l
+    ld   b, e
+    ld   c, h
+    ld   b, c
+    jr   nz, _LABEL_9C26_
 _LABEL_9C26_:
-	jr   nz, _LABEL_9C77_
-	ld   d, b
-	ld   b, e
-	ld   c, c
-	ld   c, a
-	ld   c, [hl]
-	ld   b, l
-	ld   d, e
-	jr   nz, _LABEL_9C51_
-	ld   b, d
-	ld   d, l
-	ld   d, e
-	ld   d, c
-	ld   d, l
-	ld   b, l
-	ld   b, h
-	ld   b, c
+    jr   nz, _LABEL_9C77_
+    ld   d, b
+    ld   b, e
+    ld   c, c
+    ld   c, a
+    ld   c, [hl]
+    ld   b, l
+    ld   d, e
+    jr   nz, _LABEL_9C51_
+    ld   b, d
+    ld   d, l
+    ld   d, e
+    ld   d, c
+    ld   d, l
+    ld   b, l
+    ld   b, h
+    ld   b, c
 _LABEL_9C39_:
-	jr   nz, _LABEL_9C5B_
-	jr   nz, _LABEL_9C5D_
-	jr   nz, _LABEL_9C81_
+    jr   nz, _LABEL_9C5B_
+    jr   nz, _LABEL_9C5D_
+    jr   nz, _LABEL_9C81_
 _LABEL_9C3F_:
-	ld   d, l
-	ld   d, e
-	ld   b, e
-	ld   b, c
-	jr   nz, @ + 73
-	ld   c, h
-	ld   c, a
-	ld   b, d
-	ld   b, c
-	ld   c, h
-	jr   nz, _LABEL_9C6C_
-	jr   nz, _LABEL_9C6E_
-	jr   nz, _LABEL_9C70_
+    ld   d, l
+    ld   d, e
+    ld   b, e
+    ld   b, c
+    jr   nz, @ + 73
+    ld   c, h
+    ld   c, a
+    ld   b, d
+    ld   b, c
+    ld   c, h
+    jr   nz, _LABEL_9C6C_
+    jr   nz, _LABEL_9C6E_
+    jr   nz, _LABEL_9C70_
 _LABEL_9C50_:
-	ld   b, d
+    ld   b, d
 _LABEL_9C51_:
-	ld   d, l
-	ld   d, e
-	ld   b, e
-	ld   b, c
-	jr   nz, _LABEL_9C9C_
-	ld   d, e
-	ld   d, b
-	ld   b, l
-	ld   b, e
+    ld   d, l
+    ld   d, e
+    ld   b, e
+    ld   b, c
+    jr   nz, _LABEL_9C9C_
+    ld   d, e
+    ld   d, b
+    ld   b, l
+    ld   b, e
 _LABEL_9C5B_:
-	ld   c, c
-	ld   b, [hl]
+    ld   c, c
+    ld   b, [hl]
 _LABEL_9C5D_:
-	ld   c, c
-	ld   b, e
-	ld   b, c
-	jr   nz, _LABEL_9C82_
-	ld   d, h
+    ld   c, c
+    ld   b, e
+    ld   b, c
+    jr   nz, _LABEL_9C82_
+    ld   d, h
 _LABEL_9C63_:
-	ld   l, c
-	ld   h, l
-	ld   l, l
-	ld   [hl], b
-	ld   l, a
-	cpl
-	ld   b, [hl]
-	ld   h, l
-	ld   h, e
+    ld   l, c
+    ld   h, l
+    ld   l, l
+    ld   [hl], b
+    ld   l, a
+    cpl
+    ld   b, [hl]
+    ld   h, l
+    ld   h, e
 _LABEL_9C6C_:
-	ld   l, b
-	ld   h, c
+    ld   l, b
+    ld   h, c
 _LABEL_9C6E_:
-	jr   nz, _LABEL_9CD5_
+    jr   nz, _LABEL_9CD5_
 _LABEL_9C70_:
-	ld   [hl], d
-	ld   [hl], d
-	ld   l, a
-	ld   l, [hl]
+    ld   [hl], d
+    ld   [hl], d
+    ld   l, a
+    ld   l, [hl]
 _LABEL_9C74_:
-	ld   h, l
-	ld   h, c
-	nop
+    ld   h, l
+    ld   h, c
+    nop
 _LABEL_9C77_:
-	ld   b, d
-	ld   h, c
-	ld   [hl], h
-	ld   h, l
-	ld   [hl], d
-	ld   l, c
-	ld   h, c
-	ld   [hl], e
-	jr   nz, _LABEL_9CE3_
+    ld   b, d
+    ld   h, c
+    ld   [hl], h
+    ld   h, l
+    ld   [hl], d
+    ld   l, c
+    ld   h, c
+    ld   [hl], e
+    jr   nz, _LABEL_9CE3_
 _LABEL_9C81_:
-	ld   h, c
+    ld   h, c
 _LABEL_9C82_:
-	ld   l, d
-	ld   h, c
-	ld   [hl], e
-	ccf
-	nop
-	jr   nz, _LABEL_9CA9_
-	jr   nz, _LABEL_9CAB_
-	jr   nz, _LABEL_9CAD_
-	jr   nz, _LABEL_9CDC_
-	ld   c, a
-	ld   c, [hl]
-	ld   b, l
-	ld   b, h
-	ld   b, c
-	jr   nz, _LABEL_9CB6_
-	jr   nz, _LABEL_9CB8_
-	jr   nz, _LABEL_9CBA_
-	jr   nz, _LABEL_9CBC_
+    ld   l, d
+    ld   h, c
+    ld   [hl], e
+    ccf
+    nop
+    jr   nz, _LABEL_9CA9_
+    jr   nz, _LABEL_9CAB_
+    jr   nz, _LABEL_9CAD_
+    jr   nz, _LABEL_9CDC_
+    ld   c, a
+    ld   c, [hl]
+    ld   b, l
+    ld   b, h
+    ld   b, c
+    jr   nz, _LABEL_9CB6_
+    jr   nz, _LABEL_9CB8_
+    jr   nz, _LABEL_9CBA_
+    jr   nz, _LABEL_9CBC_
 _LABEL_9C9C_:
-	jr   nz, _LABEL_9CBE_
-	jr   nz, _LABEL_9CC0_
-	ld   d, h
-	ld   b, c
-	ld   c, h
-	ld   c, a
-	ld   c, [hl]
-	ld   b, c
-	ld   d, d
-	ld   c, c
-	ld   c, a
+    jr   nz, _LABEL_9CBE_
+    jr   nz, _LABEL_9CC0_
+    ld   d, h
+    ld   b, c
+    ld   c, h
+    ld   c, a
+    ld   c, [hl]
+    ld   b, c
+    ld   d, d
+    ld   c, c
+    ld   c, a
 _LABEL_9CA9_:
-	jr   nz, _LABEL_9CCB_
+    jr   nz, _LABEL_9CCB_
 _LABEL_9CAB_:
-	jr   nz, _LABEL_9CCD_
+    jr   nz, _LABEL_9CCD_
 _LABEL_9CAD_:
-	jr   nz, _LABEL_9CCF_
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   e, a
-	ld   h, b
-	ld   h, c
-	ld   h, d
+    jr   nz, _LABEL_9CCF_
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   e, a
+    ld   h, b
+    ld   h, c
+    ld   h, d
 _LABEL_9CB6_:
-	ld   h, e
-	ld   h, h
+    ld   h, e
+    ld   h, h
 _LABEL_9CB8_:
-	ld   h, h
-	ld   h, h
+    ld   h, h
+    ld   h, h
 _LABEL_9CBA_:
-	ld   h, h
-	ld   h, h
+    ld   h, h
+    ld   h, h
 _LABEL_9CBC_:
-	ld   h, h
-	ld   h, h
+    ld   h, h
+    ld   h, h
 _LABEL_9CBE_:
-	ld   h, l
-	ld   l, c
+    ld   h, l
+    ld   l, c
 _LABEL_9CC0_:
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, l
-	ld   l, [hl]
-	ld   l, a
-	ld   [hl], b
-	ld   [hl], c
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, l
+    ld   l, [hl]
+    ld   l, a
+    ld   [hl], b
+    ld   [hl], c
 _LABEL_9CCB_:
-	ld   [hl], d
-	ld   [hl], d
+    ld   [hl], d
+    ld   [hl], d
 _LABEL_9CCD_:
-	ld   [hl], d
-	ld   [hl], d
+    ld   [hl], d
+    ld   [hl], d
 _LABEL_9CCF_:
-	ld   [hl], d
-	ld   [hl], d
-	ld   [hl], d
-	ld   [hl], e
-	ld   [hl], h
-	ld   l, e
+    ld   [hl], d
+    ld   [hl], d
+    ld   [hl], d
+    ld   [hl], e
+    ld   [hl], h
+    ld   l, e
 _LABEL_9CD5_:
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   a, h
-	ld   a, l
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   a, h
+    ld   a, l
 _LABEL_9CDC_:
-	ld   a, l
-	ld   a, l
-	ld   a, l
-	ld   a, l
-	ld   a, l
-	ld   a, l
-	ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, l
 _LABEL_9CE3_:
-	ld   a, l
-	ld   a, l
-	ld   a, l
-	ld   a, l
-	ld   a, [hl]
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   a, a
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	add  b
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   a, a
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	add  b
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   a, a
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	add  b
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   a, a
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	add  b
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   a, a
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	add  b
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	add  c
-	add  d
-	sub  b
-	sub  c
-	sub  d
-	sub  e
-	sub  h
-	sub  l
-	sbc  a, b
-	sbc  a, c
-	ldh  [_HRAM_FFE1_], a
-	add  h
-	adc  b
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	adc  h
-	adc  l
-	sbc  a, d
-	sbc  a, e
-	sbc  a, h
-	sbc  a, l
-	sbc  a, [hl]
-	sbc  a, a
-	and  d
-	and  e
-	ld   [$8EEB], a
-	adc  a
-	ld   l, e
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	ld   l, d
-	adc  h
-	adc  l
-	and  h
-	and  l
-	adc  $CF
-	ret  nc
-	pop  de
-	jp   nc, $ACD3	; Possibly invalid
+    ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, l
+    ld   a, [hl]
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   a, a
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    add  b
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   a, a
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    add  b
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   a, a
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    add  b
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   a, a
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    add  b
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   a, a
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    add  b
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    add  c
+    add  d
+    sub  b
+    sub  c
+    sub  d
+    sub  e
+    sub  h
+    sub  l
+    sbc  a, b
+    sbc  a, c
+    ldh  [_HRAM_FFE1_], a
+    add  h
+    adc  b
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    adc  h
+    adc  l
+    sbc  a, d
+    sbc  a, e
+    sbc  a, h
+    sbc  a, l
+    sbc  a, [hl]
+    sbc  a, a
+    and  d
+    and  e
+    ld   [$8EEB], a
+    adc  a
+    ld   l, e
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    ld   l, d
+    adc  h
+    adc  l
+    and  h
+    and  l
+    adc  $CF
+    ret  nc
+    pop  de
+    jp   nc, $ACD3  ; Possibly invalid
 ; Data from 9D85 to 9E16 (146 bytes)
 db $AD, $8E, $8F, $6B, $6A, $6A, $6A, $6A, $6A, $8C, $8D, $AE, $AF, $D8, $D9, $DA
 db $DB, $B4, $B5, $B6, $B7, $8E, $8F, $6B, $6A, $6A, $6A, $6A, $6A, $8C, $8D, $B8
@@ -11990,1927 +11990,1927 @@ ds 10, $DB
 db $C7, $C8, $C9
 
 _LABEL_A614_:
-	ld   a, $0A
-	ld   [_RAM_C478_], a
+    ld   a, $0A
+    ld   [_RAM_C478_], a
 _LABEL_A619_:
-	ld   hl, _RAM_C3FA_
-	ld   a, [hl]
-	or   a
-	jr   nz, _LABEL_A637_
-	ld   de, _RAM_C3FB_
-	ld   b, $09
+    ld   hl, _RAM_C3FA_
+    ld   a, [hl]
+    or   a
+    jr   nz, _LABEL_A637_
+    ld   de, _RAM_C3FB_
+    ld   b, $09
 _LABEL_A625_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_A625_
-	ld   a, b
-	dec  de
-	ld   [de], a
-	ld   a, [_RAM_C478_]
-	dec  a
-	ld   [_RAM_C478_], a
-	jr   nz, _LABEL_A619_
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_A625_
+    ld   a, b
+    dec  de
+    ld   [de], a
+    ld   a, [_RAM_C478_]
+    dec  a
+    ld   [_RAM_C478_], a
+    jr   nz, _LABEL_A619_
 _LABEL_A637_:
-	ld   a, $0A
-	ld   [_RAM_C478_], a
+    ld   a, $0A
+    ld   [_RAM_C478_], a
 _LABEL_A63C_:
-	ld   hl, _RAM_C40B_
-	ld   a, [hl]
-	or   a
-	jr   nz, _LABEL_A65A_
-	ld   de, _RAM_C40C_
-	ld   b, $09
+    ld   hl, _RAM_C40B_
+    ld   a, [hl]
+    or   a
+    jr   nz, _LABEL_A65A_
+    ld   de, _RAM_C40C_
+    ld   b, $09
 _LABEL_A648_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_A648_
-	ld   a, b
-	dec  de
-	ld   [de], a
-	ld   a, [_RAM_C478_]
-	dec  a
-	ld   [_RAM_C478_], a
-	jr   nz, _LABEL_A63C_
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_A648_
+    ld   a, b
+    dec  de
+    ld   [de], a
+    ld   a, [_RAM_C478_]
+    dec  a
+    ld   [_RAM_C478_], a
+    jr   nz, _LABEL_A63C_
 _LABEL_A65A_:
-	ld   a, [_RAM_C40A_]
-	ld   [_RAM_C41B_], a
-	ld   c, a
-	ld   a, [_RAM_C3F9_]
-	sub  c
-	jr   z, _LABEL_A69B_
-	bit  7, a
-	jr   nz, _LABEL_A67A_
-	ld   c, a
-	ld   a, [_RAM_C3F9_]
-	ld   [_RAM_C41B_], a
-	ld   hl, _RAM_C414_
-	ld   de, _RAM_C413_
-	jr   _LABEL_A68A_
+    ld   a, [_RAM_C40A_]
+    ld   [_RAM_C41B_], a
+    ld   c, a
+    ld   a, [_RAM_C3F9_]
+    sub  c
+    jr   z, _LABEL_A69B_
+    bit  7, a
+    jr   nz, _LABEL_A67A_
+    ld   c, a
+    ld   a, [_RAM_C3F9_]
+    ld   [_RAM_C41B_], a
+    ld   hl, _RAM_C414_
+    ld   de, _RAM_C413_
+    jr   _LABEL_A68A_
 
 _LABEL_A67A_:
-	ld   hl, _RAM_C403_
-	ld   de, _RAM_C402_
-	ld   c, a
-	ld   a, [_RAM_C40A_]
-	ld   [_RAM_C41B_], a
-	xor  a
-	sub  c
-	ld   c, a
+    ld   hl, _RAM_C403_
+    ld   de, _RAM_C402_
+    ld   c, a
+    ld   a, [_RAM_C40A_]
+    ld   [_RAM_C41B_], a
+    xor  a
+    sub  c
+    ld   c, a
 _LABEL_A68A_:
-	ld   b, $09
-	push hl
-	push de
+    ld   b, $09
+    push hl
+    push de
 _LABEL_A68E_:
-	ld   a, [de]
-	ldd  [hl], a
-	dec  de
-	dec  b
-	jr   nz, _LABEL_A68E_
-	ld   a, b
-	ld   [hl], a
-	pop  de
-	pop  hl
-	dec  c
-	jr   nz, _LABEL_A68A_
+    ld   a, [de]
+    ldd  [hl], a
+    dec  de
+    dec  b
+    jr   nz, _LABEL_A68E_
+    ld   a, b
+    ld   [hl], a
+    pop  de
+    pop  hl
+    dec  c
+    jr   nz, _LABEL_A68A_
 _LABEL_A69B_:
-	ret
+    ret
 
 ; 1st entry of Jump Table from BD1E (indexed by unknown)
 _LABEL_A69C_:
-	call _LABEL_A7CF_
-	ld   hl, _RAM_C40B_
-	ld   b, $0A
+    call _LABEL_A7CF_
+    ld   hl, _RAM_C40B_
+    ld   b, $0A
 _LABEL_A6A4_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_A6AE_
-	dec  b
-	jr   nz, _LABEL_A6A4_
-	jp   _LABEL_BDF0_
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_A6AE_
+    dec  b
+    jr   nz, _LABEL_A6A4_
+    jp   _LABEL_BDF0_
 
 _LABEL_A6AE_:
-	ld   hl, _RAM_C42B_
-	ld   b, $20
-	xor  a
+    ld   hl, _RAM_C42B_
+    ld   b, $20
+    xor  a
 _LABEL_A6B4_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_A6B4_
-	ld   b, $50
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_A6B4_
+    ld   b, $50
 _LABEL_A6BA_:
-	push bc
-	call _LABEL_A73E_
-	call _LABEL_A757_
-	call _LABEL_A779_
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_A6BA_
-	ld   hl, _RAM_C3F9_
-	call _LABEL_A72C_
-	push bc
-	ld   hl, _RAM_C40A_
-	call _LABEL_A72C_
-	ld   a, b
-	pop  bc
-	sub  b
-	ld   b, a
-	xor  a
-	sub  b
-	add  $16
-	ld   b, a
-	ld   hl, _RAM_C42B_
-	ld   c, $20
+    push bc
+    call _LABEL_A73E_
+    call _LABEL_A757_
+    call _LABEL_A779_
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_A6BA_
+    ld   hl, _RAM_C3F9_
+    call _LABEL_A72C_
+    push bc
+    ld   hl, _RAM_C40A_
+    call _LABEL_A72C_
+    ld   a, b
+    pop  bc
+    sub  b
+    ld   b, a
+    xor  a
+    sub  b
+    add  $16
+    ld   b, a
+    ld   hl, _RAM_C42B_
+    ld   c, $20
 _LABEL_A6E3_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_A6F7_
-	dec  b
-	dec  c
-	jr   nz, _LABEL_A6E3_
-	ld   a, c
-	ld   [_RAM_C41B_], a
-	ld   [_RAM_C41A_], a
-	ld   hl, _RAM_C42B_
-	jr   _LABEL_A719_
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_A6F7_
+    dec  b
+    dec  c
+    jr   nz, _LABEL_A6E3_
+    ld   a, c
+    ld   [_RAM_C41B_], a
+    ld   [_RAM_C41A_], a
+    ld   hl, _RAM_C42B_
+    jr   _LABEL_A719_
 
 _LABEL_A6F7_:
-	ld   a, b
-	ld   [_RAM_C41B_], a
-	push bc
-	ld   a, [_RAM_C3F8_]
-	ld   c, a
-	ld   a, [_RAM_C409_]
-	add  c
-	or   a
-	jr   z, _LABEL_A70C_
-	cp   $FF
-	jr   z, _LABEL_A70C_
-	xor  a
+    ld   a, b
+    ld   [_RAM_C41B_], a
+    push bc
+    ld   a, [_RAM_C3F8_]
+    ld   c, a
+    ld   a, [_RAM_C409_]
+    add  c
+    or   a
+    jr   z, _LABEL_A70C_
+    cp   $FF
+    jr   z, _LABEL_A70C_
+    xor  a
 _LABEL_A70C_:
-	ld   [_RAM_C41A_], a
-	dec  hl
-	pop  bc
-	ld   a, c
-	cp   $0B
-	jr   nc, _LABEL_A719_
-	ld   hl, _RAM_C440_
+    ld   [_RAM_C41A_], a
+    dec  hl
+    pop  bc
+    ld   a, c
+    cp   $0B
+    jr   nc, _LABEL_A719_
+    ld   hl, _RAM_C440_
 _LABEL_A719_:
-	ld   de, _RAM_C41C_
-	ld   b, $0B
+    ld   de, _RAM_C41C_
+    ld   b, $0B
 _LABEL_A71E_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_A71E_
-	ld   a, b
-	ld   b, $05
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_A71E_
+    ld   a, b
+    ld   b, $05
 _LABEL_A727_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_A727_
-	ret
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_A727_
+    ret
 
 _LABEL_A72C_:
-	ld   bc, $0A0A
-	ld   e, [hl]
-	inc  hl
+    ld   bc, $0A0A
+    ld   e, [hl]
+    inc  hl
 _LABEL_A731_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_A73A_
-	dec  b
-	dec  c
-	jr   nz, _LABEL_A731_
-	ret
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_A73A_
+    dec  b
+    dec  c
+    jr   nz, _LABEL_A731_
+    ret
 
 _LABEL_A73A_:
-	ld   a, e
-	sub  b
-	ld   b, a
-	ret
+    ld   a, e
+    sub  b
+    ld   b, a
+    ret
 
 _LABEL_A73E_:
-	ld   hl, _RAM_C44A_
-	ld   bc, $2000
+    ld   hl, _RAM_C44A_
+    ld   bc, $2000
 _LABEL_A744_:
-	ld   a, [hl]
-	add  a
-	add  c
-	ld   c, $00
+    ld   a, [hl]
+    add  a
+    add  c
+    ld   c, $00
 _LABEL_A749_:
-	cp   $0A
-	jr   c, _LABEL_A752_
-	sub  $0A
-	inc  c
-	jr   _LABEL_A749_
+    cp   $0A
+    jr   c, _LABEL_A752_
+    sub  $0A
+    inc  c
+    jr   _LABEL_A749_
 
 _LABEL_A752_:
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_A744_
-	ret
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_A744_
+    ret
 
 _LABEL_A757_:
-	ld   hl, _RAM_C486_
-	ld   b, $0A
-	or   a
+    ld   hl, _RAM_C486_
+    ld   b, $0A
+    or   a
 _LABEL_A75D_:
-	rl   [hl]
-	dec  hl
-	push af
-	dec  b
-	jr   z, _LABEL_A767_
-	pop  af
-	jr   _LABEL_A75D_
+    rl   [hl]
+    dec  hl
+    push af
+    dec  b
+    jr   z, _LABEL_A767_
+    pop  af
+    jr   _LABEL_A75D_
 
 _LABEL_A767_:
-	pop  af
-	ld   b, $0A
-	ld   hl, _RAM_C490_
+    pop  af
+    ld   b, $0A
+    ld   hl, _RAM_C490_
 _LABEL_A76D_:
-	rl   [hl]
-	dec  hl
-	push af
-	dec  b
-	jr   z, _LABEL_A777_
-	pop  af
-	jr   _LABEL_A76D_
+    rl   [hl]
+    dec  hl
+    push af
+    dec  b
+    jr   z, _LABEL_A777_
+    pop  af
+    jr   _LABEL_A76D_
 
 _LABEL_A777_:
-	pop  af
-	ret
+    pop  af
+    ret
 
 _LABEL_A779_:
-	ld   hl, _RAM_C487_
-	ld   de, _RAM_C491_
-	ld   b, $0A
+    ld   hl, _RAM_C487_
+    ld   de, _RAM_C491_
+    ld   b, $0A
 _LABEL_A781_:
-	ld   a, [de]
-	inc  de
-	ld   c, a
-	ldi  a, [hl]
-	cp   c
-	jr   z, _LABEL_A78B_
-	ret  c
-	jr   _LABEL_A78E_
+    ld   a, [de]
+    inc  de
+    ld   c, a
+    ldi  a, [hl]
+    cp   c
+    jr   z, _LABEL_A78B_
+    ret  c
+    jr   _LABEL_A78E_
 
 _LABEL_A78B_:
-	dec  b
-	jr   nz, _LABEL_A781_
+    dec  b
+    jr   nz, _LABEL_A781_
 _LABEL_A78E_:
-	ld   hl, _RAM_C490_
-	ld   de, _RAM_C49A_
-	ld   b, $0A
-	or   a
+    ld   hl, _RAM_C490_
+    ld   de, _RAM_C49A_
+    ld   b, $0A
+    or   a
 _LABEL_A797_:
-	ld   a, [de]
-	dec  de
-	ld   c, a
-	ld   a, [hl]
-	sbc  a, c
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A7A4_
-	pop  af
-	jr   _LABEL_A797_
+    ld   a, [de]
+    dec  de
+    ld   c, a
+    ld   a, [hl]
+    sbc  a, c
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A7A4_
+    pop  af
+    jr   _LABEL_A797_
 
 _LABEL_A7A4_:
-	pop  af
-	ld   hl, _RAM_C486_
-	scf
-	ld   b, $0A
+    pop  af
+    ld   hl, _RAM_C486_
+    scf
+    ld   b, $0A
 _LABEL_A7AB_:
-	ld   a, [hl]
-	adc  $00
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A7B6_
-	pop  af
-	jr   _LABEL_A7AB_
+    ld   a, [hl]
+    adc  $00
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A7B6_
+    pop  af
+    jr   _LABEL_A7AB_
 
 _LABEL_A7B6_:
-	pop  af
-	ld   hl, _RAM_C44A_
-	ld   bc, $2001
+    pop  af
+    ld   hl, _RAM_C44A_
+    ld   bc, $2001
 _LABEL_A7BD_:
-	ld   a, [hl]
-	add  c
-	ld   c, $00
+    ld   a, [hl]
+    add  c
+    ld   c, $00
 _LABEL_A7C1_:
-	cp   $0A
-	jr   c, _LABEL_A7CA_
-	sub  $0A
-	inc  c
-	jr   _LABEL_A7C1_
+    cp   $0A
+    jr   c, _LABEL_A7CA_
+    sub  $0A
+    inc  c
+    jr   _LABEL_A7C1_
 
 _LABEL_A7CA_:
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_A7BD_
-	ret
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_A7BD_
+    ret
 
 _LABEL_A7CF_:
-	ld   hl, _RAM_C47D_
-	xor  a
-	ld   b, $28
+    ld   hl, _RAM_C47D_
+    xor  a
+    ld   b, $28
 _LABEL_A7D5_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_A7D5_
-	ld   de, _RAM_C486_
-	ld   hl, _RAM_C3FA_
-	call _LABEL_A7F5_
-	ld   b, $0A
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_A7D5_
+    ld   de, _RAM_C486_
+    ld   hl, _RAM_C3FA_
+    call _LABEL_A7F5_
+    ld   b, $0A
 _LABEL_A7E4_:
-	push bc
-	call _LABEL_A80C_
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_A7E4_
-	ld   de, _RAM_C49A_
-	ld   hl, _RAM_C40B_
-	jp   _LABEL_A7F5_
+    push bc
+    call _LABEL_A80C_
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_A7E4_
+    ld   de, _RAM_C49A_
+    ld   hl, _RAM_C40B_
+    jp   _LABEL_A7F5_
 
 _LABEL_A7F5_:
-	ld   a, e
-	ld   [_RAM_C4A5_], a
-	ld   a, d
-	ld   [_RAM_C4A6_], a
-	ld   b, $0A
+    ld   a, e
+    ld   [_RAM_C4A5_], a
+    ld   a, d
+    ld   [_RAM_C4A6_], a
+    ld   b, $0A
 _LABEL_A7FF_:
-	push bc
-	push hl
-	ldi  a, [hl]
-	call _LABEL_A80C_
-	pop  hl
-	pop  bc
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_A7FF_
-	ret
+    push bc
+    push hl
+    ldi  a, [hl]
+    call _LABEL_A80C_
+    pop  hl
+    pop  bc
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_A7FF_
+    ret
 
 _LABEL_A80C_:
-	ld   c, a
-	call _LABEL_A85D_
-	ld   a, [_RAM_C4A5_]
-	ld   l, a
-	ld   a, [_RAM_C4A6_]
-	ld   h, a
-	ld   de, _RAM_C4A4_
-	ld   b, $0A
+    ld   c, a
+    call _LABEL_A85D_
+    ld   a, [_RAM_C4A5_]
+    ld   l, a
+    ld   a, [_RAM_C4A6_]
+    ld   h, a
+    ld   de, _RAM_C4A4_
+    ld   b, $0A
 _LABEL_A81D_:
-	ldd  a, [hl]
-	ld   [de], a
-	dec  de
-	dec  b
-	jr   nz, _LABEL_A81D_
-	call _LABEL_A85D_
-	call _LABEL_A85D_
-	ld   a, [_RAM_C4A5_]
-	ld   l, a
-	ld   a, [_RAM_C4A6_]
-	ld   h, a
-	ld   de, _RAM_C4A4_
-	ld   b, $0A
-	or   a
+    ldd  a, [hl]
+    ld   [de], a
+    dec  de
+    dec  b
+    jr   nz, _LABEL_A81D_
+    call _LABEL_A85D_
+    call _LABEL_A85D_
+    ld   a, [_RAM_C4A5_]
+    ld   l, a
+    ld   a, [_RAM_C4A6_]
+    ld   h, a
+    ld   de, _RAM_C4A4_
+    ld   b, $0A
+    or   a
 _LABEL_A837_:
-	ld   a, [de]
-	dec  de
-	adc  [hl]
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A842_
-	pop  af
-	jr   _LABEL_A837_
+    ld   a, [de]
+    dec  de
+    adc  [hl]
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A842_
+    pop  af
+    jr   _LABEL_A837_
 
 _LABEL_A842_:
-	pop  af
-	ld   a, [_RAM_C4A5_]
-	ld   l, a
-	ld   a, [_RAM_C4A6_]
-	ld   h, a
-	ld   b, $09
-	ld   a, c
-	add  [hl]
-	ldd  [hl], a
+    pop  af
+    ld   a, [_RAM_C4A5_]
+    ld   l, a
+    ld   a, [_RAM_C4A6_]
+    ld   h, a
+    ld   b, $09
+    ld   a, c
+    add  [hl]
+    ldd  [hl], a
 _LABEL_A850_:
-	ld   a, $00
-	adc  [hl]
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A85B_
-	pop  af
-	jr   _LABEL_A850_
+    ld   a, $00
+    adc  [hl]
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A85B_
+    pop  af
+    jr   _LABEL_A850_
 
 _LABEL_A85B_:
-	pop  af
-	ret
+    pop  af
+    ret
 
 _LABEL_A85D_:
-	ld   a, [_RAM_C4A5_]
-	ld   l, a
-	ld   a, [_RAM_C4A6_]
-	ld   h, a
-	ld   b, $0A
-	or   a
+    ld   a, [_RAM_C4A5_]
+    ld   l, a
+    ld   a, [_RAM_C4A6_]
+    ld   h, a
+    ld   b, $0A
+    or   a
 _LABEL_A868_:
-	rl   [hl]
-	dec  hl
-	push af
-	dec  b
-	jr   z, _LABEL_A872_
-	pop  af
-	jr   _LABEL_A868_
+    rl   [hl]
+    dec  hl
+    push af
+    dec  b
+    jr   z, _LABEL_A872_
+    pop  af
+    jr   _LABEL_A868_
 
 _LABEL_A872_:
-	pop  af
-	ret
+    pop  af
+    ret
 
 ; 1st entry of Jump Table from BD20 (indexed by unknown)
 _LABEL_A874_:
-	call _LABEL_A97F_
-	ld   a, [_RAM_C3F8_]
-	ld   c, a
-	ld   a, [_RAM_C409_]
-	add  c
-	ld   [_RAM_C41A_], a
-	ld   hl, _RAM_C42B_
-	ld   b, $20
-	xor  a
+    call _LABEL_A97F_
+    ld   a, [_RAM_C3F8_]
+    ld   c, a
+    ld   a, [_RAM_C409_]
+    add  c
+    ld   [_RAM_C41A_], a
+    ld   hl, _RAM_C42B_
+    ld   b, $20
+    xor  a
 _LABEL_A888_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_A888_
-	ld   b, $28
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_A888_
+    ld   b, $28
     .LABEL_A88E:
-    	push bc
-    	call _LABEL_A91E_
-    	call _LABEL_A932_
-    	jr   nc, .LABEL_A89A
-    	call _LABEL_A944_
+        push bc
+        call _LABEL_A91E_
+        call _LABEL_A932_
+        jr   nc, .LABEL_A89A
+        call _LABEL_A944_
 
     .LABEL_A89A:
-    	pop  bc
-    	dec  b
-    	jr   nz, .LABEL_A88E
+        pop  bc
+        dec  b
+        jr   nz, .LABEL_A88E
 
-    	jp   _LABEL_A8A1_
+        jp   _LABEL_A8A1_
 
 _LABEL_A8A1_:
-	ld   hl, _RAM_C3F9_
-	call _LABEL_A8F9_
-	push bc
-	ld   hl, _RAM_C40A_
-	call _LABEL_A8F9_
-	ld   a, c
-	pop  bc
-	add  c
-	ld   e, a
-	ld   hl, _RAM_C42B_
-	ld   c, $20
+    ld   hl, _RAM_C3F9_
+    call _LABEL_A8F9_
+    push bc
+    ld   hl, _RAM_C40A_
+    call _LABEL_A8F9_
+    ld   a, c
+    pop  bc
+    add  c
+    ld   e, a
+    ld   hl, _RAM_C42B_
+    ld   c, $20
 _LABEL_A8B7_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_A8BE_
-	dec  c
-	jr   nz, _LABEL_A8B7_
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_A8BE_
+    dec  c
+    jr   nz, _LABEL_A8B7_
 _LABEL_A8BE_:
-	ld   a, c
-	sub  e
-	ld   c, a
-	ld   a, [_RAM_C3F9_]
-	bit  7, a
-	jr   z, _LABEL_A8CA_
-	add  c
-	ld   c, a
+    ld   a, c
+    sub  e
+    ld   c, a
+    ld   a, [_RAM_C3F9_]
+    bit  7, a
+    jr   z, _LABEL_A8CA_
+    add  c
+    ld   c, a
 _LABEL_A8CA_:
-	ld   a, [_RAM_C40A_]
-	bit  7, a
-	jr   z, _LABEL_A8D3_
-	add  c
-	ld   c, a
+    ld   a, [_RAM_C40A_]
+    bit  7, a
+    jr   z, _LABEL_A8D3_
+    add  c
+    ld   c, a
 _LABEL_A8D3_:
-	ld   a, c
-	ld   [_RAM_C42B_], a
-	ld   hl, _RAM_C42C_
-	ld   c, $1F
+    ld   a, c
+    ld   [_RAM_C42B_], a
+    ld   hl, _RAM_C42C_
+    ld   c, $1F
 _LABEL_A8DC_:
-	ld   a, [hl]
-	or   a
-	jr   nz, _LABEL_A8E7_
-	inc  hl
-	dec  c
-	jr   nz, _LABEL_A8DC_
-	ld   hl, _RAM_C42C_
+    ld   a, [hl]
+    or   a
+    jr   nz, _LABEL_A8E7_
+    inc  hl
+    dec  c
+    jr   nz, _LABEL_A8DC_
+    ld   hl, _RAM_C42C_
 _LABEL_A8E7_:
-	ld   de, _RAM_C41C_
-	ld   c, $0B
+    ld   de, _RAM_C41C_
+    ld   c, $0B
 _LABEL_A8EC_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  c
-	jr   nz, _LABEL_A8EC_
-	ld   a, [_RAM_C42B_]
-	ld   [_RAM_C41B_], a
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  c
+    jr   nz, _LABEL_A8EC_
+    ld   a, [_RAM_C42B_]
+    ld   [_RAM_C41B_], a
+    ret
 
 _LABEL_A8F9_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_A915_
-	bit  7, a
-	jr   nz, _LABEL_A915_
-	ld   c, $0A
-	ld   b, a
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_A915_
+    bit  7, a
+    jr   nz, _LABEL_A915_
+    ld   c, $0A
+    ld   b, a
 _LABEL_A904_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_A90D_
-	dec  c
-	jr   nz, _LABEL_A904_
-	jr   _LABEL_A91D_
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_A90D_
+    dec  c
+    jr   nz, _LABEL_A904_
+    jr   _LABEL_A91D_
 
 _LABEL_A90D_:
-	dec  c
-	dec  b
-	jr   z, _LABEL_A914_
-	ldi  a, [hl]
-	jr   _LABEL_A90D_
+    dec  c
+    dec  b
+    jr   z, _LABEL_A914_
+    ldi  a, [hl]
+    jr   _LABEL_A90D_
 
 _LABEL_A914_:
-	ret
+    ret
 
 _LABEL_A915_:
-	ld   c, $0A
+    ld   c, $0A
 _LABEL_A917_:
-	ldi  a, [hl]
-	or   a
-	ret  nz
-	dec  c
-	jr   nz, _LABEL_A917_
+    ldi  a, [hl]
+    or   a
+    ret  nz
+    dec  c
+    jr   nz, _LABEL_A917_
 _LABEL_A91D_:
-	ret
+    ret
 
 _LABEL_A91E_:
-	ld   hl, _RAM_C44A_
-	ld   b, $20
-	or   a
+    ld   hl, _RAM_C44A_
+    ld   b, $20
+    or   a
     .LABEL_A924:
-    	ld   a, [hl]
-    	adc  a
-    	ldd  [hl], a
-    	push af
-    	dec  b
-    	jr   z, _LABEL_A92E_
-    	pop  af
-    	jr   .LABEL_A924
+        ld   a, [hl]
+        adc  a
+        ldd  [hl], a
+        push af
+        dec  b
+        jr   z, _LABEL_A92E_
+        pop  af
+        jr   .LABEL_A924
 
 _LABEL_A92E_:
-	pop  af
-	jp   _LABEL_A967_
+    pop  af
+    jp   _LABEL_A967_
 
 _LABEL_A932_:
-	or   a
-	ld   hl, _RAM_C44F_
-	ld   b, $05
+    or   a
+    ld   hl, _RAM_C44F_
+    ld   b, $05
 _LABEL_A938_:
-	ld   a, [hl]
-	rla
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A942_
-	pop  af
-	jr   _LABEL_A938_
+    ld   a, [hl]
+    rla
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A942_
+    pop  af
+    jr   _LABEL_A938_
 
 _LABEL_A942_:
-	pop  af
-	ret
+    pop  af
+    ret
 
 _LABEL_A944_:
-	ld   hl, _RAM_C44A_
-	ld   de, _RAM_C414_
-	ld   b, $0A
-	or   a
+    ld   hl, _RAM_C44A_
+    ld   de, _RAM_C414_
+    ld   b, $0A
+    or   a
 _LABEL_A94D_:
-	ld   a, [de]
-	dec  de
-	adc  [hl]
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A958_
-	pop  af
-	jr   _LABEL_A94D_
+    ld   a, [de]
+    dec  de
+    adc  [hl]
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A958_
+    pop  af
+    jr   _LABEL_A94D_
 
 _LABEL_A958_:
-	pop  af
-	ld   b, $16
+    pop  af
+    ld   b, $16
 _LABEL_A95B_:
-	ld   a, $00
-	adc  [hl]
-	ldd  [hl], a
-	push af
-	dec  b
-	jr   z, _LABEL_A966_
-	pop  af
-	jr   _LABEL_A95B_
+    ld   a, $00
+    adc  [hl]
+    ldd  [hl], a
+    push af
+    dec  b
+    jr   z, _LABEL_A966_
+    pop  af
+    jr   _LABEL_A95B_
 
 _LABEL_A966_:
-	pop  af
+    pop  af
 _LABEL_A967_:
-	ld   hl, _RAM_C44A_
-	ld   bc, $1F00
+    ld   hl, _RAM_C44A_
+    ld   bc, $1F00
 _LABEL_A96D_:
-	ld   a, [hl]
-	add  c
-	ld   c, $00
+    ld   a, [hl]
+    add  c
+    ld   c, $00
 _LABEL_A971_:
-	cp   $0A
-	jr   c, _LABEL_A97A_
-	sub  $0A
-	inc  c
-	jr   _LABEL_A971_
+    cp   $0A
+    jr   c, _LABEL_A97A_
+    sub  $0A
+    inc  c
+    jr   _LABEL_A971_
 
 _LABEL_A97A_:
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_A96D_
-	ret
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_A96D_
+    ret
 
 _LABEL_A97F_:
-	ld   hl, _RAM_C44B_
-	xor  a
-	ld   b, $0A
+    ld   hl, _RAM_C44B_
+    xor  a
+    ld   b, $0A
 _LABEL_A985_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_A985_
-	ld   b, $0A
-	ld   hl, _RAM_C3FA_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_A985_
+    ld   b, $0A
+    ld   hl, _RAM_C3FA_
 _LABEL_A98E_:
-	push bc
-	push hl
-	ldi  a, [hl]
-	call _LABEL_A99B_
-	pop  hl
-	pop  bc
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_A98E_
-	ret
+    push bc
+    push hl
+    ldi  a, [hl]
+    call _LABEL_A99B_
+    pop  hl
+    pop  bc
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_A98E_
+    ret
 
 _LABEL_A99B_:
-	ld   c, a
-	call _LABEL_AA12_
-	ld   hl, _RAM_C44B_
-	ld   de, _RAM_C450_
-	ld   b, $05
+    ld   c, a
+    call _LABEL_AA12_
+    ld   hl, _RAM_C44B_
+    ld   de, _RAM_C450_
+    ld   b, $05
 _LABEL_A9A7_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_A9A7_
-	call _LABEL_AA12_
-	call _LABEL_AA12_
-	ld   a, [_RAM_C44F_]
-	ld   b, a
-	ld   a, [_RAM_C454_]
-	add  b
-	ld   [_RAM_C44F_], a
-	ld   a, [_RAM_C44E_]
-	ld   b, a
-	ld   a, [_RAM_C453_]
-	adc  b
-	ld   [_RAM_C44E_], a
-	ld   a, [_RAM_C44D_]
-	ld   b, a
-	ld   a, [_RAM_C452_]
-	adc  b
-	ld   [_RAM_C44D_], a
-	ld   a, [_RAM_C44C_]
-	ld   b, a
-	ld   a, [_RAM_C451_]
-	adc  b
-	ld   [_RAM_C44C_], a
-	ld   a, [_RAM_C44B_]
-	ld   b, a
-	ld   a, [_RAM_C450_]
-	adc  b
-	ld   [_RAM_C44B_], a
-	ld   a, [_RAM_C44F_]
-	add  c
-	ld   [_RAM_C44F_], a
-	ld   a, [_RAM_C44E_]
-	adc  $00
-	ld   [_RAM_C44E_], a
-	ld   a, [_RAM_C44D_]
-	adc  $00
-	ld   [_RAM_C44D_], a
-	ld   a, [_RAM_C44C_]
-	adc  $00
-	ld   [_RAM_C44C_], a
-	ld   a, [_RAM_C44B_]
-	adc  $00
-	ld   [_RAM_C44B_], a
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_A9A7_
+    call _LABEL_AA12_
+    call _LABEL_AA12_
+    ld   a, [_RAM_C44F_]
+    ld   b, a
+    ld   a, [_RAM_C454_]
+    add  b
+    ld   [_RAM_C44F_], a
+    ld   a, [_RAM_C44E_]
+    ld   b, a
+    ld   a, [_RAM_C453_]
+    adc  b
+    ld   [_RAM_C44E_], a
+    ld   a, [_RAM_C44D_]
+    ld   b, a
+    ld   a, [_RAM_C452_]
+    adc  b
+    ld   [_RAM_C44D_], a
+    ld   a, [_RAM_C44C_]
+    ld   b, a
+    ld   a, [_RAM_C451_]
+    adc  b
+    ld   [_RAM_C44C_], a
+    ld   a, [_RAM_C44B_]
+    ld   b, a
+    ld   a, [_RAM_C450_]
+    adc  b
+    ld   [_RAM_C44B_], a
+    ld   a, [_RAM_C44F_]
+    add  c
+    ld   [_RAM_C44F_], a
+    ld   a, [_RAM_C44E_]
+    adc  $00
+    ld   [_RAM_C44E_], a
+    ld   a, [_RAM_C44D_]
+    adc  $00
+    ld   [_RAM_C44D_], a
+    ld   a, [_RAM_C44C_]
+    adc  $00
+    ld   [_RAM_C44C_], a
+    ld   a, [_RAM_C44B_]
+    adc  $00
+    ld   [_RAM_C44B_], a
+    ret
 
 _LABEL_AA12_:
-	or   a
-	ld   a, [_RAM_C44F_]
-	rla
-	ld   [_RAM_C44F_], a
-	ld   a, [_RAM_C44E_]
-	rla
-	ld   [_RAM_C44E_], a
-	ld   a, [_RAM_C44D_]
-	rla
-	ld   [_RAM_C44D_], a
-	ld   a, [_RAM_C44C_]
-	rla
-	ld   [_RAM_C44C_], a
-	ld   a, [_RAM_C44B_]
-	rla
-	ld   [_RAM_C44B_], a
-	ret
+    or   a
+    ld   a, [_RAM_C44F_]
+    rla
+    ld   [_RAM_C44F_], a
+    ld   a, [_RAM_C44E_]
+    rla
+    ld   [_RAM_C44E_], a
+    ld   a, [_RAM_C44D_]
+    rla
+    ld   [_RAM_C44D_], a
+    ld   a, [_RAM_C44C_]
+    rla
+    ld   [_RAM_C44C_], a
+    ld   a, [_RAM_C44B_]
+    rla
+    ld   [_RAM_C44B_], a
+    ret
 
 ; 1st entry of Jump Table from BD1A (indexed by unknown)
 _LABEL_AA37_:
-	call _LABEL_A614_
-	ld   a, [_RAM_C3F8_]
-	ld   c, a
-	ld   a, [_RAM_C409_]
-	add  c
-	or   a
-	jr   z, _LABEL_AA55_
-	cp   $FE
-	jr   z, _LABEL_AA54_
-	ld   a, [_RAM_C409_]
-	xor  $FF
-	ld   [_RAM_C409_], a
-	jp   _LABEL_BD31_
+    call _LABEL_A614_
+    ld   a, [_RAM_C3F8_]
+    ld   c, a
+    ld   a, [_RAM_C409_]
+    add  c
+    or   a
+    jr   z, _LABEL_AA55_
+    cp   $FE
+    jr   z, _LABEL_AA54_
+    ld   a, [_RAM_C409_]
+    xor  $FF
+    ld   [_RAM_C409_], a
+    jp   _LABEL_BD31_
 
 _LABEL_AA54_:
-	inc  a
+    inc  a
 _LABEL_AA55_:
-	ld   [_RAM_C41A_], a
+    ld   [_RAM_C41A_], a
 _LABEL_AA58_:
-	ld   hl, _RAM_C403_
-	ld   de, _RAM_C414_
-	ld   a, $26
-	ld   [_RAM_C47A_], a
-	ld   a, $C4
-	ld   [_RAM_C47B_], a
-	ld   bc, $0A00
+    ld   hl, _RAM_C403_
+    ld   de, _RAM_C414_
+    ld   a, $26
+    ld   [_RAM_C47A_], a
+    ld   a, $C4
+    ld   [_RAM_C47B_], a
+    ld   bc, $0A00
 _LABEL_AA6B_:
-	ld   a, [de]
-	add  [hl]
-	add  c
-	ld   c, $00
+    ld   a, [de]
+    add  [hl]
+    add  c
+    ld   c, $00
 _LABEL_AA70_:
-	cp   $0A
-	jr   c, _LABEL_AA79_
-	inc  c
-	sub  $0A
-	jr   _LABEL_AA70_
+    cp   $0A
+    jr   c, _LABEL_AA79_
+    inc  c
+    sub  $0A
+    jr   _LABEL_AA70_
 
 _LABEL_AA79_:
-	push hl
-	push af
-	ld   a, [_RAM_C47A_]
-	ld   l, a
-	ld   a, [_RAM_C47B_]
-	ld   h, a
-	pop  af
-	ld   [hl], a
-	dec  hl
-	ld   a, l
-	ld   [_RAM_C47A_], a
-	ld   a, h
-	ld   [_RAM_C47B_], a
-	pop  hl
-	dec  de
-	dec  hl
-	dec  b
-	jr   nz, _LABEL_AA6B_
-	ld   a, [_RAM_C47A_]
-	ld   l, a
-	ld   a, [_RAM_C47B_]
-	ld   h, a
-	ld   [hl], c
-	ld   a, c
-	or   a
-	ret  z
-	ld   a, [_RAM_C41B_]
-	inc  a
-	ld   [_RAM_C41B_], a
-	ret
+    push hl
+    push af
+    ld   a, [_RAM_C47A_]
+    ld   l, a
+    ld   a, [_RAM_C47B_]
+    ld   h, a
+    pop  af
+    ld   [hl], a
+    dec  hl
+    ld   a, l
+    ld   [_RAM_C47A_], a
+    ld   a, h
+    ld   [_RAM_C47B_], a
+    pop  hl
+    dec  de
+    dec  hl
+    dec  b
+    jr   nz, _LABEL_AA6B_
+    ld   a, [_RAM_C47A_]
+    ld   l, a
+    ld   a, [_RAM_C47B_]
+    ld   h, a
+    ld   [hl], c
+    ld   a, c
+    or   a
+    ret  z
+    ld   a, [_RAM_C41B_]
+    inc  a
+    ld   [_RAM_C41B_], a
+    ret
 
 _LABEL_AAA8_:
-	xor  a
-	ld   [_RAM_C475_], a
-	push hl
-	dec  hl
-	ld   b, $0C
+    xor  a
+    ld   [_RAM_C475_], a
+    push hl
+    dec  hl
+    ld   b, $0C
 _LABEL_AAB0_:
-	ld   [hl], $00
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_AAB0_
-	pop  hl
-	push hl
-	inc  hl
-	ld   bc, $0A00
+    ld   [hl], $00
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_AAB0_
+    pop  hl
+    push hl
+    inc  hl
+    ld   bc, $0A00
 _LABEL_AABC_:
-	ld   a, [de]
-	cp   $2D
-	jr   nz, _LABEL_AACA_
-	ld   a, $FF
-	dec  hl
-	dec  hl
-	ldi  [hl], a
-	inc  hl
-	inc  de
-	jr   _LABEL_AABC_
+    ld   a, [de]
+    cp   $2D
+    jr   nz, _LABEL_AACA_
+    ld   a, $FF
+    dec  hl
+    dec  hl
+    ldi  [hl], a
+    inc  hl
+    inc  de
+    jr   _LABEL_AABC_
 
 _LABEL_AACA_:
-	or   a
-	jr   z, _LABEL_AB0E_
-	cp   $2E
-	jr   z, _LABEL_AAF5_
-	cp   $20
-	jr   z, _LABEL_AAD9_
-	cp   $30
-	jr   nz, _LABEL_AADC_
+    or   a
+    jr   z, _LABEL_AB0E_
+    cp   $2E
+    jr   z, _LABEL_AAF5_
+    cp   $20
+    jr   z, _LABEL_AAD9_
+    cp   $30
+    jr   nz, _LABEL_AADC_
 _LABEL_AAD9_:
-	inc  de
-	jr   _LABEL_AABC_
+    inc  de
+    jr   _LABEL_AABC_
 
 _LABEL_AADC_:
-	sub  $30
-	dec  b
-	ldi  [hl], a
-	inc  c
-	inc  de
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_AB0E_
-	cp   $2E
-	jr   nz, _LABEL_AADC_
+    sub  $30
+    dec  b
+    ldi  [hl], a
+    inc  c
+    inc  de
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_AB0E_
+    cp   $2E
+    jr   nz, _LABEL_AADC_
 _LABEL_AAEA_:
-	inc  de
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_AB0E_
-	sub  $30
-	dec  b
-	ldi  [hl], a
-	jr   _LABEL_AAEA_
+    inc  de
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_AB0E_
+    sub  $30
+    dec  b
+    ldi  [hl], a
+    jr   _LABEL_AAEA_
 
 _LABEL_AAF5_:
-	inc  de
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_AAFE_
-	ld   c, $00
-	jr   _LABEL_AB0E_
+    inc  de
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_AAFE_
+    ld   c, $00
+    jr   _LABEL_AB0E_
 
 _LABEL_AAFE_:
-	cp   $30
-	jr   nz, _LABEL_AB05_
-	dec  c
-	jr   _LABEL_AAF5_
+    cp   $30
+    jr   nz, _LABEL_AB05_
+    dec  c
+    jr   _LABEL_AAF5_
 
 _LABEL_AB05_:
-	sub  $30
-	dec  b
-	ldi  [hl], a
-	inc  de
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_AB05_
+    sub  $30
+    dec  b
+    ldi  [hl], a
+    inc  de
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_AB05_
 _LABEL_AB0E_:
-	pop  de
-	ld   a, c
-	ld   [de], a
-	ld   a, b
-	ld   a, b
-	or   a
-	ret  z
-	cp   $0A
-	ret  z
-	ld   [_RAM_C478_], a
-	ld   e, l
-	ld   d, h
-	ld   a, b
-	add  e
-	ld   e, a
-	ld   a, $00
-	adc  d
-	ld   d, a
-	ld   a, $0A
-	sub  b
-	ld   b, a
-	dec  hl
-	dec  de
-	push de
+    pop  de
+    ld   a, c
+    ld   [de], a
+    ld   a, b
+    ld   a, b
+    or   a
+    ret  z
+    cp   $0A
+    ret  z
+    ld   [_RAM_C478_], a
+    ld   e, l
+    ld   d, h
+    ld   a, b
+    add  e
+    ld   e, a
+    ld   a, $00
+    adc  d
+    ld   d, a
+    ld   a, $0A
+    sub  b
+    ld   b, a
+    dec  hl
+    dec  de
+    push de
 _LABEL_AB2B_:
-	ld   a, [hl]
-	ld   [de], a
-	xor  a
-	ldd  [hl], a
-	dec  de
-	dec  b
-	jr   nz, _LABEL_AB2B_
-	ld   a, c
-	or   a
-	jr   z, _LABEL_AB3D_
-	bit  7, a
-	jr   nz, _LABEL_AB3D_
-	jr   _LABEL_AB51_
+    ld   a, [hl]
+    ld   [de], a
+    xor  a
+    ldd  [hl], a
+    dec  de
+    dec  b
+    jr   nz, _LABEL_AB2B_
+    ld   a, c
+    or   a
+    jr   z, _LABEL_AB3D_
+    bit  7, a
+    jr   nz, _LABEL_AB3D_
+    jr   _LABEL_AB51_
 
 _LABEL_AB3D_:
-	pop  de
-	ld   a, [de]
-	or   a
-	ret  nz
-	push de
-	ld   h, d
-	ld   l, e
-	dec  hl
-	ld   b, $09
+    pop  de
+    ld   a, [de]
+    or   a
+    ret  nz
+    push de
+    ld   h, d
+    ld   l, e
+    dec  hl
+    ld   b, $09
 _LABEL_AB47_:
-	ld   a, [hl]
-	ld   [de], a
-	dec  de
-	xor  a
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_AB47_
-	jr   _LABEL_AB3D_
+    ld   a, [hl]
+    ld   [de], a
+    dec  de
+    xor  a
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_AB47_
+    jr   _LABEL_AB3D_
 
 _LABEL_AB51_:
-	ld   a, [_RAM_C478_]
-	ld   b, a
-	ld   a, $0B
-	sub  b
-	sub  c
-	jr   nz, _LABEL_AB5D_
-	pop  de
-	ret
+    ld   a, [_RAM_C478_]
+    ld   b, a
+    ld   a, $0B
+    sub  b
+    sub  c
+    jr   nz, _LABEL_AB5D_
+    pop  de
+    ret
 
 _LABEL_AB5D_:
-	ld   c, a
+    ld   c, a
 _LABEL_AB5E_:
-	pop  de
-	ld   a, [de]
-	or   a
-	ret  nz
-	dec  c
-	ret  z
-	push de
-	ld   h, d
-	ld   l, e
-	dec  hl
-	ld   b, $09
+    pop  de
+    ld   a, [de]
+    or   a
+    ret  nz
+    dec  c
+    ret  z
+    push de
+    ld   h, d
+    ld   l, e
+    dec  hl
+    ld   b, $09
 _LABEL_AB6A_:
-	ld   a, [hl]
-	ld   [de], a
-	dec  de
-	xor  a
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_AB6A_
-	jr   _LABEL_AB5E_
+    ld   a, [hl]
+    ld   [de], a
+    dec  de
+    xor  a
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_AB6A_
+    jr   _LABEL_AB5E_
 
 _LABEL_AB74_:
-	ld   hl, _RAM_C41C_
-	ld   c, $0B
+    ld   hl, _RAM_C41C_
+    ld   c, $0B
 _LABEL_AB79_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_AB83_
-	dec  c
-	jr   nz, _LABEL_AB79_
-	ld   [_RAM_C41A_], a
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_AB83_
+    dec  c
+    jr   nz, _LABEL_AB79_
+    ld   [_RAM_C41A_], a
 _LABEL_AB83_:
-	ld   a, [_RAM_C41B_]
-	bit  7, a
-	jr   nz, _LABEL_AB91_
-	cp   $0B
-	jr   c, _LABEL_AB9B_
-	jp   _LABEL_BDF0_
+    ld   a, [_RAM_C41B_]
+    bit  7, a
+    jr   nz, _LABEL_AB91_
+    cp   $0B
+    jr   c, _LABEL_AB9B_
+    jp   _LABEL_BDF0_
 
 _LABEL_AB91_:
-	ld   c, a
-	xor  a
-	sub  c
-	cp   $08
-	jr   c, _LABEL_AB9B_
-	jp   _LABEL_BDF0_
+    ld   c, a
+    xor  a
+    sub  c
+    cp   $08
+    jr   c, _LABEL_AB9B_
+    jp   _LABEL_BDF0_
 
 _LABEL_AB9B_:
-	ld   hl, _RAM_C455_
-	ld   b, $10
-	ld   a, $30
+    ld   hl, _RAM_C455_
+    ld   b, $10
+    ld   a, $30
 _LABEL_ABA2_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_ABA2_
-	ld   [hl], b
-	ld   a, [_RAM_C41B_]
-	or   a
-	jr   z, _LABEL_ABDD_
-	bit  7, a
-	jr   nz, _LABEL_ABDD_
-	ld   b, a
-	ld   hl, _RAM_C455_
-	ld   a, [_RAM_C41A_]
-	inc  a
-	jr   nz, _LABEL_ABBE_
-	ld   [hl], $2D
-	inc  hl
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_ABA2_
+    ld   [hl], b
+    ld   a, [_RAM_C41B_]
+    or   a
+    jr   z, _LABEL_ABDD_
+    bit  7, a
+    jr   nz, _LABEL_ABDD_
+    ld   b, a
+    ld   hl, _RAM_C455_
+    ld   a, [_RAM_C41A_]
+    inc  a
+    jr   nz, _LABEL_ABBE_
+    ld   [hl], $2D
+    inc  hl
 _LABEL_ABBE_:
-	ld   de, _RAM_C41C_
-	ld   c, $0B
+    ld   de, _RAM_C41C_
+    ld   c, $0B
 _LABEL_ABC3_:
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_ABCD_
-	inc  de
-	dec  c
-	jr   nz, _LABEL_ABC3_
-	jr   _LABEL_AC12_
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_ABCD_
+    inc  de
+    dec  c
+    jr   nz, _LABEL_ABC3_
+    jr   _LABEL_AC12_
 
 _LABEL_ABCD_:
-	ld   a, [de]
-	add  $30
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_ABD7_
-	ld   [hl], $2E
-	inc  hl
+    ld   a, [de]
+    add  $30
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_ABD7_
+    ld   [hl], $2E
+    inc  hl
 _LABEL_ABD7_:
-	inc  de
-	dec  c
-	jr   nz, _LABEL_ABCD_
-	jr   _LABEL_AC12_
+    inc  de
+    dec  c
+    jr   nz, _LABEL_ABCD_
+    jr   _LABEL_AC12_
 
 _LABEL_ABDD_:
-	ld   c, a
-	ld   hl, _RAM_C455_
-	ld   a, [_RAM_C41A_]
-	inc  a
-	jr   nz, _LABEL_ABEA_
-	ld   [hl], $2D
-	inc  hl
+    ld   c, a
+    ld   hl, _RAM_C455_
+    ld   a, [_RAM_C41A_]
+    inc  a
+    jr   nz, _LABEL_ABEA_
+    ld   [hl], $2D
+    inc  hl
 _LABEL_ABEA_:
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $2E
-	inc  hl
-	xor  a
-	sub  c
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $2E
+    inc  hl
+    xor  a
+    sub  c
 _LABEL_ABF2_:
-	or   a
-	jr   z, _LABEL_ABFB_
-	ld   [hl], $30
-	inc  hl
-	dec  a
-	jr   _LABEL_ABF2_
+    or   a
+    jr   z, _LABEL_ABFB_
+    ld   [hl], $30
+    inc  hl
+    dec  a
+    jr   _LABEL_ABF2_
 
 _LABEL_ABFB_:
-	ld   de, _RAM_C41C_
-	ld   b, $0B
+    ld   de, _RAM_C41C_
+    ld   b, $0B
 _LABEL_AC00_:
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_AC0A_
-	inc  de
-	dec  b
-	jr   nz, _LABEL_AC00_
-	jr   _LABEL_AC12_
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_AC0A_
+    inc  de
+    dec  b
+    jr   nz, _LABEL_AC00_
+    jr   _LABEL_AC12_
 
 _LABEL_AC0A_:
-	ld   a, [de]
-	add  $30
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_AC0A_
+    ld   a, [de]
+    add  $30
+    ldi  [hl], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_AC0A_
 _LABEL_AC12_:
-	ld   hl, _RAM_C455_
-	ld   b, $10
+    ld   hl, _RAM_C455_
+    ld   b, $10
 _LABEL_AC17_:
-	ldi  a, [hl]
-	cp   $2E
-	jr   z, _LABEL_AC2E_
-	dec  b
-	jr   nz, _LABEL_AC17_
-	ld   hl, _RAM_C455_
-	ld   b, $10
+    ldi  a, [hl]
+    cp   $2E
+    jr   z, _LABEL_AC2E_
+    dec  b
+    jr   nz, _LABEL_AC17_
+    ld   hl, _RAM_C455_
+    ld   b, $10
 _LABEL_AC24_:
-	ldi  a, [hl]
-	cp   $30
-	jr   nz, _LABEL_AC45_
-	dec  b
-	jr   nz, _LABEL_AC24_
-	jr   _LABEL_AC45_
+    ldi  a, [hl]
+    cp   $30
+    jr   nz, _LABEL_AC45_
+    dec  b
+    jr   nz, _LABEL_AC24_
+    jr   _LABEL_AC45_
 
 _LABEL_AC2E_:
-	ld   hl, _RAM_C464_
-	ld   b, $10
+    ld   hl, _RAM_C464_
+    ld   b, $10
 _LABEL_AC33_:
-	ld   a, [hl]
-	cp   $2E
-	jr   z, _LABEL_AC43_
-	cp   $30
-	jr   nz, _LABEL_AC42_
-	dec  hl
-	dec  b
-	jr   nz, _LABEL_AC33_
-	jr   _LABEL_AC45_
+    ld   a, [hl]
+    cp   $2E
+    jr   z, _LABEL_AC43_
+    cp   $30
+    jr   nz, _LABEL_AC42_
+    dec  hl
+    dec  b
+    jr   nz, _LABEL_AC33_
+    jr   _LABEL_AC45_
 
 _LABEL_AC42_:
-	inc  hl
+    inc  hl
 _LABEL_AC43_:
-	xor  a
-	ld   [hl], a
+    xor  a
+    ld   [hl], a
 _LABEL_AC45_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   b, $00
-	ld   hl, _RAM_C455_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   b, $00
+    ld   hl, _RAM_C455_
 _LABEL_AC4B_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_AC52_
-	inc  b
-	jr   _LABEL_AC4B_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_AC52_
+    inc  b
+    jr   _LABEL_AC4B_
 
 _LABEL_AC52_:
-	ld   a, b
-	cp   $0C
-	jr   c, _LABEL_AC59_
-	ld   b, $0B
+    ld   a, b
+    cp   $0C
+    jr   c, _LABEL_AC59_
+    ld   b, $0B
 _LABEL_AC59_:
-	ld   hl, _RAM_C466_
-	ld   a, $0B
-	sub  b
-	jr   z, _LABEL_AC68_
-	ld   c, a
-	ld   a, $20
+    ld   hl, _RAM_C466_
+    ld   a, $0B
+    sub  b
+    jr   z, _LABEL_AC68_
+    ld   c, a
+    ld   a, $20
 _LABEL_AC64_:
-	ldi  [hl], a
-	dec  c
-	jr   nz, _LABEL_AC64_
+    ldi  [hl], a
+    dec  c
+    jr   nz, _LABEL_AC64_
 _LABEL_AC68_:
-	ld   de, _RAM_C455_
+    ld   de, _RAM_C455_
 _LABEL_AC6B_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_AC6B_
-	ld   a, [_RAM_C470_]
-	cp   $2E
-	jr   nz, _LABEL_AC89_
-	ld   hl, _RAM_C470_
-	ld   de, _RAM_C46F_
-	ld   b, $0A
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_AC6B_
+    ld   a, [_RAM_C470_]
+    cp   $2E
+    jr   nz, _LABEL_AC89_
+    ld   hl, _RAM_C470_
+    ld   de, _RAM_C46F_
+    ld   b, $0A
 _LABEL_AC80_:
-	ld   a, [de]
-	ldd  [hl], a
-	dec  de
-	dec  b
-	jr   nz, _LABEL_AC80_
-	ld   a, $20
-	ld   [hl], a
+    ld   a, [de]
+    ldd  [hl], a
+    dec  de
+    dec  b
+    jr   nz, _LABEL_AC80_
+    ld   a, $20
+    ld   [hl], a
 _LABEL_AC89_:
-	ld   hl, _RAM_C455_
-	ld   de, _RAM_C3E0_
-	ld   b, $0B
+    ld   hl, _RAM_C455_
+    ld   de, _RAM_C3E0_
+    ld   b, $0B
 _LABEL_AC91_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_AC91_
-	ld   de, _RAM_C3E0_
-	ld   hl, $C3F9
-	jp   _LABEL_AAA8_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_AC91_
+    ld   de, _RAM_C3E0_
+    ld   hl, $C3F9
+    jp   _LABEL_AAA8_
 
 _LABEL_ACA0_:
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, $01
-	ld   [_RAM_C58D_], a
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, $01
+    ld   [_RAM_C58D_], a
 _LABEL_ACA8_:
-	ld   a, [_RAM_C58D_]
-	ld   hl, _RAM_C56D_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	push af
-	and  $7F
-	ld   [_RAM_C10B_], a
-	call _LABEL_B765_
-	pop  af
-	bit  7, a
-	jr   nz, _LABEL_AD13_
-	dec  a
-	call _LABEL_B4EB_
-	ld   de, _SRAM_238_
-	add  hl, de
-	ld   a, [hl]
-	call util__rr_downshift_A_by_4__2909
-	or   a
-	jr   nz, _LABEL_AD13_
-	ld   de, $2150
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $2150
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0037
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C58D_]
+    ld   hl, _RAM_C56D_
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    push af
+    and  $7F
+    ld   [_RAM_C10B_], a
+    call _LABEL_B765_
+    pop  af
+    bit  7, a
+    jr   nz, _LABEL_AD13_
+    dec  a
+    call _LABEL_B4EB_
+    ld   de, _SRAM_238_
+    add  hl, de
+    ld   a, [hl]
+    call util__rr_downshift_A_by_4__2909
+    or   a
+    jr   nz, _LABEL_AD13_
+    ld   de, $2150
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0037
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_ACE7_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_ACE7_
-	or   a
-	jp   z, _LABEL_AD6E_
-	cp   $4E
-	jr   z, _LABEL_AD13_
-	push af
-	ld   a, [_RAM_C232_]
-	ld   d, $00
-	ld   e, a
-	ld   hl, $1071
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   nz, _LABEL_ACE7_
-	ld   a, [_RAM_C58D_]
-	ld   hl, _RAM_C56D_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	or   $80
-	ld   [hl], a
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_ACE7_
+    or   a
+    jp   z, _LABEL_AD6E_
+    cp   $4E
+    jr   z, _LABEL_AD13_
+    push af
+    ld   a, [_RAM_C232_]
+    ld   d, $00
+    ld   e, a
+    ld   hl, $1071
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   nz, _LABEL_ACE7_
+    ld   a, [_RAM_C58D_]
+    ld   hl, _RAM_C56D_
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    or   $80
+    ld   [hl], a
 _LABEL_AD13_:
-	ld   de, $2150
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0002
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_B7F7_
-	ld   de, $0039
-	ld   hl, $9A21
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0002
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_B7F7_
+    ld   de, $0039
+    ld   hl, $9A21
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_AD2B_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_AD2B_
-	or   a
-	jr   z, _LABEL_AD6E_
-	push af
-	ld   a, [_RAM_C232_]
-	ld   e, a
-	add  a
-	add  e
-	ld   e, a
-	ld   d, $00
-	ld   hl, $1062
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   z, _LABEL_AD4F_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_AD60_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_AD6E_
-	jr   _LABEL_AD2B_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_AD2B_
+    or   a
+    jr   z, _LABEL_AD6E_
+    push af
+    ld   a, [_RAM_C232_]
+    ld   e, a
+    add  a
+    add  e
+    ld   e, a
+    ld   d, $00
+    ld   hl, $1062
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   z, _LABEL_AD4F_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_AD60_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_AD6E_
+    jr   _LABEL_AD2B_
 
 _LABEL_AD4F_:
-	ld   a, [_RAM_C58C_]
-	ld   c, a
-	ld   a, [_RAM_C58D_]
-	cp   c
-	jr   z, _LABEL_AD2B_
-	inc  a
-	ld   [_RAM_C58D_], a
-	jp   _LABEL_ACA8_
+    ld   a, [_RAM_C58C_]
+    ld   c, a
+    ld   a, [_RAM_C58D_]
+    cp   c
+    jr   z, _LABEL_AD2B_
+    inc  a
+    ld   [_RAM_C58D_], a
+    jp   _LABEL_ACA8_
 
 _LABEL_AD60_:
-	ld   a, [_RAM_C58D_]
-	cp   $01
-	jr   z, _LABEL_AD2B_
-	dec  a
-	ld   [_RAM_C58D_], a
-	jp   _LABEL_ACA8_
+    ld   a, [_RAM_C58D_]
+    cp   $01
+    jr   z, _LABEL_AD2B_
+    dec  a
+    ld   [_RAM_C58D_], a
+    jp   _LABEL_ACA8_
 
 _LABEL_AD6E_:
-	ld   hl, _RAM_C56D_
-	ld   a, [_RAM_C58C_]
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [_RAM_C58C_]
+    ld   hl, _RAM_C56D_
+    ld   a, [_RAM_C58C_]
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [_RAM_C58C_]
 _LABEL_AD7D_:
-	push af
-	ldd  a, [hl]
-	bit  7, a
-	jr   z, _LABEL_ADC6_
-	push hl
-	and  $7F
-	ld   [_RAM_C10B_], a
-	dec  a
-	add  a
-	ld   e, a
-	ld   d, $00
-	ld   h, d
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, de
-	ld   de, $A233
-	add  hl, de
-	ld   a, [_RAM_C10B_]
-	ld   c, a
-	ld   a, $1E
-	sub  c
-	jr   z, _LABEL_ADC1_
-	push hl
-	ld   de, $0042
-	ld   hl, $0000
+    push af
+    ldd  a, [hl]
+    bit  7, a
+    jr   z, _LABEL_ADC6_
+    push hl
+    and  $7F
+    ld   [_RAM_C10B_], a
+    dec  a
+    add  a
+    ld   e, a
+    ld   d, $00
+    ld   h, d
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, de
+    ld   de, $A233
+    add  hl, de
+    ld   a, [_RAM_C10B_]
+    ld   c, a
+    ld   a, $1E
+    sub  c
+    jr   z, _LABEL_ADC1_
+    push hl
+    ld   de, $0042
+    ld   hl, $0000
 _LABEL_ADAA_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_ADAA_
-	ld   b, h
-	ld   c, l
-	pop  hl
-	push hl
-	ld   de, $0042
-	add  hl, de
-	ld   d, h
-	ld   e, l
-	pop  hl
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_ADAA_
+    ld   b, h
+    ld   c, l
+    pop  hl
+    push hl
+    ld   de, $0042
+    add  hl, de
+    ld   d, h
+    ld   e, l
+    pop  hl
 _LABEL_ADB9_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_ADB9_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_ADB9_
 _LABEL_ADC1_:
-	ld   hl, _SRAM_231_
-	dec  [hl]
-	pop  hl
+    ld   hl, _SRAM_231_
+    dec  [hl]
+    pop  hl
 _LABEL_ADC6_:
-	pop  af
-	dec  a
-	jr   nz, _LABEL_AD7D_
-	ld   a, [_SRAM_231_]
-	or   a
-	jr   nz, _LABEL_ADD4_
-	ld   [_RAM_C10B_], a
-	ret
+    pop  af
+    dec  a
+    jr   nz, _LABEL_AD7D_
+    ld   a, [_SRAM_231_]
+    or   a
+    jr   nz, _LABEL_ADD4_
+    ld   [_RAM_C10B_], a
+    ret
 
 _LABEL_ADD4_:
-	ld   a, $01
-	ld   [_RAM_C10B_], a
-	ret
+    ld   a, $01
+    ld   [_RAM_C10B_], a
+    ret
 
 _LABEL_ADDA_:
-	xor  a
-	ld   [_RAM_C58F_], a
-	ld   a, [_SRAM_231_]
-	ld   hl, _SRAM_233_
+    xor  a
+    ld   [_RAM_C58F_], a
+    ld   a, [_SRAM_231_]
+    ld   hl, _SRAM_233_
 _LABEL_ADE4_:
-	push af
-	push hl
-	ld   a, [_RAM_C58F_]
-	inc  a
-	ld   [_RAM_C58F_], a
-	ldi  a, [hl]
-	ld   b, a
-	ldi  a, [hl]
-	ld   c, a
-	ldi  a, [hl]
-	ld   d, a
-	inc  hl
-	call _LABEL_AE77_
-	or   a
-	jr   nz, _LABEL_AE22_
-	inc  hl
-	ld   a, [hl]
-	call util__rr_downshift_A_by_4__2909
-	or   a
-	jr   z, _LABEL_AE6C_
-	push af
-	xor  a
-	ld   [_RAM_C58E_], a
-	pop  af
-	inc  a
+    push af
+    push hl
+    ld   a, [_RAM_C58F_]
+    inc  a
+    ld   [_RAM_C58F_], a
+    ldi  a, [hl]
+    ld   b, a
+    ldi  a, [hl]
+    ld   c, a
+    ldi  a, [hl]
+    ld   d, a
+    inc  hl
+    call _LABEL_AE77_
+    or   a
+    jr   nz, _LABEL_AE22_
+    inc  hl
+    ld   a, [hl]
+    call util__rr_downshift_A_by_4__2909
+    or   a
+    jr   z, _LABEL_AE6C_
+    push af
+    xor  a
+    ld   [_RAM_C58E_], a
+    pop  af
+    inc  a
 _LABEL_AE09_:
-	push af
-	call _LABEL_AEAE_
-	or   a
-	jr   z, _LABEL_AE2C_
-	ld   hl, _RAM_C58E_
-	inc  [hl]
-	push bc
-	push de
-	call _LABEL_AED1_
-	pop  de
-	pop  bc
-	pop  af
-	dec  a
-	jr   nz, _LABEL_AE09_
-	call _LABEL_AE5E_
+    push af
+    call _LABEL_AEAE_
+    or   a
+    jr   z, _LABEL_AE2C_
+    ld   hl, _RAM_C58E_
+    inc  [hl]
+    push bc
+    push de
+    call _LABEL_AED1_
+    pop  de
+    pop  bc
+    pop  af
+    dec  a
+    jr   nz, _LABEL_AE09_
+    call _LABEL_AE5E_
 _LABEL_AE22_:
-	pop  hl
-	pop  af
-	ld   bc, $0042
-	add  hl, bc
-	dec  a
-	jr   nz, _LABEL_ADE4_
-	ret
+    pop  hl
+    pop  af
+    ld   bc, $0042
+    add  hl, bc
+    dec  a
+    jr   nz, _LABEL_ADE4_
+    ret
 
 _LABEL_AE2C_:
-	call _LABEL_AE5E_
-	pop  af
+    call _LABEL_AE5E_
+    pop  af
 _LABEL_AE30_:
-	pop  hl
-	ld   a, [_RAM_C58E_]
-	add  a
-	add  a
-	add  a
-	add  a
-	ld   bc, $0005
-	add  hl, bc
-	ld   c, a
-	ld   a, [hl]
-	and  $0F
-	add  c
-	ld   [hl], a
-	ld   bc, $FFFB
-	add  hl, bc
-	ld   a, [_RAM_C58C_]
-	inc  a
-	ld   [_RAM_C58C_], a
-	dec  a
-	ld   de, $C56E
-	add  e
-	ld   e, a
-	ld   a, $00
-	adc  d
-	ld   d, a
-	ld   a, [_RAM_C58F_]
-	ld   [de], a
-	push hl
-	jr   _LABEL_AE22_
+    pop  hl
+    ld   a, [_RAM_C58E_]
+    add  a
+    add  a
+    add  a
+    add  a
+    ld   bc, $0005
+    add  hl, bc
+    ld   c, a
+    ld   a, [hl]
+    and  $0F
+    add  c
+    ld   [hl], a
+    ld   bc, $FFFB
+    add  hl, bc
+    ld   a, [_RAM_C58C_]
+    inc  a
+    ld   [_RAM_C58C_], a
+    dec  a
+    ld   de, $C56E
+    add  e
+    ld   e, a
+    ld   a, $00
+    adc  d
+    ld   d, a
+    ld   a, [_RAM_C58F_]
+    ld   [de], a
+    push hl
+    jr   _LABEL_AE22_
 
 _LABEL_AE5E_:
-	ld   a, [_RAM_C58E_]
-	or   a
-	ret  z
+    ld   a, [_RAM_C58E_]
+    or   a
+    ret  z
 _LABEL_AE63_:
-	push af
-	call _LABEL_AFDF_
-	pop  af
-	dec  a
-	jr   nz, _LABEL_AE63_
-	ret
+    push af
+    call _LABEL_AFDF_
+    pop  af
+    dec  a
+    jr   nz, _LABEL_AE63_
+    ret
 
 _LABEL_AE6C_:
-	call _LABEL_AEAE_
-	or   a
-	jr   nz, _LABEL_AE22_
-	ld   [_RAM_C58E_], a
-	jr   _LABEL_AE30_
+    call _LABEL_AEAE_
+    or   a
+    jr   nz, _LABEL_AE22_
+    ld   [_RAM_C58E_], a
+    jr   _LABEL_AE30_
 
 _LABEL_AE77_:
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	cp   d
-	jr   c, _LABEL_AE8F_
-	jr   nz, _LABEL_AE91_
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	cp   c
-	jr   c, _LABEL_AE8F_
-	jr   nz, _LABEL_AE91_
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	cp   b
-	jr   z, _LABEL_AE8F_
-	jr   nc, _LABEL_AE91_
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    cp   d
+    jr   c, _LABEL_AE8F_
+    jr   nz, _LABEL_AE91_
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    cp   c
+    jr   c, _LABEL_AE8F_
+    jr   nz, _LABEL_AE91_
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    cp   b
+    jr   z, _LABEL_AE8F_
+    jr   nc, _LABEL_AE91_
 _LABEL_AE8F_:
-	xor  a
-	ret
+    xor  a
+    ret
 
 _LABEL_AE91_:
-	inc  hl
-	ld   a, [hl]
-	and  $0F
-	ld   [hl], a
-	ld   a, [_RAM_C58C_]
-	inc  a
-	ld   [_RAM_C58C_], a
-	dec  a
-	ld   de, $C56E
-	add  e
-	ld   e, a
-	ld   a, $00
-	adc  d
-	ld   d, a
-	ld   a, [_RAM_C58F_]
-	or   $80
-	ld   [de], a
-	ret
+    inc  hl
+    ld   a, [hl]
+    and  $0F
+    ld   [hl], a
+    ld   a, [_RAM_C58C_]
+    inc  a
+    ld   [_RAM_C58C_], a
+    dec  a
+    ld   de, $C56E
+    add  e
+    ld   e, a
+    ld   a, $00
+    adc  d
+    ld   d, a
+    ld   a, [_RAM_C58F_]
+    or   $80
+    ld   [de], a
+    ret
 
 _LABEL_AEAE_:
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	cp   b
-	jr   nz, _LABEL_AEC2_
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	cp   c
-	jr   nz, _LABEL_AEC2_
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	cp   d
-	jr   nz, _LABEL_AEC2_
-	xor  a
-	ret
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    cp   b
+    jr   nz, _LABEL_AEC2_
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    cp   c
+    jr   nz, _LABEL_AEC2_
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    cp   d
+    jr   nz, _LABEL_AEC2_
+    xor  a
+    ret
 
 _LABEL_AEC2_:
-	ld   a, $01
-	ret
+    ld   a, $01
+    ret
 
 ; Data from AEC5 to AED0 (12 bytes)
 _DATA_AEC5_:
 db $1F, $1C, $1F, $1E, $1F, $1E, $1F, $1F, $1E, $1F, $1E, $1F
 
 _LABEL_AED1_:
-	ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
-	inc  a
-	cp   $07
-	jr   nz, _LABEL_AEDA_
-	xor  a
+    ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
+    inc  a
+    cp   $07
+    jr   nz, _LABEL_AEDA_
+    xor  a
 _LABEL_AEDA_:
-	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ld   hl, _DATA_AEC5_ - 1
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	cp   $1C
-	jr   z, _LABEL_AF15_
-	ld   c, a
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	inc  a
-	inc  c
-	cp   c
-	jr   z, _LABEL_AEFB_
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret
+    ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ld   hl, _DATA_AEC5_ - 1
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    cp   $1C
+    jr   z, _LABEL_AF15_
+    ld   c, a
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    inc  a
+    inc  c
+    cp   c
+    jr   z, _LABEL_AEFB_
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret
 
 _LABEL_AEFB_:
-	ld   a, $01
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	inc  a
-	cp   $0D
-	jr   nz, _LABEL_AF11_
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	inc  a
-	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
-	ld   a, $01
+    ld   a, $01
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    inc  a
+    cp   $0D
+    jr   nz, _LABEL_AF11_
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    inc  a
+    ld   [date__year__digit_decimal__maybe__RAM_C13A], a
+    ld   a, $01
 _LABEL_AF11_:
-	ld   [date__month__decimal__maybe__RAM_C138], a
-	ret
+    ld   [date__month__decimal__maybe__RAM_C138], a
+    ret
 
 _LABEL_AF15_:
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	inc  a
-	cp   $1E
-	jr   z, _LABEL_AEFB_
-	cp   $1D
-	jr   z, _LABEL_AF25_
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    inc  a
+    cp   $1E
+    jr   z, _LABEL_AEFB_
+    cp   $1D
+    jr   z, _LABEL_AF25_
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret
 
 _LABEL_AF25_:
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	and  $03
-	jr   nz, _LABEL_AEFB_
-	ld   a, $1D
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    and  $03
+    jr   nz, _LABEL_AEFB_
+    ld   a, $1D
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret
 
 _LABEL_AF32_:
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	inc  a
-	cp   $07
-	jr   nz, _LABEL_AF3B_
-	xor  a
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    inc  a
+    cp   $07
+    jr   nz, _LABEL_AF3B_
+    xor  a
 _LABEL_AF3B_:
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	ld   a, [_RAM_C154_]
-	ld   hl, _DATA_AEC5_ - 1
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	cp   $1C
-	jr   z, _LABEL_AF76_
-	ld   c, a
-	ld   a, [_RAM_C152_]
-	inc  a
-	inc  c
-	cp   c
-	jr   z, _LABEL_AF5C_
-	ld   [_RAM_C152_], a
-	ret
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   a, [_RAM_C154_]
+    ld   hl, _DATA_AEC5_ - 1
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    cp   $1C
+    jr   z, _LABEL_AF76_
+    ld   c, a
+    ld   a, [_RAM_C152_]
+    inc  a
+    inc  c
+    cp   c
+    jr   z, _LABEL_AF5C_
+    ld   [_RAM_C152_], a
+    ret
 
 _LABEL_AF5C_:
-	ld   a, $01
-	ld   [_RAM_C152_], a
-	ld   a, [_RAM_C154_]
-	inc  a
-	cp   $0D
-	jr   nz, _LABEL_AF72_
-	ld   a, [_RAM_C155_]
-	inc  a
-	ld   [_RAM_C155_], a
-	ld   a, $01
+    ld   a, $01
+    ld   [_RAM_C152_], a
+    ld   a, [_RAM_C154_]
+    inc  a
+    cp   $0D
+    jr   nz, _LABEL_AF72_
+    ld   a, [_RAM_C155_]
+    inc  a
+    ld   [_RAM_C155_], a
+    ld   a, $01
 _LABEL_AF72_:
-	ld   [_RAM_C154_], a
-	ret
+    ld   [_RAM_C154_], a
+    ret
 
 _LABEL_AF76_:
-	ld   a, [_RAM_C152_]
-	inc  a
-	cp   $1E
-	jr   z, _LABEL_AF5C_
-	cp   $1D
-	jr   z, _LABEL_AF86_
-	ld   [_RAM_C152_], a
-	ret
+    ld   a, [_RAM_C152_]
+    inc  a
+    cp   $1E
+    jr   z, _LABEL_AF5C_
+    cp   $1D
+    jr   z, _LABEL_AF86_
+    ld   [_RAM_C152_], a
+    ret
 
 _LABEL_AF86_:
-	ld   a, [_RAM_C155_]
-	and  $03
-	jr   nz, _LABEL_AF5C_
-	ld   a, $1D
-	ld   [_RAM_C152_], a
-	ret
+    ld   a, [_RAM_C155_]
+    and  $03
+    jr   nz, _LABEL_AF5C_
+    ld   a, $1D
+    ld   [_RAM_C152_], a
+    ret
 
 _LABEL_AF93_:
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_AF9D_
-	ld   a, $06
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    dec  a
+    cp   $FF
+    jr   nz, _LABEL_AF9D_
+    ld   a, $06
 _LABEL_AF9D_:
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	ld   a, [_RAM_C152_]
-	dec  a
-	ld   [_RAM_C152_], a
-	ret  nz
-	ld   a, [_RAM_C154_]
-	dec  a
-	jr   nz, _LABEL_AFB7_
-	ld   a, [_RAM_C155_]
-	dec  a
-	ld   [_RAM_C155_], a
-	ld   a, $0C
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ld   a, [_RAM_C152_]
+    dec  a
+    ld   [_RAM_C152_], a
+    ret  nz
+    ld   a, [_RAM_C154_]
+    dec  a
+    jr   nz, _LABEL_AFB7_
+    ld   a, [_RAM_C155_]
+    dec  a
+    ld   [_RAM_C155_], a
+    ld   a, $0C
 _LABEL_AFB7_:
-	ld   [_RAM_C154_], a
-	ld   hl, _DATA_AEC5_ - 1
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	cp   $1C
-	jr   z, _LABEL_AFCC_
-	ld   [_RAM_C152_], a
-	ret
+    ld   [_RAM_C154_], a
+    ld   hl, _DATA_AEC5_ - 1
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    cp   $1C
+    jr   z, _LABEL_AFCC_
+    ld   [_RAM_C152_], a
+    ret
 
 _LABEL_AFCC_:
-	ld   a, [_RAM_C155_]
-	and  $03
-	jr   z, _LABEL_AFD9_
-	ld   a, $1C
-	ld   [_RAM_C152_], a
-	ret
+    ld   a, [_RAM_C155_]
+    and  $03
+    jr   z, _LABEL_AFD9_
+    ld   a, $1C
+    ld   [_RAM_C152_], a
+    ret
 
 _LABEL_AFD9_:
-	ld   a, $1D
-	ld   [_RAM_C152_], a
-	ret
+    ld   a, $1D
+    ld   [_RAM_C152_], a
+    ret
 
 _LABEL_AFDF_:
-	ld   a, [_RAM_C137_]
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_AFE9_
-	ld   a, $06
+    ld   a, [_RAM_C137_]
+    dec  a
+    cp   $FF
+    jr   nz, _LABEL_AFE9_
+    ld   a, $06
 _LABEL_AFE9_:
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	dec  a
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret  nz
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	dec  a
-	jr   nz, _LABEL_B000_
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	dec  a
-	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
-	ld   a, $0C
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    dec  a
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret  nz
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    dec  a
+    jr   nz, _LABEL_B000_
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    dec  a
+    ld   [date__year__digit_decimal__maybe__RAM_C13A], a
+    ld   a, $0C
 _LABEL_B000_:
-	ld   [date__month__decimal__maybe__RAM_C138], a
-	ld   hl, _DATA_AEC5_ - 1
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, [hl]
-	cp   $1C
-	jr   z, _LABEL_B015_
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret
+    ld   [date__month__decimal__maybe__RAM_C138], a
+    ld   hl, _DATA_AEC5_ - 1
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, [hl]
+    cp   $1C
+    jr   z, _LABEL_B015_
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret
 
 _LABEL_B015_:
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	and  $03
-	jr   z, _LABEL_B022_
-	ld   a, $1C
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    and  $03
+    jr   z, _LABEL_B022_
+    ld   a, $1C
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret
 
 _LABEL_B022_:
-	ld   a, $1D
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ret
+    ld   a, $1D
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ret
 
 _LABEL_B028_:
-	ld   de, _RAM_C261_
-	ld   hl, _RAM_C703_
-	call _LABEL_2BA9_
-	call _LABEL_2BA9_
-	dec  hl
-	dec  hl
-	ldi  a, [hl]
-	cp   $18
-	ret  nc
-	ldi  a, [hl]
-	cp   $3C
-	ret  nc
-	xor  a
-	ret
+    ld   de, _RAM_C261_
+    ld   hl, _RAM_C703_
+    call _LABEL_2BA9_
+    call _LABEL_2BA9_
+    dec  hl
+    dec  hl
+    ldi  a, [hl]
+    cp   $18
+    ret  nc
+    ldi  a, [hl]
+    cp   $3C
+    ret  nc
+    xor  a
+    ret
 
 _LABEL_B040_:
-	ld   b, a
-	and  $0C
-	or   a
-	jp   nz, _LABEL_200_
-	ld   a, b
-	and  $03
-	or   a
-	jr   z, _LABEL_B0B2_
-	ld   a, [_RAM_C258_]
-	cp   $28
-	jr   c, _LABEL_B0B2_
-	cp   $73
-	jr   nc, _LABEL_B0B2_
-	sub  $08
-	and  $0F
-	cp   $0B
-	jr   nc, _LABEL_B0B2_
-	ld   a, [_RAM_C259_]
-	cp   $52
-	jr   c, _LABEL_B0B2_
-	cp   $9F
-	jr   nc, _LABEL_B0B2_
-	sub  $02
-	and  $0F
-	cp   $0B
-	jr   nc, _LABEL_B0B2_
-	ld   a, [_RAM_C259_]
-	cp   $94
-	jr   c, _LABEL_B085_
-	ld   a, [_RAM_C258_]
-	cp   $38
-	jr   c, _LABEL_B0B2_
-	cp   $63
-	jr   nc, _LABEL_B0B2_
+    ld   b, a
+    and  $0C
+    or   a
+    jp   nz, _LABEL_200_
+    ld   a, b
+    and  $03
+    or   a
+    jr   z, _LABEL_B0B2_
+    ld   a, [_RAM_C258_]
+    cp   $28
+    jr   c, _LABEL_B0B2_
+    cp   $73
+    jr   nc, _LABEL_B0B2_
+    sub  $08
+    and  $0F
+    cp   $0B
+    jr   nc, _LABEL_B0B2_
+    ld   a, [_RAM_C259_]
+    cp   $52
+    jr   c, _LABEL_B0B2_
+    cp   $9F
+    jr   nc, _LABEL_B0B2_
+    sub  $02
+    and  $0F
+    cp   $0B
+    jr   nc, _LABEL_B0B2_
+    ld   a, [_RAM_C259_]
+    cp   $94
+    jr   c, _LABEL_B085_
+    ld   a, [_RAM_C258_]
+    cp   $38
+    jr   c, _LABEL_B0B2_
+    cp   $63
+    jr   nc, _LABEL_B0B2_
 _LABEL_B085_:
-	ld   a, [_RAM_C25A_]
-	cp   $3A
-	jr   nz, _LABEL_B08F_
-	ld   a, $FF
-	ret
+    ld   a, [_RAM_C25A_]
+    cp   $3A
+    jr   nz, _LABEL_B08F_
+    ld   a, $FF
+    ret
 
 _LABEL_B08F_:
-	inc  a
-	ld   [_RAM_C25A_], a
-	ld   hl, _DATA_B0FA_
-	ld   a, [_RAM_C259_]
-	sub  $52
-	call util__rr_downshift_A_by_4__2909
-	ld   e, a
-	add  a
-	add  a
-	add  e
-	ld   e, a
-	ld   d, $00
-	ld   a, [_RAM_C258_]
-	sub  $28
-	call util__rr_downshift_A_by_4__2909
-	add  e
-	ld   e, a
-	add  hl, de
-	ld   a, [hl]
-	ret
+    inc  a
+    ld   [_RAM_C25A_], a
+    ld   hl, _DATA_B0FA_
+    ld   a, [_RAM_C259_]
+    sub  $52
+    call util__rr_downshift_A_by_4__2909
+    ld   e, a
+    add  a
+    add  a
+    add  e
+    ld   e, a
+    ld   d, $00
+    ld   a, [_RAM_C258_]
+    sub  $28
+    call util__rr_downshift_A_by_4__2909
+    add  e
+    ld   e, a
+    add  hl, de
+    ld   a, [hl]
+    ret
 
 _LABEL_B0B2_:
-	ld   a, $39
-	ld   [_RAM_C25A_], a
-	bit  7, b
-	call nz, _LABEL_B0CE_
-	bit  6, b
-	call nz, _LABEL_B0D9_
-	bit  5, b
-	call nz, _LABEL_B0E4_
-	bit  4, b
-	call nz, _LABEL_B0EF_
-	ld   a, $FF
-	ret
+    ld   a, $39
+    ld   [_RAM_C25A_], a
+    bit  7, b
+    call nz, _LABEL_B0CE_
+    bit  6, b
+    call nz, _LABEL_B0D9_
+    bit  5, b
+    call nz, _LABEL_B0E4_
+    bit  4, b
+    call nz, _LABEL_B0EF_
+    ld   a, $FF
+    ret
 
 _LABEL_B0CE_:
-	ld   a, [_RAM_C259_]
-	inc  a
-	cp   $98
-	ret  z
-	ld   [_RAM_C259_], a
-	ret
+    ld   a, [_RAM_C259_]
+    inc  a
+    cp   $98
+    ret  z
+    ld   [_RAM_C259_], a
+    ret
 
 _LABEL_B0D9_:
-	ld   a, [_RAM_C259_]
-	dec  a
-	cp   $50
-	ret  z
-	ld   [_RAM_C259_], a
-	ret
+    ld   a, [_RAM_C259_]
+    dec  a
+    cp   $50
+    ret  z
+    ld   [_RAM_C259_], a
+    ret
 
 _LABEL_B0E4_:
-	ld   a, [_RAM_C258_]
-	dec  a
-	cp   $08
-	ret  z
-	ld   [_RAM_C258_], a
-	ret
+    ld   a, [_RAM_C258_]
+    dec  a
+    cp   $08
+    ret  z
+    ld   [_RAM_C258_], a
+    ret
 
 _LABEL_B0EF_:
-	ld   a, [_RAM_C258_]
-	inc  a
-	cp   $88
-	ret  z
-	ld   [_RAM_C258_], a
-	ret
+    ld   a, [_RAM_C258_]
+    inc  a
+    cp   $88
+    ret  z
+    ld   [_RAM_C258_], a
+    ret
 
 ; Data from B0FA to B112 (25 bytes)
 _DATA_B0FA_:
@@ -13926,1091 +13926,1091 @@ db $70, $90
 
 _LABEL_B145_:
     ; Return if keyboard is not connected
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; == KYBD_STATUS__NOT_FOUND
-	ret  z
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; == KYBD_STATUS__NOT_FOUND
+    ret  z
 
-	ld   a, [_RAM_C595_]
-	or   a
-	ret  z
-	ld   a, [_RAM_C593_]
-	ld   c, a
-	ld   a, [_RAM_C594_]
-	ld   b, a
-	ld   e, $3B
-	ld   hl, _RAM_C595_
-	dec  [hl]
-	jp   _LABEL_1504_
+    ld   a, [_RAM_C595_]
+    or   a
+    ret  z
+    ld   a, [_RAM_C593_]
+    ld   c, a
+    ld   a, [_RAM_C594_]
+    ld   b, a
+    ld   e, $3B
+    ld   hl, _RAM_C595_
+    dec  [hl]
+    jp   _LABEL_1504_
 
 _LABEL_B160_:
-	ld   de, _RAM_C261_
-	ld   hl, _RAM_C700_
-	call _LABEL_2BA9_
-	call _LABEL_2BA9_
-	call _LABEL_2BA9_
-	call _LABEL_2BA9_
-	push hl
-	call _LABEL_1352_
-	pop  hl
-	dec  hl
-	dec  hl
-	ld   a, [hl]
-	cp   $13
-	jr   z, _LABEL_B18C_
-	ret  c
-	cp   $14
-	jr   z, _LABEL_B18C_
-	cp   $15
-	ret  nz
-	inc  hl
-	ld   a, [hl]
-	cp   $38
-	ret  nc
-	dec  hl
+    ld   de, _RAM_C261_
+    ld   hl, _RAM_C700_
+    call _LABEL_2BA9_
+    call _LABEL_2BA9_
+    call _LABEL_2BA9_
+    call _LABEL_2BA9_
+    push hl
+    call _LABEL_1352_
+    pop  hl
+    dec  hl
+    dec  hl
+    ld   a, [hl]
+    cp   $13
+    jr   z, _LABEL_B18C_
+    ret  c
+    cp   $14
+    jr   z, _LABEL_B18C_
+    cp   $15
+    ret  nz
+    inc  hl
+    ld   a, [hl]
+    cp   $38
+    ret  nc
+    dec  hl
 _LABEL_B18C_:
-	ldi  a, [hl]
-	sub  $13
-	or   a
-	jr   z, _LABEL_B19B_
-	ld   b, a
-	ld   a, $00
-	ld   c, $64
+    ldi  a, [hl]
+    sub  $13
+    or   a
+    jr   z, _LABEL_B19B_
+    ld   b, a
+    ld   a, $00
+    ld   c, $64
 _LABEL_B197_:
-	add  c
-	dec  b
-	jr   nz, _LABEL_B197_
+    add  c
+    dec  b
+    jr   nz, _LABEL_B197_
 _LABEL_B19B_:
-	add  [hl]
-	dec  hl
-	ldd  [hl], a
-	ld   c, a
-	ldd  a, [hl]
-	ld   b, a
-	cp   $0D
-	ret  nc
-	or   a
-	jr   nz, _LABEL_B1A9_
-	inc  a
-	ret
+    add  [hl]
+    dec  hl
+    ldd  [hl], a
+    ld   c, a
+    ldd  a, [hl]
+    ld   b, a
+    cp   $0D
+    ret  nc
+    or   a
+    jr   nz, _LABEL_B1A9_
+    inc  a
+    ret
 
 _LABEL_B1A9_:
-	ld   de, _DATA_AEC5_ - 1
-	add  e
-	ld   e, a
-	ld   a, d
-	adc  $00
-	ld   d, a
-	ld   a, [de]
-	ld   e, a
-	ld   a, b
-	cp   $01
-	jr   nz, _LABEL_B1BF_
-	ld   a, c
-	and  $03
-	jr   nz, _LABEL_B1BF_
-	inc  e
+    ld   de, _DATA_AEC5_ - 1
+    add  e
+    ld   e, a
+    ld   a, d
+    adc  $00
+    ld   d, a
+    ld   a, [de]
+    ld   e, a
+    ld   a, b
+    cp   $01
+    jr   nz, _LABEL_B1BF_
+    ld   a, c
+    and  $03
+    jr   nz, _LABEL_B1BF_
+    inc  e
 _LABEL_B1BF_:
-	ld   a, [hl]
-	or   a
-	jr   nz, _LABEL_B1C5_
-	inc  a
-	ret
+    ld   a, [hl]
+    or   a
+    jr   nz, _LABEL_B1C5_
+    inc  a
+    ret
 
 _LABEL_B1C5_:
-	inc  e
-	cp   e
-	ret  nc
-	xor  a
-	ret
+    inc  e
+    cp   e
+    ret  nc
+    xor  a
+    ret
 
 _LABEL_B1CA_:
-	ld   a, [_RAM_C10B_]
-	push af
-	ld   a, [_SRAM_231_]
-	inc  a
-	ld   [_RAM_C10B_], a
-	call _LABEL_B7F7_
-	pop  af
-	ld   [_RAM_C10B_], a
-	ld   hl, _RAM_C700_
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ldi  [hl], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ldi  [hl], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ldi  [hl], a
-	xor  a
-	ldi  [hl], a
-	ldi  [hl], a
-	ldi  [hl], a
-	ld   a, $20
-	ld   b, $3C
+    ld   a, [_RAM_C10B_]
+    push af
+    ld   a, [_SRAM_231_]
+    inc  a
+    ld   [_RAM_C10B_], a
+    call _LABEL_B7F7_
+    pop  af
+    ld   [_RAM_C10B_], a
+    ld   hl, _RAM_C700_
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ldi  [hl], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ldi  [hl], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ldi  [hl], a
+    xor  a
+    ldi  [hl], a
+    ldi  [hl], a
+    ldi  [hl], a
+    ld   a, $20
+    ld   b, $3C
 _LABEL_B1F3_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B1F3_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B1F3_
 _LABEL_B1F7_:
-	call _LABEL_24D5_
-	call _LABEL_1563_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
-	ld   hl, _TILEMAP0
-	ld   de, $002C
-	rst  $20	; GFX_COPY_STRING__RST_20
+    call _LABEL_24D5_
+    call _LABEL_1563_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
+    ld   hl, _TILEMAP0
+    ld   de, $002C
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B20C_:
-	ld   hl, _RAM_C700_
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ldi  [hl], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ldi  [hl], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ldi  [hl], a
-	call _LABEL_1352_
-	ld   a, [_RAM_C700_]
-	ld   hl, $C261
-	call _LABEL_2BBA_
-	ld   a, [_RAM_C701_]
-	ld   hl, $C263
-	call _LABEL_2BBA_
-	call _LABEL_1352_
-	ld   hl, _RAM_C265_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $39
-	inc  hl
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $30
-	ld   a, [_RAM_C702_]
-	call _LABEL_235A_
-	ld   a, $10
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $0700
-	ld   de, $2373
-	ld   hl, $C261
-	ld   a, $10
-	call _LABEL_2411_
-	call _LABEL_B160_
-	or   a
-	jr   nz, _LABEL_B20C_
-	ld   de, $2150
-	ld   hl, _TILEMAP0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_B62F_
-	ld   hl, (_TILEMAP0 + $20)
-	ld   de, $002D
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C700_
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ldi  [hl], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ldi  [hl], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ldi  [hl], a
+    call _LABEL_1352_
+    ld   a, [_RAM_C700_]
+    ld   hl, $C261
+    call _LABEL_2BBA_
+    ld   a, [_RAM_C701_]
+    ld   hl, $C263
+    call _LABEL_2BBA_
+    call _LABEL_1352_
+    ld   hl, _RAM_C265_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $39
+    inc  hl
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $30
+    ld   a, [_RAM_C702_]
+    call _LABEL_235A_
+    ld   a, $10
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $0700
+    ld   de, $2373
+    ld   hl, $C261
+    ld   a, $10
+    call _LABEL_2411_
+    call _LABEL_B160_
+    or   a
+    jr   nz, _LABEL_B20C_
+    ld   de, $2150
+    ld   hl, _TILEMAP0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_B62F_
+    ld   hl, (_TILEMAP0 + $20)
+    ld   de, $002D
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B271_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_B271_
-	or   a
-	jp   z, _LABEL_2218_
-	cp   $3D
-	jr   z, _LABEL_B2BF_
-	push af
-	ld   a, [_RAM_C232_]
-	ld   d, $00
-	ld   e, a
-	ld   hl, $63B7
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   nz, _LABEL_B271_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_B271_
+    or   a
+    jp   z, _LABEL_2218_
+    cp   $3D
+    jr   z, _LABEL_B2BF_
+    push af
+    ld   a, [_RAM_C232_]
+    ld   d, $00
+    ld   e, a
+    ld   hl, $63B7
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   nz, _LABEL_B271_
 _LABEL_B28D_:
-	ld   hl, (_TILEMAP0 + $20)
-	ld   de, $2150
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, (_TILEMAP0 + $20)
-	ld   de, $002E
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, _RAM_C261_
-	ld   a, $30
-	ldi  [hl], a
-	ldi  [hl], a
-	ldi  [hl], a
-	ldi  [hl], a
-	ld   a, $11
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $0300
-	ld   de, $2373
-	ld   hl, $C261
-	ld   a, $18
-	call _LABEL_2411_
-	call _LABEL_B028_
-	or   a
-	jr   nz, _LABEL_B28D_
-	jr   _LABEL_B2CD_
+    ld   hl, (_TILEMAP0 + $20)
+    ld   de, $2150
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, (_TILEMAP0 + $20)
+    ld   de, $002E
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C261_
+    ld   a, $30
+    ldi  [hl], a
+    ldi  [hl], a
+    ldi  [hl], a
+    ldi  [hl], a
+    ld   a, $11
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $0300
+    ld   de, $2373
+    ld   hl, $C261
+    ld   a, $18
+    call _LABEL_2411_
+    call _LABEL_B028_
+    or   a
+    jr   nz, _LABEL_B28D_
+    jr   _LABEL_B2CD_
 
 _LABEL_B2BF_:
-	ld   a, $63
-	ld   [_RAM_C703_], a
-	ld   de, $2150
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	jr   _LABEL_B31C_
+    ld   a, $63
+    ld   [_RAM_C703_], a
+    ld   de, $2150
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    jr   _LABEL_B31C_
 
 _LABEL_B2CD_:
-	ld   de, $0030
-	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0031
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0032
-	ld   hl, (_TILEMAP0 + $80)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0033
-	ld   hl, $98A0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0034
-	ld   hl, $98C0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $0030
+    ld   hl, (_TILEMAP0 + $40)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0031
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0032
+    ld   hl, (_TILEMAP0 + $80)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0033
+    ld   hl, $98A0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0034
+    ld   hl, $98C0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B2F0_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_B2F0_
-	or   a
-	jp   z, _LABEL_2218_
-	cp   $31
-	jr   c, _LABEL_B2F0_
-	cp   $35
-	jr   nc, _LABEL_B2F0_
-	sub  $30
-	ld   [_RAM_C705_], a
-	ld   hl, (_TILEMAP0 + $40)
-	ld   b, $05
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_B2F0_
+    or   a
+    jp   z, _LABEL_2218_
+    cp   $31
+    jr   c, _LABEL_B2F0_
+    cp   $35
+    jr   nc, _LABEL_B2F0_
+    sub  $30
+    ld   [_RAM_C705_], a
+    ld   hl, (_TILEMAP0 + $40)
+    ld   b, $05
 _LABEL_B30B_:
-	push bc
-	push hl
-	ld   de, $2150
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  hl
-	ld   bc, $0020
-	add  hl, bc
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_B30B_
-	jr   _LABEL_B320_
+    push bc
+    push hl
+    ld   de, $2150
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  hl
+    ld   bc, $0020
+    add  hl, bc
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_B30B_
+    jr   _LABEL_B320_
 
 _LABEL_B31C_:
-	xor  a
-	ld   [_RAM_C705_], a
+    xor  a
+    ld   [_RAM_C705_], a
 _LABEL_B320_:
-	call _LABEL_B4D4_
-	ld   de, $0035
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; GFX_COPY_STRING__RST_20
+    call _LABEL_B4D4_
+    ld   de, $0035
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B32A_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_B32A_
-	or   a
-	jp   z, _LABEL_2218_
-	cp   $3D
-	jr   z, _LABEL_B36E_
-	push af
-	ld   a, [_RAM_C232_]
-	ld   d, $00
-	ld   e, a
-	ld   hl, $63B7
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   nz, _LABEL_B32A_
-	ld   de, $0036
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; GFX_COPY_STRING__RST_20
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_B32A_
+    or   a
+    jp   z, _LABEL_2218_
+    cp   $3D
+    jr   z, _LABEL_B36E_
+    push af
+    ld   a, [_RAM_C232_]
+    ld   d, $00
+    ld   e, a
+    ld   hl, $63B7
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   nz, _LABEL_B32A_
+    ld   de, $0036
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B34D_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_B34D_
-	or   a
-	jp   z, _LABEL_2218_
-	cp   $31
-	jr   c, _LABEL_B34D_
-	cp   $38
-	jr   nc, _LABEL_B34D_
-	sub  $30
-	add  a
-	add  a
-	add  a
-	add  a
-	ld   e, a
-	ld   a, [_RAM_C705_]
-	add  e
-	ld   [_RAM_C705_], a
-	jr   _LABEL_B375_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_B34D_
+    or   a
+    jp   z, _LABEL_2218_
+    cp   $31
+    jr   c, _LABEL_B34D_
+    cp   $38
+    jr   nc, _LABEL_B34D_
+    sub  $30
+    add  a
+    add  a
+    add  a
+    add  a
+    ld   e, a
+    ld   a, [_RAM_C705_]
+    add  e
+    ld   [_RAM_C705_], a
+    jr   _LABEL_B375_
 
 _LABEL_B36E_:
-	ld   de, $2150
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B375_:
-	call _LABEL_B6E0_
-	call _LABEL_B4C5_
-	call _LABEL_B7BA_
-	call _LABEL_B4F8_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	call gfx__clear_shadow_oam__275B
-	call _LABEL_B3C0_
-	ld   a, [_RAM_C596_]
-	or   a
-	jr   z, _LABEL_B395_
-	ld   a, [_RAM_C10B_]
-	jr   _LABEL_B3E9_
+    call _LABEL_B6E0_
+    call _LABEL_B4C5_
+    call _LABEL_B7BA_
+    call _LABEL_B4F8_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    call gfx__clear_shadow_oam__275B
+    call _LABEL_B3C0_
+    ld   a, [_RAM_C596_]
+    or   a
+    jr   z, _LABEL_B395_
+    ld   a, [_RAM_C10B_]
+    jr   _LABEL_B3E9_
 
 _LABEL_B395_:
-	ld   a, [_SRAM_231_]
-	inc  a
-	ld   [_SRAM_231_], a
-	ld   [_RAM_C10B_], a
-	call _LABEL_B3E9_
-	jp   _LABEL_B7F7_
+    ld   a, [_SRAM_231_]
+    inc  a
+    ld   [_SRAM_231_], a
+    ld   [_RAM_C10B_], a
+    call _LABEL_B3E9_
+    jp   _LABEL_B7F7_
 
 _LABEL_B3A5_:
-	ld   hl, _RAM_C466_
-	ld   de, _RAM_C467_
-	ld   b, $0A
+    ld   hl, _RAM_C466_
+    ld   de, _RAM_C467_
+    ld   b, $0A
 _LABEL_B3AD_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B3AD_
-	ld   a, $25
-	ld   [hl], a
-	ld   a, $3D
-	ld   [_RAM_C590_], a
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B3AD_
+    ld   a, $25
+    ld   [hl], a
+    ld   a, $3D
+    ld   [_RAM_C590_], a
+    ret
 
 ; Data from B3BC to B3BF (4 bytes)
 db $31, $30, $30, $00
 
 _LABEL_B3C0_:
-	ld   a, [_RAM_C705_]
-	and  $0F
-	cp   $04
-	ret  nz
-	call _LABEL_DE6_
-	ld   a, [_SRAM_231_]
-	or   a
-	ret  z
-	ld   b, a
-	ld   hl, _SRAM_238_
+    ld   a, [_RAM_C705_]
+    and  $0F
+    cp   $04
+    ret  nz
+    call _LABEL_DE6_
+    ld   a, [_SRAM_231_]
+    or   a
+    ret  z
+    ld   b, a
+    ld   hl, _SRAM_238_
 _LABEL_B3D4_:
-	ld   a, [hl]
-	and  $0F
-	cp   $04
-	jr   nz, _LABEL_B3E1_
-	ld   a, [hl]
-	and  $F0
-	add  $01
-	ld   [hl], a
+    ld   a, [hl]
+    and  $0F
+    cp   $04
+    jr   nz, _LABEL_B3E1_
+    ld   a, [hl]
+    and  $F0
+    add  $01
+    ld   [hl], a
 _LABEL_B3E1_:
-	ld   de, $0042
-	add  hl, de
-	dec  b
-	jr   nz, _LABEL_B3D4_
-	ret
+    ld   de, $0042
+    add  hl, de
+    dec  b
+    jr   nz, _LABEL_B3D4_
+    ret
 
 _LABEL_B3E9_:
-	dec  a
-	call _LABEL_B4EB_
-	ld   de, $A233
-	add  hl, de
-	ld   de, _RAM_C700_
-	ld   b, $42
+    dec  a
+    call _LABEL_B4EB_
+    ld   de, $A233
+    add  hl, de
+    ld   de, _RAM_C700_
+    ld   b, $42
 _LABEL_B3F6_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B3F6_
-	ld   a, [_SRAM_231_]
-	cp   $01
-	ret  z
-	ld   hl, _RAM_C7B4_
-	ld   b, $01
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B3F6_
+    ld   a, [_SRAM_231_]
+    cp   $01
+    ret  z
+    ld   hl, _RAM_C7B4_
+    ld   b, $01
 _LABEL_B407_:
-	ld   [hl], b
-	inc  hl
-	inc  b
-	dec  a
-	jr   nz, _LABEL_B407_
-	ld   a, [_SRAM_231_]
+    ld   [hl], b
+    inc  hl
+    inc  b
+    dec  a
+    jr   nz, _LABEL_B407_
+    ld   a, [_SRAM_231_]
 _LABEL_B410_:
-	push af
-	ld   a, [_SRAM_231_]
-	dec  a
+    push af
+    ld   a, [_SRAM_231_]
+    dec  a
 _LABEL_B415_:
-	push af
-	dec  a
-	call _LABEL_B4EB_
-	ld   de, _SRAM_235_
-	add  hl, de
-	pop  af
-	push af
-	push hl
-	call _LABEL_B4EB_
-	ld   de, $A235
-	add  hl, de
-	pop  de
-	ld   a, [de]
-	cp   [hl]
-	jr   c, _LABEL_B4A4_
-	jr   nz, _LABEL_B45D_
-	dec  de
-	dec  hl
-	ld   a, [de]
-	cp   [hl]
-	jr   c, _LABEL_B4A4_
-	jr   nz, _LABEL_B45D_
-	dec  de
-	dec  hl
-	ld   a, [de]
-	cp   [hl]
-	jr   c, _LABEL_B4A4_
-	jr   nz, _LABEL_B45D_
-	inc  de
-	inc  de
-	inc  de
-	inc  hl
-	inc  hl
-	inc  hl
-	ld   a, [de]
-	cp   $63
-	jr   z, _LABEL_B4A4_
-	ld   a, [hl]
-	cp   $63
-	jr   z, _LABEL_B45D_
-	ld   a, [de]
-	cp   [hl]
-	jr   c, _LABEL_B4A4_
-	jr   nz, _LABEL_B45D_
-	inc  de
-	inc  hl
-	ld   a, [de]
-	cp   [hl]
-	jr   c, _LABEL_B4A4_
-	jr   z, _LABEL_B4A4_
+    push af
+    dec  a
+    call _LABEL_B4EB_
+    ld   de, _SRAM_235_
+    add  hl, de
+    pop  af
+    push af
+    push hl
+    call _LABEL_B4EB_
+    ld   de, $A235
+    add  hl, de
+    pop  de
+    ld   a, [de]
+    cp   [hl]
+    jr   c, _LABEL_B4A4_
+    jr   nz, _LABEL_B45D_
+    dec  de
+    dec  hl
+    ld   a, [de]
+    cp   [hl]
+    jr   c, _LABEL_B4A4_
+    jr   nz, _LABEL_B45D_
+    dec  de
+    dec  hl
+    ld   a, [de]
+    cp   [hl]
+    jr   c, _LABEL_B4A4_
+    jr   nz, _LABEL_B45D_
+    inc  de
+    inc  de
+    inc  de
+    inc  hl
+    inc  hl
+    inc  hl
+    ld   a, [de]
+    cp   $63
+    jr   z, _LABEL_B4A4_
+    ld   a, [hl]
+    cp   $63
+    jr   z, _LABEL_B45D_
+    ld   a, [de]
+    cp   [hl]
+    jr   c, _LABEL_B4A4_
+    jr   nz, _LABEL_B45D_
+    inc  de
+    inc  hl
+    ld   a, [de]
+    cp   [hl]
+    jr   c, _LABEL_B4A4_
+    jr   z, _LABEL_B4A4_
 _LABEL_B45D_:
-	pop  af
-	push af
-	dec  a
-	ld   hl, _RAM_C7B4_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ldi  a, [hl]
-	ld   b, [hl]
-	ldd  [hl], a
-	ld   [hl], b
-	pop  af
-	push af
-	dec  a
-	call _LABEL_B4EB_
-	ld   de, _SRAM_233_
-	add  hl, de
-	push hl
-	ld   de, _RAM_C764_
-	ld   b, $42
+    pop  af
+    push af
+    dec  a
+    ld   hl, _RAM_C7B4_
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ldi  a, [hl]
+    ld   b, [hl]
+    ldd  [hl], a
+    ld   [hl], b
+    pop  af
+    push af
+    dec  a
+    call _LABEL_B4EB_
+    ld   de, _SRAM_233_
+    add  hl, de
+    push hl
+    ld   de, _RAM_C764_
+    ld   b, $42
 _LABEL_B47D_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B47D_
-	pop  hl
-	pop  af
-	push af
-	push hl
-	call _LABEL_B4EB_
-	ld   de, _SRAM_233_
-	add  hl, de
-	pop  de
-	push hl
-	ld   b, $42
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B47D_
+    pop  hl
+    pop  af
+    push af
+    push hl
+    call _LABEL_B4EB_
+    ld   de, _SRAM_233_
+    add  hl, de
+    pop  de
+    push hl
+    ld   b, $42
 _LABEL_B492_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B492_
-	pop  de
-	ld   hl, _RAM_C764_
-	ld   b, $42
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B492_
+    pop  de
+    ld   hl, _RAM_C764_
+    ld   b, $42
 _LABEL_B49E_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B49E_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B49E_
 _LABEL_B4A4_:
-	pop  af
-	dec  a
-	jp   nz, _LABEL_B415_
-	pop  af
-	dec  a
-	jp   nz, _LABEL_B410_
-	ld   a, [_RAM_C10B_]
-	ld   b, a
-	ld   hl, _RAM_C7B4_
-	ld   c, $01
+    pop  af
+    dec  a
+    jp   nz, _LABEL_B415_
+    pop  af
+    dec  a
+    jp   nz, _LABEL_B410_
+    ld   a, [_RAM_C10B_]
+    ld   b, a
+    ld   hl, _RAM_C7B4_
+    ld   c, $01
 _LABEL_B4B7_:
-	ldi  a, [hl]
-	cp   b
-	jr   z, _LABEL_B4BE_
-	inc  c
-	jr   _LABEL_B4B7_
+    ldi  a, [hl]
+    cp   b
+    jr   z, _LABEL_B4BE_
+    inc  c
+    jr   _LABEL_B4B7_
 
 _LABEL_B4BE_:
-	ld   a, c
-	ld   [_RAM_C10B_], a
-	jp   _LABEL_B7F7_
+    ld   a, c
+    ld   [_RAM_C10B_], a
+    jp   _LABEL_B7F7_
 
 _LABEL_B4C5_:
-	ld   hl, $98C0
-	ld   de, $761A
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, $9940
-	ld   de, $761A
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    ld   hl, $98C0
+    ld   de, $761A
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, $9940
+    ld   de, $761A
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_B4D4_:
-	ld   a, [_RAM_C705_]
-	and  $0F
-	add  $4D
-	ld   h, $00
-	ld   l, a
-	add  hl, hl
-	ld   de, _RAM_CF00_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, (_TILEMAP0 + $40)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    ld   a, [_RAM_C705_]
+    and  $0F
+    add  $4D
+    ld   h, $00
+    ld   l, a
+    add  hl, hl
+    ld   de, _RAM_CF00_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, (_TILEMAP0 + $40)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_B4EB_:
-	add  a
-	ld   h, $00
-	ld   l, a
-	ld   d, h
-	ld   e, l
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, hl
-	add  hl, de
-	ret
+    add  a
+    ld   h, $00
+    ld   l, a
+    ld   d, h
+    ld   e, l
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, hl
+    add  hl, de
+    ret
 
 _LABEL_B4F8_:
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	ld   a, $48
-	ld   [_RAM_C282_], a
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    ld   a, $48
+    ld   [_RAM_C282_], a
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_B513_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_B513_
-	or   a
-	ret  z
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-	jr   nz, _LABEL_B52C_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_B513_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_B513_
+    or   a
+    ret  z
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+    jr   nz, _LABEL_B52C_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_B513_
 
 _LABEL_B52C_:
-	cp   $C7
-	jr   nz, _LABEL_B54D_
-	ld   a, [_RAM_C281_]
-	sub  $08
-	call _LABEL_21D7_
-	ld   c, a
-	ld   a, [_RAM_C282_]
-	sub  $48
-	call _LABEL_21D7_
-	ld   b, a
-	ld   hl, _RAM_C706_
-	ld   de, $98E0
-	call _LABEL_2173_
-	jr   _LABEL_B513_
+    cp   $C7
+    jr   nz, _LABEL_B54D_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    call _LABEL_21D7_
+    ld   c, a
+    ld   a, [_RAM_C282_]
+    sub  $48
+    call _LABEL_21D7_
+    ld   b, a
+    ld   hl, _RAM_C706_
+    ld   de, $98E0
+    call _LABEL_2173_
+    jr   _LABEL_B513_
 
 _LABEL_B54D_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_B55B_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_B513_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_B55B_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_B513_
 
 _LABEL_B55B_:
-	cp   $0F
-	jr   c, _LABEL_B583_
-	cp   $13
-	jr   nc, _LABEL_B583_
-	cp   $0F
-	jr   z, _LABEL_B574_
-	cp   $10
-	jr   z, _LABEL_B579_
-	cp   $11
-	jr   z, _LABEL_B57E_
+    cp   $0F
+    jr   c, _LABEL_B583_
+    cp   $13
+    jr   nc, _LABEL_B583_
+    cp   $0F
+    jr   z, _LABEL_B574_
+    cp   $10
+    jr   z, _LABEL_B579_
+    cp   $11
+    jr   z, _LABEL_B57E_
 _LABEL_B56F_:
-	call _LABEL_B5B0_
-	jr   _LABEL_B513_
+    call _LABEL_B5B0_
+    jr   _LABEL_B513_
 
 _LABEL_B574_:
-	call _LABEL_B5BF_
-	jr   _LABEL_B513_
+    call _LABEL_B5BF_
+    jr   _LABEL_B513_
 
 _LABEL_B579_:
-	call _LABEL_B5CC_
-	jr   _LABEL_B513_
+    call _LABEL_B5CC_
+    jr   _LABEL_B513_
 
 _LABEL_B57E_:
-	call _LABEL_B5DE_
-	jr   _LABEL_B513_
+    call _LABEL_B5DE_
+    jr   _LABEL_B513_
 
 _LABEL_B583_:
-	cp   $80
-	jr   nz, _LABEL_B592_
-	call _LABEL_B5CC_
-	ld   a, $20
-	call _LABEL_B5EE_
-	jp   _LABEL_B513_
+    cp   $80
+    jr   nz, _LABEL_B592_
+    call _LABEL_B5CC_
+    ld   a, $20
+    call _LABEL_B5EE_
+    jp   _LABEL_B513_
 
 _LABEL_B592_:
-	cp   $7E
-	jr   z, _LABEL_B5A6_
-	cp   $61
-	jp   nc, _LABEL_B513_
-	cp   $0D
-	jr   nz, _LABEL_B5A6_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_B56F_
+    cp   $7E
+    jr   z, _LABEL_B5A6_
+    cp   $61
+    jp   nc, _LABEL_B513_
+    cp   $0D
+    jr   nz, _LABEL_B5A6_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_B56F_
 
 _LABEL_B5A6_:
-	cp   $20
-	jp   c, _LABEL_B513_
-	call _LABEL_B5EE_
-	jr   _LABEL_B57E_
+    cp   $20
+    jp   c, _LABEL_B513_
+    call _LABEL_B5EE_
+    jr   _LABEL_B57E_
 
 _LABEL_B5B0_:
-	ld   a, [_RAM_C282_]
-	add  $08
-	cp   $60
-	jr   nz, _LABEL_B5BB_
-	ld   a, $48
+    ld   a, [_RAM_C282_]
+    add  $08
+    cp   $60
+    jr   nz, _LABEL_B5BB_
+    ld   a, $48
 _LABEL_B5BB_:
-	ld   [_RAM_C282_], a
-	ret
+    ld   [_RAM_C282_], a
+    ret
 
 _LABEL_B5BF_:
-	ld   a, [_RAM_C282_]
-	sub  $08
-	cp   $40
-	jr   nz, _LABEL_B5BB_
-	ld   a, $58
-	jr   _LABEL_B5BB_
+    ld   a, [_RAM_C282_]
+    sub  $08
+    cp   $40
+    jr   nz, _LABEL_B5BB_
+    ld   a, $58
+    jr   _LABEL_B5BB_
 
 _LABEL_B5CC_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	jr   nz, _LABEL_B5DA_
-	ld   a, $A0
-	ld   [_RAM_C281_], a
-	jr   _LABEL_B5BF_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    jr   nz, _LABEL_B5DA_
+    ld   a, $A0
+    ld   [_RAM_C281_], a
+    jr   _LABEL_B5BF_
 
 _LABEL_B5DA_:
-	ld   [_RAM_C281_], a
-	ret
+    ld   [_RAM_C281_], a
+    ret
 
 _LABEL_B5DE_:
-	ld   a, [_RAM_C281_]
-	add  $08
-	cp   $A8
-	jr   nz, _LABEL_B5DA_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_B5B0_
+    ld   a, [_RAM_C281_]
+    add  $08
+    cp   $A8
+    jr   nz, _LABEL_B5DA_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_B5B0_
 
 _LABEL_B5EE_:
-	push af
-	ld   a, [_RAM_C282_]
-	ld   hl, $C706
-	ld   bc, $0014
-	sub  $48
-	jr   z, _LABEL_B601_
+    push af
+    ld   a, [_RAM_C282_]
+    ld   hl, $C706
+    ld   bc, $0014
+    sub  $48
+    jr   z, _LABEL_B601_
 _LABEL_B5FC_:
-	add  hl, bc
-	sub  $08
-	jr   nz, _LABEL_B5FC_
+    add  hl, bc
+    sub  $08
+    jr   nz, _LABEL_B5FC_
 _LABEL_B601_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	pop  af
-	ld   [hl], a
-	jp   _LABEL_73A_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    pop  af
+    ld   [hl], a
+    jp   _LABEL_73A_
 
 ; Data from B61A to B62E (21 bytes)
 ds 20, $2D
 db $00
 
 _LABEL_B62F_:
-	ld   hl, _RAM_C265_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $39
-	inc  hl
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $30
-	ld   a, [_RAM_C702_]
-	call _LABEL_235A_
-	ld   hl, _RAM_C265_
-	ld   de, _RAM_C597_
-	ld   b, $04
+    ld   hl, _RAM_C265_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $39
+    inc  hl
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $30
+    ld   a, [_RAM_C702_]
+    call _LABEL_235A_
+    ld   hl, _RAM_C265_
+    ld   de, _RAM_C597_
+    ld   b, $04
 _LABEL_B64B_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B64B_
-	ld   hl, _RAM_C261_
-	ld   a, [_RAM_C700_]
-	call _LABEL_B6CD_
-	ld   a, b
-	cp   $30
-	jr   z, _LABEL_B660_
-	ldi  [hl], a
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B64B_
+    ld   hl, _RAM_C261_
+    ld   a, [_RAM_C700_]
+    call _LABEL_B6CD_
+    ld   a, b
+    cp   $30
+    jr   z, _LABEL_B660_
+    ldi  [hl], a
 _LABEL_B660_:
-	ld   a, c
-	ld   [hl], a
-	dec  hl
-	ld   a, [hl]
-	inc  hl
-	inc  hl
-	cp   $31
-	jr   z, _LABEL_B686_
-	ld   a, c
-	cp   $31
-	jr   nz, _LABEL_B674_
-	ld   de, $0046
-	jr   _LABEL_B689_
+    ld   a, c
+    ld   [hl], a
+    dec  hl
+    ld   a, [hl]
+    inc  hl
+    inc  hl
+    cp   $31
+    jr   z, _LABEL_B686_
+    ld   a, c
+    cp   $31
+    jr   nz, _LABEL_B674_
+    ld   de, $0046
+    jr   _LABEL_B689_
 
 _LABEL_B674_:
-	cp   $32
-	jr   nz, _LABEL_B67D_
-	ld   de, $0047
-	jr   _LABEL_B689_
+    cp   $32
+    jr   nz, _LABEL_B67D_
+    ld   de, $0047
+    jr   _LABEL_B689_
 
 _LABEL_B67D_:
-	cp   $33
-	jr   nz, _LABEL_B686_
-	ld   de, $0048
-	jr   _LABEL_B689_
+    cp   $33
+    jr   nz, _LABEL_B686_
+    ld   de, $0048
+    jr   _LABEL_B689_
 
 _LABEL_B686_:
-	ld   de, $0049
+    ld   de, $0049
 _LABEL_B689_:
-	push hl
-	ld   h, d
-	ld   l, e
-	add  hl, hl
-	ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	ld   a, [de]
-	ldi  [hl], a
-	ld   a, $20
-	ldi  [hl], a
-	push hl
-	ld   a, [_RAM_C701_]
-	ld   h, $00
-	dec  a
-	ld   l, a
-	add  hl, hl
-	ld   de, _RAM_CF72_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
+    push hl
+    ld   h, d
+    ld   l, e
+    add  hl, hl
+    ld   de, gfx__tilemap_string_addr_table__RAM_CEFE ; $CEFE
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    pop  hl
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    ld   a, [de]
+    ldi  [hl], a
+    ld   a, $20
+    ldi  [hl], a
+    push hl
+    ld   a, [_RAM_C701_]
+    ld   h, $00
+    dec  a
+    ld   l, a
+    add  hl, hl
+    ld   de, _RAM_CF72_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    pop  hl
 _LABEL_B6AE_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_B6B6_
-	ldi  [hl], a
-	jr   _LABEL_B6AE_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_B6B6_
+    ldi  [hl], a
+    jr   _LABEL_B6AE_
 
 _LABEL_B6B6_:
-	ld   [hl], $20
-	inc  hl
-	ld   de, _RAM_C597_
-	ld   b, $04
+    ld   [hl], $20
+    inc  hl
+    ld   de, _RAM_C597_
+    ld   b, $04
 _LABEL_B6BE_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B6BE_
-	ld   [hl], b
-	ld   hl, _TILEMAP0
-	ld   de, $C261
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B6BE_
+    ld   [hl], b
+    ld   hl, _TILEMAP0
+    ld   de, $C261
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_B6CD_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_B6CF_:
-	cp   $0A
-	jr   c, _LABEL_B6D8_
-	sub  $0A
-	inc  b
-	jr   _LABEL_B6CF_
+    cp   $0A
+    jr   c, _LABEL_B6D8_
+    sub  $0A
+    inc  b
+    jr   _LABEL_B6CF_
 
 _LABEL_B6D8_:
-	add  $30
-	ld   c, a
-	ld   a, b
-	add  $30
-	ld   b, a
-	ret
+    add  $30
+    ld   c, a
+    ld   a, b
+    add  $30
+    ld   b, a
+    ret
 
 _LABEL_B6E0_:
-	ld   hl, (_TILEMAP0 + $60)
-	ld   de, $2150
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, _RAM_C261_
-	ld   a, $20
-	ld   b, $14
+    ld   hl, (_TILEMAP0 + $60)
+    ld   de, $2150
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C261_
+    ld   a, $20
+    ld   b, $14
 _LABEL_B6EE_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B6EE_
-	ld   a, [_RAM_C705_]
-	call util__rr_downshift_A_by_4__2909
-	or   a
-	jr   nz, _LABEL_B706_
-	ld   de, $0049
-	ld   hl, _RAM_C261_
-	call _LABEL_B730_
-	jr   _LABEL_B728_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B6EE_
+    ld   a, [_RAM_C705_]
+    call util__rr_downshift_A_by_4__2909
+    or   a
+    jr   nz, _LABEL_B706_
+    ld   de, $0049
+    ld   hl, _RAM_C261_
+    call _LABEL_B730_
+    jr   _LABEL_B728_
 
 _LABEL_B706_:
-	push af
-	ld   de, $004A
-	ld   hl, _RAM_C261_
-	call _LABEL_B730_
-	pop  af
-	dec  hl
-	cp   $01
-	jr   nz, _LABEL_B71E_
-	ld   de, $004B
-	call _LABEL_B730_
-	jr   _LABEL_B728_
+    push af
+    ld   de, $004A
+    ld   hl, _RAM_C261_
+    call _LABEL_B730_
+    pop  af
+    dec  hl
+    cp   $01
+    jr   nz, _LABEL_B71E_
+    ld   de, $004B
+    call _LABEL_B730_
+    jr   _LABEL_B728_
 
 _LABEL_B71E_:
-	add  $30
-	ldi  [hl], a
-	inc  hl
-	ld   de, $004C
-	call _LABEL_B730_
+    add  $30
+    ldi  [hl], a
+    inc  hl
+    ld   de, $004C
+    call _LABEL_B730_
 _LABEL_B728_:
-	ld   de, $C261
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    ld   de, $C261
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_B730_:
-	push hl
-	ld   h, d
-	ld   l, e
-	add  hl, hl
-	ld   de, $CF00
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	pop  hl
+    push hl
+    ld   h, d
+    ld   l, e
+    add  hl, hl
+    ld   de, $CF00
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    pop  hl
 _LABEL_B73C_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_B73C_
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_B73C_
+    ret
 
 _LABEL_B743_:
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   hl, $99C0
-	ld   de, $0617
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, $9A00
-	ld   de, $00D3
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, $9A20
-	ld   de, $0005
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   hl, $99C0
+    ld   de, $0617
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, $9A00
+    ld   de, $00D3
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, $9A20
+    ld   de, $0005
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 _LABEL_B75C_:
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	call _LABEL_B809_
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    call _LABEL_B809_
 _LABEL_B765_:
-	ld   a, [_RAM_C10B_]
-	or   a
-	jp   z, _LABEL_24D5_
-	call _LABEL_B7F7_
-	ld   a, [_RAM_C10B_]
-	dec  a
-	call _LABEL_B4EB_
-	ld   de, _SRAM_233_
-	add  hl, de
-	ld   de, _RAM_C700_
-	ld   b, $42
+    ld   a, [_RAM_C10B_]
+    or   a
+    jp   z, _LABEL_24D5_
+    call _LABEL_B7F7_
+    ld   a, [_RAM_C10B_]
+    dec  a
+    call _LABEL_B4EB_
+    ld   de, _SRAM_233_
+    add  hl, de
+    ld   de, _RAM_C700_
+    ld   b, $42
 _LABEL_B77F_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B77F_
-	call _LABEL_24D5_
-	call _LABEL_B62F_
-	ld   a, [_RAM_C703_]
-	cp   $63
-	jr   z, _LABEL_B7B1_
-	ld   hl, _RAM_C261_
-	call _LABEL_B7E2_
-	ld   [hl], $3A
-	inc  hl
-	ld   a, [_RAM_C704_]
-	call _LABEL_B7E2_
-	ld   [hl], $00
-	ld   de, $002E
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $C261
-	ld   hl, (_TILEMAP0 + $25)
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B77F_
+    call _LABEL_24D5_
+    call _LABEL_B62F_
+    ld   a, [_RAM_C703_]
+    cp   $63
+    jr   z, _LABEL_B7B1_
+    ld   hl, _RAM_C261_
+    call _LABEL_B7E2_
+    ld   [hl], $3A
+    inc  hl
+    ld   a, [_RAM_C704_]
+    call _LABEL_B7E2_
+    ld   [hl], $00
+    ld   de, $002E
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $C261
+    ld   hl, (_TILEMAP0 + $25)
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_B7B1_:
-	call _LABEL_B4D4_
-	call _LABEL_B6E0_
-	call _LABEL_B4C5_
+    call _LABEL_B4D4_
+    call _LABEL_B6E0_
+    call _LABEL_B4C5_
 _LABEL_B7BA_:
-	ld   de, _RAM_C706_
-	ld   hl, $98E0
-	ld   b, $03
+    ld   de, _RAM_C706_
+    ld   hl, $98E0
+    ld   b, $03
 _LABEL_B7C2_:
-	push bc
-	push hl
-	ld   hl, _RAM_C261_
-	ld   b, $14
+    push bc
+    push hl
+    ld   hl, _RAM_C261_
+    ld   b, $14
 _LABEL_B7C9_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B7C9_
-	ld   [hl], b
-	pop  hl
-	push hl
-	push de
-	ld   de, $C261
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  de
-	pop  hl
-	ld   bc, $0020
-	add  hl, bc
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_B7C2_
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B7C9_
+    ld   [hl], b
+    pop  hl
+    push hl
+    push de
+    ld   de, $C261
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  de
+    pop  hl
+    ld   bc, $0020
+    add  hl, bc
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_B7C2_
+    ret
 
 _LABEL_B7E2_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_B7E4_:
-	cp   $0A
-	jr   c, _LABEL_B7ED_
-	inc  b
-	sub  $0A
-	jr   _LABEL_B7E4_
+    cp   $0A
+    jr   c, _LABEL_B7ED_
+    inc  b
+    sub  $0A
+    jr   _LABEL_B7E4_
 
 _LABEL_B7ED_:
-	add  $30
-	ld   c, a
-	ld   a, b
-	add  $30
-	ldi  [hl], a
-	ld   [hl], c
-	inc  hl
-	ret
+    add  $30
+    ld   c, a
+    ld   a, b
+    add  $30
+    ldi  [hl], a
+    ld   [hl], c
+    inc  hl
+    ret
 
 _LABEL_B7F7_:
-	ld   a, [_RAM_C10D_]
-	push af
-	ld   a, [_RAM_C10B_]
-	ld   [_RAM_C10D_], a
-	call _LABEL_7B3_
-	pop  af
-	ld   [_RAM_C10D_], a
-	ret
+    ld   a, [_RAM_C10D_]
+    push af
+    ld   a, [_RAM_C10B_]
+    ld   [_RAM_C10D_], a
+    call _LABEL_7B3_
+    pop  af
+    ld   [_RAM_C10D_], a
+    ret
 
 _LABEL_B809_:
-	ld   hl, _RAM_CF04_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, $99E0
+    ld   hl, _RAM_CF04_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, $99E0
 _LABEL_B812_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_B81C_
-	sub  $20
-	ldi  [hl], a
-	jr   _LABEL_B812_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_B81C_
+    sub  $20
+    ldi  [hl], a
+    jr   _LABEL_B812_
 
 _LABEL_B81C_:
-	jp   _LABEL_B743_
+    jp   _LABEL_B743_
 
 ; Data from B81F to B845 (39 bytes)
 db $FA, $77, $C4, $FE, $7F, $C8, $FA, $74, $C4, $B7, $20, $1A, $FA, $73, $C4, $B7
@@ -15018,204 +15018,204 @@ db $28, $14, $3D, $EA, $72, $C4, $3E, $1C, $EA, $7C, $C2, $DF, $3E, $20, $EA, $9
 db $C5, $3E, $01, $EA, $7C, $C2, $C9
 
 _LABEL_B846_:
-	ld   a, [_RAM_C474_]
-	or   a
-	jr   nz, _LABEL_B866_
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   z, _LABEL_B856_
-	dec  a
-	ld   [_RAM_C472_], a
+    ld   a, [_RAM_C474_]
+    or   a
+    jr   nz, _LABEL_B866_
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   z, _LABEL_B856_
+    dec  a
+    ld   [_RAM_C472_], a
 _LABEL_B856_:
-	ld   a, $1C
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $20
-	ld   [_RAM_C590_], a
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $1C
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $20
+    ld   [_RAM_C590_], a
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_B866_:
-	ld   hl, _RAM_C466_
-	ld   b, $0A
-	ld   a, $20
+    ld   hl, _RAM_C466_
+    ld   b, $0A
+    ld   a, $20
 _LABEL_B86D_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B86D_
-	ld   hl, _SRAM_222_
-	ld   b, $00
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B86D_
+    ld   hl, _SRAM_222_
+    ld   b, $00
 _LABEL_B876_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_B87D_
-	inc  b
-	jr   _LABEL_B876_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_B87D_
+    inc  b
+    jr   _LABEL_B876_
 
 _LABEL_B87D_:
-	ld   a, b
-	ld   [_RAM_C474_], a
-	inc  b
-	ld   de, _RAM_C471_
-	dec  hl
+    ld   a, b
+    ld   [_RAM_C474_], a
+    inc  b
+    ld   de, _RAM_C471_
+    dec  hl
 _LABEL_B886_:
-	ldd  a, [hl]
-	cp   $2E
-	jr   nz, _LABEL_B88E_
-	ld   [_RAM_C475_], a
+    ldd  a, [hl]
+    cp   $2E
+    jr   nz, _LABEL_B88E_
+    ld   [_RAM_C475_], a
 _LABEL_B88E_:
-	ld   [de], a
-	dec  de
-	dec  b
-	jr   nz, _LABEL_B886_
-	ret
+    ld   [de], a
+    dec  de
+    dec  b
+    jr   nz, _LABEL_B886_
+    ret
 
 _LABEL_B894_:
-	call _LABEL_B955_
-	ld   a, [_SRAM_221_]
-	or   a
-	jr   nz, _LABEL_B8AB_
-	ld   a, $4D
-	ld   [_SRAM_221_], a
-	ld   a, $30
-	ld   [_SRAM_222_], a
-	xor  a
-	ld   [_SRAM_223_], a
+    call _LABEL_B955_
+    ld   a, [_SRAM_221_]
+    or   a
+    jr   nz, _LABEL_B8AB_
+    ld   a, $4D
+    ld   [_SRAM_221_], a
+    ld   a, $30
+    ld   [_SRAM_222_], a
+    xor  a
+    ld   [_SRAM_223_], a
 _LABEL_B8AB_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_B948_
-	call _LABEL_B937_
-	call _LABEL_B8CE_
-	xor  a
-	ld   [_RAM_C479_], a
-	call _LABEL_BD22_
-	call _LABEL_AB74_
-	call _LABEL_B91B_
-	call _LABEL_B964_
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_B948_
+    call _LABEL_B937_
+    call _LABEL_B8CE_
+    xor  a
+    ld   [_RAM_C479_], a
+    call _LABEL_BD22_
+    call _LABEL_AB74_
+    call _LABEL_B91B_
+    call _LABEL_B964_
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 _LABEL_B8CE_:
-	ld   de, _RAM_C3E0_
-	ld   hl, $C3F9
-	call _LABEL_AAA8_
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	jp   _LABEL_AAA8_
+    ld   de, _RAM_C3E0_
+    ld   hl, $C3F9
+    call _LABEL_AAA8_
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    jp   _LABEL_AAA8_
 
 _LABEL_B8E0_:
-	call _LABEL_B955_
-	ld   a, [_SRAM_221_]
-	or   a
-	jr   nz, _LABEL_B8F7_
-	ld   a, $4D
-	ld   [_SRAM_221_], a
-	ld   a, $30
-	ld   [_SRAM_222_], a
-	xor  a
-	ld   [_SRAM_223_], a
+    call _LABEL_B955_
+    ld   a, [_SRAM_221_]
+    or   a
+    jr   nz, _LABEL_B8F7_
+    ld   a, $4D
+    ld   [_SRAM_221_], a
+    ld   a, $30
+    ld   [_SRAM_222_], a
+    xor  a
+    ld   [_SRAM_223_], a
 _LABEL_B8F7_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_B948_
-	call _LABEL_B937_
-	call _LABEL_B8CE_
-	ld   a, $01
-	ld   [_RAM_C479_], a
-	call _LABEL_BD22_
-	call _LABEL_AB74_
-	call _LABEL_B91B_
-	call _LABEL_B964_
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_B948_
+    call _LABEL_B937_
+    call _LABEL_B8CE_
+    ld   a, $01
+    ld   [_RAM_C479_], a
+    call _LABEL_BD22_
+    call _LABEL_AB74_
+    call _LABEL_B91B_
+    call _LABEL_B964_
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 _LABEL_B91B_:
-	ld   hl, _RAM_C455_
-	ld   de, _SRAM_222_
+    ld   hl, _RAM_C455_
+    ld   de, _SRAM_222_
 _LABEL_B921_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	or   a
-	jr   nz, _LABEL_B921_
-	ld   a, [_SRAM_223_]
-	or   a
-	ret  nz
-	ld   a, [_SRAM_222_]
-	cp   $30
-	ret  nz
-	xor  a
-	ld   [_SRAM_221_], a
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    or   a
+    jr   nz, _LABEL_B921_
+    ld   a, [_SRAM_223_]
+    or   a
+    ret  nz
+    ld   a, [_SRAM_222_]
+    cp   $30
+    ret  nz
+    xor  a
+    ld   [_SRAM_221_], a
+    ret
 
 _LABEL_B937_:
-	ld   hl, _RAM_C3EC_
-	ld   de, _RAM_C466_
+    ld   hl, _RAM_C3EC_
+    ld   de, _RAM_C466_
 _LABEL_B93D_:
-	ld   a, [de]
-	inc  de
-	cp   $20
-	jr   z, _LABEL_B93D_
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_B93D_
-	ret
+    ld   a, [de]
+    inc  de
+    cp   $20
+    jr   z, _LABEL_B93D_
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_B93D_
+    ret
 
 _LABEL_B948_:
-	ld   hl, _RAM_C3E0_
-	ld   de, _SRAM_222_
+    ld   hl, _RAM_C3E0_
+    ld   de, _SRAM_222_
 _LABEL_B94E_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_B94E_
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_B94E_
+    ret
 
 _LABEL_B955_:
-	ld   hl, _RAM_C3E0_
-	ld   de, _RAM_C4A7_
-	ld   b, $C7
+    ld   hl, _RAM_C3E0_
+    ld   de, _RAM_C4A7_
+    ld   b, $C7
 _LABEL_B95D_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B95D_
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B95D_
+    ret
 
 _LABEL_B964_:
-	ld   hl, _RAM_C3E0_
-	ld   de, _RAM_C4A7_
-	ld   b, $C7
+    ld   hl, _RAM_C3E0_
+    ld   de, _RAM_C4A7_
+    ld   b, $C7
 _LABEL_B96C_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_B96C_
-	ret
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_B96C_
+    ret
 
 ; 2nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_01_TODO__LABEL_B973_:
-	ld   a, [_SRAM_221_]
-	ld   [(_TILEMAP0 + $65)], a
-	ld   de, _RAM_C466_
-	ld   hl, $98E4
-	ld   b, $0B
+    ld   a, [_SRAM_221_]
+    ld   [(_TILEMAP0 + $65)], a
+    ld   de, _RAM_C466_
+    ld   hl, $98E4
+    ld   b, $0B
 _LABEL_B981_:
-	ld   a, [de]
-	sub  $20
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_B981_
-	ld   a, [_RAM_C590_]
-	sub  $20
-	ldi  [hl], a
-	jp   vblank__cmd_default__25F7
+    ld   a, [de]
+    sub  $20
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_B981_
+    ld   a, [_RAM_C590_]
+    sub  $20
+    ldi  [hl], a
+    jp   vblank__cmd_default__25F7
 
 ; Data from B992 to B9EF (94 bytes)
 db $21, $84, $98, $CD, $A7, $79, $21, $A4, $98, $CD, $A7, $79, $21, $C4, $98, $CD
@@ -15226,442 +15226,442 @@ db $21, $C4, $98, $11, $A4, $98, $CD, $E7, $79, $21, $E4, $98, $11, $C4, $98, $C
 db $E7, $79, $C3, $F7, $25, $06, $0C, $2A, $12, $13, $05, $20, $FA, $C9
 
 _LABEL_B9F0_:
-	ld   a, $20
-	ld   [_RAM_C591_], a
-	ld   [_RAM_C590_], a
-	ld   a, $1B
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   hl, _RAM_C466_
-	ld   b, $0A
-	ld   a, $20
+    ld   a, $20
+    ld   [_RAM_C591_], a
+    ld   [_RAM_C590_], a
+    ld   a, $1B
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   hl, _RAM_C466_
+    ld   b, $0A
+    ld   a, $20
 _LABEL_BA05_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BA05_
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $00
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	dec  a
-	ld   [_RAM_C472_], a
-	ld   [_RAM_C475_], a
-	ld   [_RAM_C473_], a
-	ld   [_RAM_C474_], a
-	ld   [keyboard__prob_current_key__RAM_C476], a
-	ld   [keyboard__prob_previous_key__RAM_C477], a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BA05_
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $00
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    dec  a
+    ld   [_RAM_C472_], a
+    ld   [_RAM_C475_], a
+    ld   [_RAM_C473_], a
+    ld   [_RAM_C474_], a
+    ld   [keyboard__prob_current_key__RAM_C476], a
+    ld   [keyboard__prob_previous_key__RAM_C477], a
 _LABEL_BA26_:
-	call gfx__clear_shadow_oam__275B
-	call _LABEL_B145_
+    call gfx__clear_shadow_oam__275B
+    call _LABEL_B145_
 
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; != KYBD_STATUS__NOT_FOUND
-	jr   nz, .skip_something_if_keyboard_connected__BA41
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; != KYBD_STATUS__NOT_FOUND
+    jr   nz, .skip_something_if_keyboard_connected__BA41
 
-	ld   a, [_RAM_C258_]
-	ld   c, a
-	ld   a, [_RAM_C259_]
-	ld   b, a
-	ld   a, [_RAM_C25A_]
-	ld   e, a
-	call _LABEL_1504_
+    ld   a, [_RAM_C258_]
+    ld   c, a
+    ld   a, [_RAM_C259_]
+    ld   b, a
+    ld   a, [_RAM_C25A_]
+    ld   e, a
+    call _LABEL_1504_
 
     .skip_something_if_keyboard_connected__BA41:
-	rst  $18	; Call VSYNC__RST_18
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	push af
+    rst  $18    ; Call VSYNC__RST_18
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    push af
 
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; != KYBD_STATUS__NOT_FOUND
-	jr   nz, _LABEL_BA56_
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; != KYBD_STATUS__NOT_FOUND
+    jr   nz, _LABEL_BA56_
 
-	ld   a, [_RAM_C592_]
-	or   a
-	jr   z, _LABEL_BA56_
-	call _LABEL_B040_
-	pop  bc
-	jr   _LABEL_BA5C_
+    ld   a, [_RAM_C592_]
+    or   a
+    jr   z, _LABEL_BA56_
+    call _LABEL_B040_
+    pop  bc
+    jr   _LABEL_BA5C_
 
 _LABEL_BA56_:
-	ld   a, $39
-	ld   [_RAM_C25A_], a
-	pop  af
+    ld   a, $39
+    ld   [_RAM_C25A_], a
+    pop  af
 _LABEL_BA5C_:
-	cp   $FF
-	jr   z, _LABEL_BA26_
-	or   a
-	jp   z, _LABEL_200_
-	call _LABEL_1094_
-	cp   $7F
-	jr   z, _LABEL_B9F0_
-	cp   $75
-	jr   nz, _LABEL_BA75_
-	xor  a
-	ld   [_SRAM_221_], a
-	jr   _LABEL_BA26_
+    cp   $FF
+    jr   z, _LABEL_BA26_
+    or   a
+    jp   z, _LABEL_200_
+    call _LABEL_1094_
+    cp   $7F
+    jr   z, _LABEL_B9F0_
+    cp   $75
+    jr   nz, _LABEL_BA75_
+    xor  a
+    ld   [_SRAM_221_], a
+    jr   _LABEL_BA26_
 
 _LABEL_BA75_:
-	cp   $79
-	jr   nz, _LABEL_BA84_
-	ld   a, [_SRAM_221_]
-	or   a
-	jr   z, _LABEL_BA26_
-	call _LABEL_B846_
-	jr   _LABEL_BA26_
+    cp   $79
+    jr   nz, _LABEL_BA84_
+    ld   a, [_SRAM_221_]
+    or   a
+    jr   z, _LABEL_BA26_
+    call _LABEL_B846_
+    jr   _LABEL_BA26_
 
 _LABEL_BA84_:
-	cp   $72
-	jr   nz, _LABEL_BA8D_
-	call _LABEL_B894_
-	jr   _LABEL_BA26_
+    cp   $72
+    jr   nz, _LABEL_BA8D_
+    call _LABEL_B894_
+    jr   _LABEL_BA26_
 
 _LABEL_BA8D_:
-	cp   $74
-	jr   nz, _LABEL_BA97_
-	call _LABEL_B8E0_
-	jp   _LABEL_BA26_
+    cp   $74
+    jr   nz, _LABEL_BA97_
+    call _LABEL_B8E0_
+    jp   _LABEL_BA26_
 
 _LABEL_BA97_:
-	cp   $30
-	jr   c, _LABEL_BAFF_
-	cp   $3A
-	jr   nc, _LABEL_BAFF_
+    cp   $30
+    jr   c, _LABEL_BAFF_
+    cp   $3A
+    jr   nc, _LABEL_BAFF_
 _LABEL_BA9F_:
-	ld   c, a
-	ld   a, [_RAM_C474_]
-	or   a
-	jr   nz, _LABEL_BAE3_
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   z, _LABEL_BAB0_
-	dec  a
-	ld   [_RAM_C472_], a
+    ld   c, a
+    ld   a, [_RAM_C474_]
+    or   a
+    jr   nz, _LABEL_BAE3_
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   z, _LABEL_BAB0_
+    dec  a
+    ld   [_RAM_C472_], a
 _LABEL_BAB0_:
-	ld   a, $1C
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, $20
-	ld   [_RAM_C590_], a
-	ld   a, c
-	ld   hl, _RAM_C466_
-	ld   b, $0A
-	ld   a, $20
+    ld   a, $1C
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $20
+    ld   [_RAM_C590_], a
+    ld   a, c
+    ld   hl, _RAM_C466_
+    ld   b, $0A
+    ld   a, $20
 _LABEL_BAC8_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BAC8_
-	ld   [hl], $30
-	ld   a, c
-	cp   $30
-	jr   nz, _LABEL_BAD9_
-	ld   [_RAM_C591_], a
-	jp   _LABEL_BA26_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BAC8_
+    ld   [hl], $30
+    ld   a, c
+    cp   $30
+    jr   nz, _LABEL_BAD9_
+    ld   [_RAM_C591_], a
+    jp   _LABEL_BA26_
 
 _LABEL_BAD9_:
-	ld   a, $01
-	ld   [_RAM_C474_], a
-	ld   hl, _RAM_C470_
-	jr   _LABEL_BAFB_
+    ld   a, $01
+    ld   [_RAM_C474_], a
+    ld   hl, _RAM_C470_
+    jr   _LABEL_BAFB_
 
 _LABEL_BAE3_:
-	cp   $09
-	jp   z, _LABEL_BA26_
-	inc  a
-	ld   [_RAM_C474_], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   hl, _RAM_C466_
-	ld   de, _RAM_C467_
-	ld   b, $0A
+    cp   $09
+    jp   z, _LABEL_BA26_
+    inc  a
+    ld   [_RAM_C474_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   hl, _RAM_C466_
+    ld   de, _RAM_C467_
+    ld   b, $0A
 _LABEL_BAF5_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BAF5_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BAF5_
 _LABEL_BAFB_:
-	ld   [hl], c
-	jp   _LABEL_BA26_
+    ld   [hl], c
+    jp   _LABEL_BA26_
 
 _LABEL_BAFF_:
-	cp   $2E
-	jr   nz, _LABEL_BB11_
-	ld   a, [_RAM_C475_]
-	or   a
-	jp   nz, _LABEL_BA26_
-	ld   a, $2E
-	ld   [_RAM_C475_], a
-	jr   _LABEL_BA9F_
+    cp   $2E
+    jr   nz, _LABEL_BB11_
+    ld   a, [_RAM_C475_]
+    or   a
+    jp   nz, _LABEL_BA26_
+    ld   a, $2E
+    ld   [_RAM_C475_], a
+    jr   _LABEL_BA9F_
 
 _LABEL_BB11_:
-	cp   $0A
-	jp   z, _LABEL_B9F0_
-	cp   $3D
-	jr   nz, _LABEL_BB5E_
-	ld   a, [_RAM_C472_]
-	or   a
-	jp   z, _LABEL_BA26_
-	ld   a, [_RAM_C473_]
-	or   a
-	jp   nz, _LABEL_BA26_
-	ld   a, $3D
-	ld   [_RAM_C590_], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $1C
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $20
-	ld   [_RAM_C590_], a
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_BB4C_
-	ld   a, $01
-	ld   [_RAM_C473_], a
-	call _LABEL_BBC5_
-	jp   _LABEL_BA26_
+    cp   $0A
+    jp   z, _LABEL_B9F0_
+    cp   $3D
+    jr   nz, _LABEL_BB5E_
+    ld   a, [_RAM_C472_]
+    or   a
+    jp   z, _LABEL_BA26_
+    ld   a, [_RAM_C473_]
+    or   a
+    jp   nz, _LABEL_BA26_
+    ld   a, $3D
+    ld   [_RAM_C590_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $1C
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $20
+    ld   [_RAM_C590_], a
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_BB4C_
+    ld   a, $01
+    ld   [_RAM_C473_], a
+    call _LABEL_BBC5_
+    jp   _LABEL_BA26_
 
 _LABEL_BB4C_:
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	call _LABEL_BD08_
-	ld   a, [_RAM_C479_]
-	call _LABEL_BD22_
-	jp   _LABEL_AB74_
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    call _LABEL_BD08_
+    ld   a, [_RAM_C479_]
+    call _LABEL_BD22_
+    jp   _LABEL_AB74_
 
 _LABEL_BB5E_:
-	cp   $25
-	jr   nz, _LABEL_BB68_
-	call _LABEL_BC2D_
-	jp   _LABEL_BA26_
+    cp   $25
+    jr   nz, _LABEL_BB68_
+    call _LABEL_BC2D_
+    jp   _LABEL_BA26_
 
 _LABEL_BB68_:
-	cp   $6A
-	jr   nz, _LABEL_BBCE_
-	ld   a, $2F
-	ld   [_RAM_C590_], a
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   z, _LABEL_BB7E_
-	xor  a
-	ld   [_RAM_C473_], a
-	ld   [_RAM_C472_], a
+    cp   $6A
+    jr   nz, _LABEL_BBCE_
+    ld   a, $2F
+    ld   [_RAM_C590_], a
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   z, _LABEL_BB7E_
+    xor  a
+    ld   [_RAM_C473_], a
+    ld   [_RAM_C472_], a
 _LABEL_BB7E_:
-	call _LABEL_BB89_
-	ld   a, $02
-	ld   [_RAM_C479_], a
-	jp   _LABEL_BA26_
+    call _LABEL_BB89_
+    ld   a, $02
+    ld   [_RAM_C479_], a
+    jp   _LABEL_BA26_
 
 _LABEL_BB89_:
-	ld   a, [keyboard__prob_previous_key__RAM_C477]
-	cp   $6A
-	ret  z
-	cp   $68
-	ret  z
-	cp   $2D
-	ret  z
-	cp   $2B
-	ret  z
-	ld   a, [_RAM_C472_]
-	or   a
-	jr   z, _LABEL_BBBC_
-	ld   a, [_RAM_C590_]
-	push af
-	ld   a, $3D
-	ld   [_RAM_C590_], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $1C
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	pop  af
-	ld   [_RAM_C590_], a
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_BB4C_
-	jr   _LABEL_BBC5_
+    ld   a, [keyboard__prob_previous_key__RAM_C477]
+    cp   $6A
+    ret  z
+    cp   $68
+    ret  z
+    cp   $2D
+    ret  z
+    cp   $2B
+    ret  z
+    ld   a, [_RAM_C472_]
+    or   a
+    jr   z, _LABEL_BBBC_
+    ld   a, [_RAM_C590_]
+    push af
+    ld   a, $3D
+    ld   [_RAM_C590_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $1C
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    pop  af
+    ld   [_RAM_C590_], a
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_BB4C_
+    jr   _LABEL_BBC5_
 
 _LABEL_BBBC_:
-	ld   de, _RAM_C3E0_
-	ld   hl, _RAM_C3F9_
-	call _LABEL_BD08_
+    ld   de, _RAM_C3E0_
+    ld   hl, _RAM_C3F9_
+    call _LABEL_BD08_
 _LABEL_BBC5_:
-	xor  a
-	ld   [_RAM_C474_], a
-	inc  a
-	ld   [_RAM_C472_], a
-	ret
+    xor  a
+    ld   [_RAM_C474_], a
+    inc  a
+    ld   [_RAM_C472_], a
+    ret
 
 _LABEL_BBCE_:
-	cp   $68
-	jr   nz, _LABEL_BBEF_
-	ld   a, $58
-	ld   [_RAM_C590_], a
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   z, _LABEL_BBE4_
-	xor  a
-	ld   [_RAM_C473_], a
-	ld   [_RAM_C472_], a
+    cp   $68
+    jr   nz, _LABEL_BBEF_
+    ld   a, $58
+    ld   [_RAM_C590_], a
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   z, _LABEL_BBE4_
+    xor  a
+    ld   [_RAM_C473_], a
+    ld   [_RAM_C472_], a
 _LABEL_BBE4_:
-	call _LABEL_BB89_
-	ld   a, $03
-	ld   [_RAM_C479_], a
-	jp   _LABEL_BA26_
+    call _LABEL_BB89_
+    ld   a, $03
+    ld   [_RAM_C479_], a
+    jp   _LABEL_BA26_
 
 _LABEL_BBEF_:
-	cp   $2D
-	jr   nz, _LABEL_BC0E_
-	ld   [_RAM_C590_], a
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   z, _LABEL_BC03_
-	xor  a
-	ld   [_RAM_C473_], a
-	ld   [_RAM_C472_], a
+    cp   $2D
+    jr   nz, _LABEL_BC0E_
+    ld   [_RAM_C590_], a
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   z, _LABEL_BC03_
+    xor  a
+    ld   [_RAM_C473_], a
+    ld   [_RAM_C472_], a
 _LABEL_BC03_:
-	call _LABEL_BB89_
-	ld   a, $01
-	ld   [_RAM_C479_], a
-	jp   _LABEL_BA26_
+    call _LABEL_BB89_
+    ld   a, $01
+    ld   [_RAM_C479_], a
+    jp   _LABEL_BA26_
 
 _LABEL_BC0E_:
-	cp   $2B
-	jp   nz, _LABEL_BA26_
-	ld   [_RAM_C590_], a
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   z, _LABEL_BC23_
-	xor  a
-	ld   [_RAM_C473_], a
-	ld   [_RAM_C472_], a
+    cp   $2B
+    jp   nz, _LABEL_BA26_
+    ld   [_RAM_C590_], a
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   z, _LABEL_BC23_
+    xor  a
+    ld   [_RAM_C473_], a
+    ld   [_RAM_C472_], a
 _LABEL_BC23_:
-	call _LABEL_BB89_
-	xor  a
-	ld   [_RAM_C479_], a
-	jp   _LABEL_BA26_
+    call _LABEL_BB89_
+    xor  a
+    ld   [_RAM_C479_], a
+    jp   _LABEL_BA26_
 
 _LABEL_BC2D_:
-	ld   a, [keyboard__prob_previous_key__RAM_C477]
-	cp   $6A
-	ret  z
-	cp   $68
-	ret  z
-	cp   $2D
-	ret  z
-	cp   $2B
-	ret  z
-	ld   a, [_RAM_C473_]
-	or   a
-	jr   nz, _LABEL_BC48_
-	ld   a, [_RAM_C472_]
-	or   a
-	jr   nz, _LABEL_BC85_
+    ld   a, [keyboard__prob_previous_key__RAM_C477]
+    cp   $6A
+    ret  z
+    cp   $68
+    ret  z
+    cp   $2D
+    ret  z
+    cp   $2B
+    ret  z
+    ld   a, [_RAM_C473_]
+    or   a
+    jr   nz, _LABEL_BC48_
+    ld   a, [_RAM_C472_]
+    or   a
+    jr   nz, _LABEL_BC85_
 _LABEL_BC48_:
-	ld   de, _RAM_C3E0_
-	ld   hl, $C3F9
-	call _LABEL_BD08_
-	call _LABEL_B3A5_
-	ld   de, $73BC
-	ld   hl, $C40A
-	call _LABEL_BD08_
-	ld   a, $02
-	ld   [_RAM_C479_], a
+    ld   de, _RAM_C3E0_
+    ld   hl, $C3F9
+    call _LABEL_BD08_
+    call _LABEL_B3A5_
+    ld   de, $73BC
+    ld   hl, $C40A
+    call _LABEL_BD08_
+    ld   a, $02
+    ld   [_RAM_C479_], a
 _LABEL_BC62_:
-	call _LABEL_BD22_
-	ld   a, $1C
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $20
-	ld   [_RAM_C590_], a
-	ld   a, $01
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_AB74_
-	ld   a, $01
-	ld   [_RAM_C473_], a
-	dec  a
-	ld   [_RAM_C472_], a
-	ld   [_RAM_C474_], a
-	ret
+    call _LABEL_BD22_
+    ld   a, $1C
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $20
+    ld   [_RAM_C590_], a
+    ld   a, $01
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_AB74_
+    ld   a, $01
+    ld   [_RAM_C473_], a
+    dec  a
+    ld   [_RAM_C472_], a
+    ld   [_RAM_C474_], a
+    ret
 
 _LABEL_BC85_:
-	ld   de, _RAM_C3E0_
-	ld   hl, _RAM_C900_
-	ld   b, $0B
+    ld   de, _RAM_C3E0_
+    ld   hl, _RAM_C900_
+    ld   b, $0B
 _LABEL_BC8D_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BC8D_
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	call _LABEL_BD08_
-	call _LABEL_B3A5_
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C479_]
-	cp   $02
-	jr   c, _LABEL_BCB4_
-	ld   a, [_RAM_C40A_]
-	sub  $02
-	ld   [_RAM_C40A_], a
-	ld   a, [_RAM_C479_]
-	jr   _LABEL_BC62_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BC8D_
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    call _LABEL_BD08_
+    call _LABEL_B3A5_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C479_]
+    cp   $02
+    jr   c, _LABEL_BCB4_
+    ld   a, [_RAM_C40A_]
+    sub  $02
+    ld   [_RAM_C40A_], a
+    ld   a, [_RAM_C479_]
+    jr   _LABEL_BC62_
 
 _LABEL_BCB4_:
-	ld   de, $73BC
-	ld   hl, $C3F9
-	call _LABEL_BD08_
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, [_RAM_C479_]
-	call _LABEL_BD22_
-	call _LABEL_AB74_
-	ld   de, _RAM_C455_
-	ld   hl, _RAM_C3E0_
-	ld   b, $0B
+    ld   de, $73BC
+    ld   hl, $C3F9
+    call _LABEL_BD08_
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [_RAM_C479_]
+    call _LABEL_BD22_
+    call _LABEL_AB74_
+    ld   de, _RAM_C455_
+    ld   hl, _RAM_C3E0_
+    ld   b, $0B
 _LABEL_BCD2_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BCD2_
-	ld   de, _RAM_C900_
-	ld   hl, _RAM_C3EC_
-	ld   b, $0B
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BCD2_
+    ld   de, _RAM_C900_
+    ld   hl, _RAM_C3EC_
+    ld   b, $0B
 _LABEL_BCE0_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BCE0_
-	ld   de, _RAM_C3E0_
-	ld   hl, $C3F9
-	call _LABEL_AAA8_
-	ld   a, [_RAM_C3F9_]
-	sub  $02
-	ld   [_RAM_C3F9_], a
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	call _LABEL_AAA8_
-	ld   a, $03
-	ld   [_RAM_C479_], a
-	jp   _LABEL_BC62_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BCE0_
+    ld   de, _RAM_C3E0_
+    ld   hl, $C3F9
+    call _LABEL_AAA8_
+    ld   a, [_RAM_C3F9_]
+    sub  $02
+    ld   [_RAM_C3F9_], a
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    call _LABEL_AAA8_
+    ld   a, $03
+    ld   [_RAM_C479_], a
+    jp   _LABEL_BC62_
 
 _LABEL_BD08_:
-	push hl
-	push de
-	ld   hl, _RAM_C466_
-	ld   b, $0C
+    push hl
+    push de
+    ld   hl, _RAM_C466_
+    ld   b, $0C
 _LABEL_BD0F_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_BD0F_
-	pop  de
-	pop  hl
-	jp   _LABEL_AAA8_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_BD0F_
+    pop  de
+    pop  hl
+    jp   _LABEL_AAA8_
 
 ; Jump Table from BD1A to 21 (4 entries, indexed by A x 2 in _LABEL_BD22_ )
 jump_table__BD1A:
@@ -15673,396 +15673,396 @@ dw _LABEL_A874_  ; 3  TODO: Eventually launches Thermometer App
 ; Jump using pointers in table jump_table__BD1A
 ; indexed by A x 2
 _LABEL_BD22_:
-	ld   h, $00
-	add  a
-	ld   l, a
-	ld   de, jump_table__BD1A
-	add  hl, de
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	jp   hl
+    ld   h, $00
+    add  a
+    ld   l, a
+    ld   de, jump_table__BD1A
+    add  hl, de
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    jp   hl
 
 ; 1st entry of Jump Table from BD1C (indexed by unknown)
 _LABEL_BD2E_:
-	call _LABEL_A614_
+    call _LABEL_A614_
 _LABEL_BD31_:
-	ld   a, [_RAM_C3F8_]
-	ld   c, a
-	ld   a, [_RAM_C409_]
-	add  c
-	cp   $FF
-	jr   nz, _LABEL_BD49_
-	ld   a, [_RAM_C3F8_]
-	ld   [_RAM_C409_], a
-	ld   [_RAM_C41A_], a
-	jp   _LABEL_AA58_
+    ld   a, [_RAM_C3F8_]
+    ld   c, a
+    ld   a, [_RAM_C409_]
+    add  c
+    cp   $FF
+    jr   nz, _LABEL_BD49_
+    ld   a, [_RAM_C3F8_]
+    ld   [_RAM_C409_], a
+    ld   [_RAM_C41A_], a
+    jp   _LABEL_AA58_
 
 _LABEL_BD49_:
-	ld   hl, _RAM_C3FA_
-	ld   de, _RAM_C40B_
-	ld   b, $0A
+    ld   hl, _RAM_C3FA_
+    ld   de, _RAM_C40B_
+    ld   b, $0A
 _LABEL_BD51_:
-	ld   a, [de]
-	inc  de
-	ld   c, a
-	ldi  a, [hl]
-	cp   c
-	jr   z, _LABEL_BD5C_
-	jr   c, _LABEL_BD61_
-	jr   _LABEL_BD7B_
+    ld   a, [de]
+    inc  de
+    ld   c, a
+    ldi  a, [hl]
+    cp   c
+    jr   z, _LABEL_BD5C_
+    jr   c, _LABEL_BD61_
+    jr   _LABEL_BD7B_
 
 _LABEL_BD5C_:
-	dec  c
-	jr   nz, _LABEL_BD51_
-	jr   _LABEL_BD7B_
+    dec  c
+    jr   nz, _LABEL_BD51_
+    jr   _LABEL_BD7B_
 
 _LABEL_BD61_:
-	ld   b, $0B
-	ld   hl, _RAM_C3F9_
-	ld   de, _RAM_C40A_
+    ld   b, $0B
+    ld   hl, _RAM_C3F9_
+    ld   de, _RAM_C40A_
 _LABEL_BD69_:
-	ld   a, [hl]
-	ld   c, a
-	ld   a, [de]
-	ldi  [hl], a
-	ld   a, c
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_BD69_
-	ld   a, [_RAM_C3F8_]
-	xor  $FF
-	ld   [_RAM_C3F8_], a
+    ld   a, [hl]
+    ld   c, a
+    ld   a, [de]
+    ldi  [hl], a
+    ld   a, c
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_BD69_
+    ld   a, [_RAM_C3F8_]
+    xor  $FF
+    ld   [_RAM_C3F8_], a
 _LABEL_BD7B_:
-	ld   bc, $0A00
-	ld   a, $26
-	ld   [_RAM_C4A5_], a
-	ld   a, $C4
-	ld   [_RAM_C4A6_], a
-	ld   hl, _RAM_C414_
-	ld   de, _RAM_C403_
+    ld   bc, $0A00
+    ld   a, $26
+    ld   [_RAM_C4A5_], a
+    ld   a, $C4
+    ld   [_RAM_C4A6_], a
+    ld   hl, _RAM_C414_
+    ld   de, _RAM_C403_
 _LABEL_BD8E_:
-	ld   a, [de]
-	dec  de
-	sub  [hl]
-	dec  hl
-	sub  c
-	ld   c, $00
+    ld   a, [de]
+    dec  de
+    sub  [hl]
+    dec  hl
+    sub  c
+    ld   c, $00
 _LABEL_BD95_:
-	bit  7, a
-	jr   z, _LABEL_BD9E_
-	add  $0A
-	inc  c
-	jr   _LABEL_BD95_
+    bit  7, a
+    jr   z, _LABEL_BD9E_
+    add  $0A
+    inc  c
+    jr   _LABEL_BD95_
 
 _LABEL_BD9E_:
-	push hl
-	push af
-	ld   a, [_RAM_C4A5_]
-	ld   l, a
-	ld   a, [_RAM_C4A6_]
-	ld   h, a
-	pop  af
-	ldd  [hl], a
-	ld   a, l
-	ld   [_RAM_C4A5_], a
-	ld   a, h
-	ld   [_RAM_C4A6_], a
-	pop  hl
-	dec  b
-	jr   nz, _LABEL_BD8E_
-	ld   a, [_RAM_C3F9_]
-	ld   hl, _RAM_C41D_
-	ld   c, $0A
-	ld   b, a
+    push hl
+    push af
+    ld   a, [_RAM_C4A5_]
+    ld   l, a
+    ld   a, [_RAM_C4A6_]
+    ld   h, a
+    pop  af
+    ldd  [hl], a
+    ld   a, l
+    ld   [_RAM_C4A5_], a
+    ld   a, h
+    ld   [_RAM_C4A6_], a
+    pop  hl
+    dec  b
+    jr   nz, _LABEL_BD8E_
+    ld   a, [_RAM_C3F9_]
+    ld   hl, _RAM_C41D_
+    ld   c, $0A
+    ld   b, a
 _LABEL_BDBF_:
-	ldi  a, [hl]
-	or   a
-	jr   nz, _LABEL_BDC9_
-	dec  b
-	dec  c
-	jr   nz, _LABEL_BDBF_
-	ld   b, $00
+    ldi  a, [hl]
+    or   a
+    jr   nz, _LABEL_BDC9_
+    dec  b
+    dec  c
+    jr   nz, _LABEL_BDBF_
+    ld   b, $00
 _LABEL_BDC9_:
-	ld   a, b
-	ld   [_RAM_C41B_], a
-	xor  a
-	ld   [_RAM_C41C_], a
-	ld   a, [_RAM_C3F8_]
-	ld   [_RAM_C41A_], a
-	ret
+    ld   a, b
+    ld   [_RAM_C41B_], a
+    xor  a
+    ld   [_RAM_C41C_], a
+    ld   a, [_RAM_C3F8_]
+    ld   [_RAM_C41A_], a
+    ret
 
 ; Data from BDD8 to BDEF (24 bytes)
 db $21, $64, $00, $01, $0A, $08, $55, $B7, $CB, $12, $CB, $14, $7C, $B9, $38, $03
 db $91, $67, $14, $05, $20, $F1, $5C, $C9
 
 _LABEL_BDF0_:
-	ld   hl, _RAM_CFA4_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, _RAM_C466_
-	ld   b, $0B
+    ld   hl, _RAM_CFA4_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, _RAM_C466_
+    ld   b, $0B
 _LABEL_BDFB_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_BDFB_
-	pop  hl
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_BDFB_
+    pop  hl
 _LABEL_BE02_:
-	call gfx__clear_shadow_oam__275B
-	call _LABEL_B145_
+    call gfx__clear_shadow_oam__275B
+    call _LABEL_B145_
 
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; != KYBD_STATUS__NOT_FOUND
-	jr   nz, .skip_something_if_keyboard_connected__BE1D
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; != KYBD_STATUS__NOT_FOUND
+    jr   nz, .skip_something_if_keyboard_connected__BE1D
 
-	ld   a, [_RAM_C258_]
-	ld   c, a
-	ld   a, [_RAM_C259_]
-	ld   b, a
-	ld   a, [_RAM_C25A_]
-	ld   e, a
-	call _LABEL_1504_
+    ld   a, [_RAM_C258_]
+    ld   c, a
+    ld   a, [_RAM_C259_]
+    ld   b, a
+    ld   a, [_RAM_C25A_]
+    ld   e, a
+    call _LABEL_1504_
 
     .skip_something_if_keyboard_connected__BE1D:
-	rst  $18	; Call VSYNC__RST_18
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	push af
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; != KYBD_STATUS__NOT_FOUND
-	jr   nz, _LABEL_BE32_
+    rst  $18    ; Call VSYNC__RST_18
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    push af
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; != KYBD_STATUS__NOT_FOUND
+    jr   nz, _LABEL_BE32_
 
-	ld   a, [_RAM_C592_]
-	or   a
-	jr   z, _LABEL_BE32_
-	call _LABEL_B040_
-	pop  bc
-	jr   _LABEL_BE38_
+    ld   a, [_RAM_C592_]
+    or   a
+    jr   z, _LABEL_BE32_
+    call _LABEL_B040_
+    pop  bc
+    jr   _LABEL_BE38_
 
 _LABEL_BE32_:
-	ld   a, $39
-	ld   [_RAM_C25A_], a
-	pop  af
+    ld   a, $39
+    ld   [_RAM_C25A_], a
+    pop  af
 _LABEL_BE38_:
-	cp   $FF
-	jr   z, _LABEL_BE02_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $7F
-	jr   nz, _LABEL_BE02_
-	jp   _LABEL_B9F0_
+    cp   $FF
+    jr   z, _LABEL_BE02_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $7F
+    jr   nz, _LABEL_BE02_
+    jp   _LABEL_B9F0_
 
 _LABEL_BE47_:
-	xor  a
-	ld   [_RAM_C47C_], a
-	ld   a, [_RAM_C355_]
-	bit  7, a
-	jr   z, _LABEL_BE58_
-	ld   c, a
-	ld   [_RAM_C47C_], a
-	xor  a
-	sub  c
+    xor  a
+    ld   [_RAM_C47C_], a
+    ld   a, [_RAM_C355_]
+    bit  7, a
+    jr   z, _LABEL_BE58_
+    ld   c, a
+    ld   [_RAM_C47C_], a
+    xor  a
+    sub  c
 _LABEL_BE58_:
-	ld   b, $00
+    ld   b, $00
 _LABEL_BE5A_:
-	cp   $0A
-	jr   c, _LABEL_BE63_
-	inc  b
-	sub  $0A
-	jr   _LABEL_BE5A_
+    cp   $0A
+    jr   c, _LABEL_BE63_
+    inc  b
+    sub  $0A
+    jr   _LABEL_BE5A_
 
 _LABEL_BE63_:
-	add  $30
-	ld   c, a
-	ld   a, b
-	add  $30
-	cp   $30
-	jr   nz, _LABEL_BE6F_
-	ld   a, $20
+    add  $30
+    ld   c, a
+    ld   a, b
+    add  $30
+    cp   $30
+    jr   nz, _LABEL_BE6F_
+    ld   a, $20
 _LABEL_BE6F_:
-	ld   b, a
-	ld   a, c
-	ld   [_RAM_C3E1_], a
-	ld   [_RAM_C357_], a
-	ld   a, b
-	ld   [_RAM_C3E0_], a
-	ld   [_RAM_C356_], a
-	xor  a
-	ld   [_RAM_C35B_], a
-	ld   [_RAM_C3E2_], a
-	ld   a, [_RAM_C47C_]
-	or   a
-	jr   z, _LABEL_BEA5_
-	ld   a, [_RAM_C355_]
-	cp   $F6
-	jr   nz, _LABEL_BEA0_
-	ld   hl, _RAM_C3E3_
-	ld   de, _RAM_C3E2_
-	ld   b, $03
+    ld   b, a
+    ld   a, c
+    ld   [_RAM_C3E1_], a
+    ld   [_RAM_C357_], a
+    ld   a, b
+    ld   [_RAM_C3E0_], a
+    ld   [_RAM_C356_], a
+    xor  a
+    ld   [_RAM_C35B_], a
+    ld   [_RAM_C3E2_], a
+    ld   a, [_RAM_C47C_]
+    or   a
+    jr   z, _LABEL_BEA5_
+    ld   a, [_RAM_C355_]
+    cp   $F6
+    jr   nz, _LABEL_BEA0_
+    ld   hl, _RAM_C3E3_
+    ld   de, _RAM_C3E2_
+    ld   b, $03
 _LABEL_BE9A_:
-	ld   a, [de]
-	dec  de
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_BE9A_
+    ld   a, [de]
+    dec  de
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_BE9A_
 _LABEL_BEA0_:
-	ld   a, $2D
-	ld   [_RAM_C3E0_], a
+    ld   a, $2D
+    ld   [_RAM_C3E0_], a
 _LABEL_BEA5_:
-	ld   hl, _RAM_C3EC_
-	ld   a, $31
-	ldi  [hl], a
-	ld   a, $2E
-	ldi  [hl], a
-	ld   a, $38
-	ldi  [hl], a
-	xor  a
-	ldi  [hl], a
-	ld   de, _RAM_C3E0_
-	ld   hl, $C3F9
-	call _LABEL_AAA8_
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	call _LABEL_AAA8_
-	ld   a, $03
-	ld   [_RAM_C479_], a
-	call _LABEL_BD22_
-	call _LABEL_AB74_
-	ld   hl, _RAM_C3EC_
-	ld   a, $33
-	ldi  [hl], a
-	ld   a, $32
-	ldi  [hl], a
-	ld   a, $2E
-	ldi  [hl], a
-	ld   a, $35
-	ldi  [hl], a
-	xor  a
-	ldi  [hl], a
-	ld   de, _RAM_C3EC_
-	ld   hl, $C40A
-	call _LABEL_AAA8_
-	xor  a
-	ld   [_RAM_C479_], a
-	call _LABEL_BD22_
-	call _LABEL_AB74_
-	ld   hl, _RAM_C455_
-	ld   de, _RAM_C358_
+    ld   hl, _RAM_C3EC_
+    ld   a, $31
+    ldi  [hl], a
+    ld   a, $2E
+    ldi  [hl], a
+    ld   a, $38
+    ldi  [hl], a
+    xor  a
+    ldi  [hl], a
+    ld   de, _RAM_C3E0_
+    ld   hl, $C3F9
+    call _LABEL_AAA8_
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    call _LABEL_AAA8_
+    ld   a, $03
+    ld   [_RAM_C479_], a
+    call _LABEL_BD22_
+    call _LABEL_AB74_
+    ld   hl, _RAM_C3EC_
+    ld   a, $33
+    ldi  [hl], a
+    ld   a, $32
+    ldi  [hl], a
+    ld   a, $2E
+    ldi  [hl], a
+    ld   a, $35
+    ldi  [hl], a
+    xor  a
+    ldi  [hl], a
+    ld   de, _RAM_C3EC_
+    ld   hl, $C40A
+    call _LABEL_AAA8_
+    xor  a
+    ld   [_RAM_C479_], a
+    call _LABEL_BD22_
+    call _LABEL_AB74_
+    ld   hl, _RAM_C455_
+    ld   de, _RAM_C358_
 _LABEL_BEFA_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_BF06_
-	cp   $2E
-	jr   z, _LABEL_BF06_
-	ld   [de], a
-	inc  de
-	jr   _LABEL_BEFA_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_BF06_
+    cp   $2E
+    jr   z, _LABEL_BF06_
+    ld   [de], a
+    inc  de
+    jr   _LABEL_BEFA_
 
 _LABEL_BF06_:
-	xor  a
-	ld   [de], a
-	ld   a, $02
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_BF46_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0F
-	jr   z, _LABEL_BF24_
-	cp   $12
-	jr   z, _LABEL_BF3B_
-	ld   a, [_RAM_C3B0_]
-	bit  6, a
-	jr   z, _LABEL_BF33_
+    xor  a
+    ld   [de], a
+    ld   a, $02
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_BF46_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0F
+    jr   z, _LABEL_BF24_
+    cp   $12
+    jr   z, _LABEL_BF3B_
+    ld   a, [_RAM_C3B0_]
+    bit  6, a
+    jr   z, _LABEL_BF33_
 _LABEL_BF24_:
-	ld   a, [_RAM_C355_]
-	inc  a
-	cp   $79
-	jp   z, _LABEL_BE47_
+    ld   a, [_RAM_C355_]
+    inc  a
+    cp   $79
+    jp   z, _LABEL_BE47_
 _LABEL_BF2D_:
-	ld   [_RAM_C355_], a
-	jp   _LABEL_BE47_
+    ld   [_RAM_C355_], a
+    jp   _LABEL_BE47_
 
 _LABEL_BF33_:
-	ld   a, [_RAM_C3B0_]
-	bit  7, a
-	jp   z, _LABEL_BE47_
+    ld   a, [_RAM_C3B0_]
+    bit  7, a
+    jp   z, _LABEL_BE47_
 _LABEL_BF3B_:
-	ld   a, [_RAM_C355_]
-	dec  a
-	cp   $F5
-	jp   z, _LABEL_BE47_
-	jr   _LABEL_BF2D_
+    ld   a, [_RAM_C355_]
+    dec  a
+    cp   $F5
+    jp   z, _LABEL_BE47_
+    jr   _LABEL_BF2D_
 
 _LABEL_BF46_:
-	rst  $18	; Call VSYNC__RST_18
-	call gfx__clear_shadow_oam__275B
-	ld   a, [_RAM_C355_]
-	bit  7, a
-	jr   z, _LABEL_BF54_
-	xor  a
-	jr   _LABEL_BF5A_
+    rst  $18    ; Call VSYNC__RST_18
+    call gfx__clear_shadow_oam__275B
+    ld   a, [_RAM_C355_]
+    bit  7, a
+    jr   z, _LABEL_BF54_
+    xor  a
+    jr   _LABEL_BF5A_
 
 _LABEL_BF54_:
-	cp   $36
-	jr   c, _LABEL_BF5A_
-	ld   a, $35
+    cp   $36
+    jr   c, _LABEL_BF5A_
+    ld   a, $35
 _LABEL_BF5A_:
-	add  a
-	add  a
-	ld   b, $00
+    add  a
+    add  a
+    ld   b, $00
 _LABEL_BF5E_:
-	cp   $05
-	jr   c, _LABEL_BF67_
-	sub  $05
-	inc  b
-	jr   _LABEL_BF5E_
+    cp   $05
+    jr   c, _LABEL_BF67_
+    sub  $05
+    inc  b
+    jr   _LABEL_BF5E_
 
 _LABEL_BF67_:
-	ld   c, a
-	ld   a, b
-	add  a
-	inc  a
-	ld   e, a
-	ld   a, c
-	cp   $03
-	jr   c, _LABEL_BF72_
-	inc  e
+    ld   c, a
+    ld   a, b
+    add  a
+    inc  a
+    ld   e, a
+    ld   a, c
+    cp   $03
+    jr   c, _LABEL_BF72_
+    inc  e
 _LABEL_BF72_:
-	ld   b, $78
-	ld   hl, shadow_oam_base__RAM_C000
+    ld   b, $78
+    ld   hl, shadow_oam_base__RAM_C000
 _LABEL_BF77_:
-	ld   a, e
-	cp   $08
-	jr   c, _LABEL_BF91_
-	ld   [hl], b
-	ld   a, b
-	sub  $08
-	ld   b, a
-	inc  hl
-	ld   [hl], $55
-	inc  hl
-	ld   [hl], $08
-	inc  hl
-	ld   [hl], $00
-	inc  hl
-	ld   a, e
-	sub  $08
-	ld   e, a
-	jr   _LABEL_BF77_
+    ld   a, e
+    cp   $08
+    jr   c, _LABEL_BF91_
+    ld   [hl], b
+    ld   a, b
+    sub  $08
+    ld   b, a
+    inc  hl
+    ld   [hl], $55
+    inc  hl
+    ld   [hl], $08
+    inc  hl
+    ld   [hl], $00
+    inc  hl
+    ld   a, e
+    sub  $08
+    ld   e, a
+    jr   _LABEL_BF77_
 
 _LABEL_BF91_:
-	ld   [hl], b
-	inc  hl
-	ld   [hl], $55
-	inc  hl
-	ld   [hl], e
-	inc  hl
-	ld   [hl], $00
-	ret
+    ld   [hl], b
+    inc  hl
+    ld   [hl], $55
+    inc  hl
+    ld   [hl], e
+    inc  hl
+    ld   [hl], $00
+    ret
 
 ; Data from BF9B to BFFF (101 bytes)
 db $F8, $B8, $00, $00, $BA, $00, $00, $52, $50, $E8, $E2, $00, $2B, $C0, $5E, $5F
@@ -16087,882 +16087,882 @@ db $06, $0E, $6D, $7B, $04, $19, $4E, $50, $53, $56, $5A, $57, $53, $50, $43, $5
 db $41, $53, $55, $50, $53
 
 _LABEL_C047_:
-	call set_keycode_lut_ptr__altmap_OFF__026C
+    call set_keycode_lut_ptr__altmap_OFF__026C
 _LABEL_C04A_:
-	ld   a, [_SRAM_602B_]
-	ld   b, a
-	ld   a, $00
-	ld   [_RAM_C24C_], a
-	ld   a, $A1
-	ld   [_RAM_C24D_], a
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x04; $04
-	ld   [keyboard_cur_mode__RAM_C280], a
+    ld   a, [_SRAM_602B_]
+    ld   b, a
+    ld   a, $00
+    ld   [_RAM_C24C_], a
+    ld   a, $A1
+    ld   [_RAM_C24D_], a
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x04; $04
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C05D_:
-	push bc
-	call _LABEL_B36_
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_C05D_
-	ld   de, $2150
-	ld   hl, _TILEMAP0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, _RAM_C308_
-	ld   c, $00
+    push bc
+    call _LABEL_B36_
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_C05D_
+    ld   de, $2150
+    ld   hl, _TILEMAP0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C308_
+    ld   c, $00
 _LABEL_C071_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_C078_
-	inc  c
-	jr   _LABEL_C071_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_C078_
+    inc  c
+    jr   _LABEL_C071_
 
 _LABEL_C078_:
-	ld   a, $14
-	sub  c
-	or   a
-	rr   a
-	ld   h, $98
-	ld   l, a
-	ld   de, $C308
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $2150
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, [_RAM_C306_]
-	or   a
-	jr   nz, _LABEL_C0AD_
-	ld   hl, _RAM_C327_
-	ld   c, $00
+    ld   a, $14
+    sub  c
+    or   a
+    rr   a
+    ld   h, $98
+    ld   l, a
+    ld   de, $C308
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C306_]
+    or   a
+    jr   nz, _LABEL_C0AD_
+    ld   hl, _RAM_C327_
+    ld   c, $00
 _LABEL_C097_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_C09E_
-	inc  c
-	jr   _LABEL_C097_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_C09E_
+    inc  c
+    jr   _LABEL_C097_
 
 _LABEL_C09E_:
-	ld   a, $14
-	sub  c
-	or   a
-	rr   a
-	ld   h, $98
-	add  $20
-	ld   l, a
-	ld   de, $C327
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   a, $14
+    sub  c
+    or   a
+    rr   a
+    ld   h, $98
+    add  $20
+    ld   l, a
+    ld   de, $C327
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_C0AD_:
-	ld   de, $0062
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $0062
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_C0B4_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_C0B4_
-	cp   $12
-	jr   z, _LABEL_C132_
-	cp   $0F
-	jr   z, _LABEL_C142_
-	push af
-	ld   hl, $4038
-	ld   d, $00
-	ld   a, [_RAM_C232_]
-	ld   e, a
-	add  a
-	add  e
-	ld   e, a
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   z, _LABEL_C132_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_C142_
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_C0B4_
-	ld   a, [_SRAM_602C_]
-	push af
-	ld   a, [_RAM_C305_]
-	ld   [_SRAM_602C_], a
-	pop  af
-	ld   [_RAM_C305_], a
-	ld   a, [_SRAM_602C_]
-	push af
-	ld   e, a
-	ld   a, [_RAM_C305_]
-	ld   [_SRAM_602C_], a
-	ld   a, e
-	ld   [_RAM_C305_], a
-	call _LABEL_9CE_
-	call _LABEL_991_
-	pop  af
-	ld   [_SRAM_602C_], a
-	ld   hl, _RAM_C308_
-	ld   de, _SRAM_6015_
-	ld   b, $14
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_C0B4_
+    cp   $12
+    jr   z, _LABEL_C132_
+    cp   $0F
+    jr   z, _LABEL_C142_
+    push af
+    ld   hl, $4038
+    ld   d, $00
+    ld   a, [_RAM_C232_]
+    ld   e, a
+    add  a
+    add  e
+    ld   e, a
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   z, _LABEL_C132_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_C142_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_C0B4_
+    ld   a, [_SRAM_602C_]
+    push af
+    ld   a, [_RAM_C305_]
+    ld   [_SRAM_602C_], a
+    pop  af
+    ld   [_RAM_C305_], a
+    ld   a, [_SRAM_602C_]
+    push af
+    ld   e, a
+    ld   a, [_RAM_C305_]
+    ld   [_SRAM_602C_], a
+    ld   a, e
+    ld   [_RAM_C305_], a
+    call _LABEL_9CE_
+    call _LABEL_991_
+    pop  af
+    ld   [_SRAM_602C_], a
+    ld   hl, _RAM_C308_
+    ld   de, _SRAM_6015_
+    ld   b, $14
 _LABEL_C10E_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	or   a
-	jr   z, _LABEL_C117_
-	dec  b
-	jr   nz, _LABEL_C10E_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    or   a
+    jr   z, _LABEL_C117_
+    dec  b
+    jr   nz, _LABEL_C10E_
 _LABEL_C117_:
-	ld   hl, $C308
-	ld   de, _DATA_C150_
-	ld   b, $04
+    ld   hl, $C308
+    ld   de, _DATA_C150_
+    ld   b, $04
 _LABEL_C11F_:
-	ld   a, [de]
-	cp   [hl]
-	jr   nz, _LABEL_C12D_
-	inc  de
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_C11F_
-	inc  a
-	ld   [_SRAM_602A_], a
-	ret
+    ld   a, [de]
+    cp   [hl]
+    jr   nz, _LABEL_C12D_
+    inc  de
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_C11F_
+    inc  a
+    ld   [_SRAM_602A_], a
+    ret
 
 _LABEL_C12D_:
-	xor  a
-	ld   [_SRAM_602A_], a
-	ret
+    xor  a
+    ld   [_SRAM_602A_], a
+    ret
 
 _LABEL_C132_:
-	ld   a, [_SRAM_602B_]
-	inc  a
-	cp   $F4
-	jr   nz, _LABEL_C13C_
-	ld   a, $01
+    ld   a, [_SRAM_602B_]
+    inc  a
+    cp   $F4
+    jr   nz, _LABEL_C13C_
+    ld   a, $01
 _LABEL_C13C_:
-	ld   [_SRAM_602B_], a
-	jp   _LABEL_C04A_
+    ld   [_SRAM_602B_], a
+    jp   _LABEL_C04A_
 
 _LABEL_C142_:
-	ld   a, [_SRAM_602B_]
-	dec  a
-	jr   nz, _LABEL_C14A_
-	ld   a, $F3
+    ld   a, [_SRAM_602B_]
+    dec  a
+    jr   nz, _LABEL_C14A_
+    ld   a, $F3
 _LABEL_C14A_:
-	ld   [_SRAM_602B_], a
-	jp   _LABEL_C04A_
+    ld   [_SRAM_602B_], a
+    jp   _LABEL_C04A_
 
 ; Data from C150 to C153 (4 bytes)
 _DATA_C150_:
 db $55, $53, $41, $00
 
 _LABEL_C154_:
-	xor  a
-	ld   [_RAM_C305_], a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   [_RAM_C130_], a
-	ld   [_RAM_C23B_], a
-	ld   [_RAM_C11B_], a
-	ld   [_RAM_C239_], a
-	ld   a, [_RAM_C281_]
-	ld   [_RAM_C237_], a
-	ld   a, [_RAM_C282_]
-	ld   [_RAM_C238_], a
-	ld   a, $0B
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	xor  a
-	ld   [_RAM_C23B_], a
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	ld   a, $98
-	ld   [_RAM_C282_], a
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
+    xor  a
+    ld   [_RAM_C305_], a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   [_RAM_C130_], a
+    ld   [_RAM_C23B_], a
+    ld   [_RAM_C11B_], a
+    ld   [_RAM_C239_], a
+    ld   a, [_RAM_C281_]
+    ld   [_RAM_C237_], a
+    ld   a, [_RAM_C282_]
+    ld   [_RAM_C238_], a
+    ld   a, $0B
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    xor  a
+    ld   [_RAM_C23B_], a
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    ld   a, $98
+    ld   [_RAM_C282_], a
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C18C_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_C18C_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jr   z, _LABEL_C1DA_
-	cp   $80
-	jr   nz, _LABEL_C1B4_
-	ld   a, [_RAM_C281_]
-	cp   $08
-	jr   z, _LABEL_C18C_
-	sub  $08
-	ld   [_RAM_C281_], a
-	ld   a, $20
-	call _LABEL_782_
-	jr   _LABEL_C18C_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_C18C_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jr   z, _LABEL_C1DA_
+    cp   $80
+    jr   nz, _LABEL_C1B4_
+    ld   a, [_RAM_C281_]
+    cp   $08
+    jr   z, _LABEL_C18C_
+    sub  $08
+    ld   [_RAM_C281_], a
+    ld   a, $20
+    call _LABEL_782_
+    jr   _LABEL_C18C_
 
 _LABEL_C1B4_:
-	cp   $2D
-	jr   z, _LABEL_C1C4_
-	cp   $20
-	jr   z, _LABEL_C1C4_
-	cp   $41
-	jr   c, _LABEL_C18C_
-	cp   $5B
-	jr   nc, _LABEL_C18C_
+    cp   $2D
+    jr   z, _LABEL_C1C4_
+    cp   $20
+    jr   z, _LABEL_C1C4_
+    cp   $41
+    jr   c, _LABEL_C18C_
+    cp   $5B
+    jr   nc, _LABEL_C18C_
 _LABEL_C1C4_:
-	ld   c, a
-	ld   a, [_RAM_C281_]
-	cp   $80
-	jr   z, _LABEL_C18C_
-	ld   a, c
-	call _LABEL_782_
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_C18C_
+    ld   c, a
+    ld   a, [_RAM_C281_]
+    cp   $80
+    jr   z, _LABEL_C18C_
+    ld   a, c
+    call _LABEL_782_
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_C18C_
 
 _LABEL_C1DA_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	jp   z, _LABEL_897_
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   [_RAM_C23B_], a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $C11B
-	add  hl, de
-	xor  a
-	ld   [hl], a
-	ld   [_RAM_C307_], a
-	call gfx__clear_shadow_oam__275B
-	ld   a, $00
-	ld   [_RAM_C24C_], a
-	ld   a, $A1
-	ld   [_RAM_C24D_], a
+    ld   a, [_RAM_C281_]
+    sub  $08
+    jp   z, _LABEL_897_
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   [_RAM_C23B_], a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $C11B
+    add  hl, de
+    xor  a
+    ld   [hl], a
+    ld   [_RAM_C307_], a
+    call gfx__clear_shadow_oam__275B
+    ld   a, $00
+    ld   [_RAM_C24C_], a
+    ld   a, $A1
+    ld   [_RAM_C24D_], a
 _LABEL_C207_:
-	call _LABEL_B21_
-	or   a
-	jp   z, _LABEL_C335_
-	ld   a, [_RAM_C3DE_]
-	ld   c, a
-	ld   a, [_RAM_C25F_]
-	cp   c
-	jr   z, _LABEL_C226_
-	cp   $19
-	jr   nz, _LABEL_C21E_
-	ld   a, $0F
+    call _LABEL_B21_
+    or   a
+    jp   z, _LABEL_C335_
+    ld   a, [_RAM_C3DE_]
+    ld   c, a
+    ld   a, [_RAM_C25F_]
+    cp   c
+    jr   z, _LABEL_C226_
+    cp   $19
+    jr   nz, _LABEL_C21E_
+    ld   a, $0F
 _LABEL_C21E_:
-	call _LABEL_376C_
-	jr   _LABEL_C226_
+    call _LABEL_376C_
+    jr   _LABEL_C226_
 
 ; Data from C223 to C225 (3 bytes)
 db $CD, $0D, $38
 
 _LABEL_C226_:
-	ld   a, $1B
-	ldh  [rOBP0], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_B45_
-	ld   hl, _TILEMAP0
-	ld   de, $99E0
-	ld   b, $60
-	xor  a
+    ld   a, $1B
+    ldh  [rOBP0], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_B45_
+    ld   hl, _TILEMAP0
+    ld   de, $99E0
+    ld   b, $60
+    xor  a
 _LABEL_C239_:
-	ldi  [hl], a
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_C239_
-	ld   hl, _RAM_C308_
-	ld   c, $00
+    ldi  [hl], a
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_C239_
+    ld   hl, _RAM_C308_
+    ld   c, $00
 _LABEL_C244_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_C24B_
-	inc  c
-	jr   _LABEL_C244_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_C24B_
+    inc  c
+    jr   _LABEL_C244_
 
 _LABEL_C24B_:
-	ld   a, $14
-	sub  c
-	or   a
-	rr   a
-	ld   h, $98
-	ld   l, a
-	ld   de, $C308
-	rst  $10	; _LABEL_10_
-	ld   a, [_RAM_C306_]
-	or   a
-	jr   nz, _LABEL_C272_
-	ld   hl, $A015
-	ld   de, _RAM_C308_
+    ld   a, $14
+    sub  c
+    or   a
+    rr   a
+    ld   h, $98
+    ld   l, a
+    ld   de, $C308
+    rst  $10    ; _LABEL_10_
+    ld   a, [_RAM_C306_]
+    or   a
+    jr   nz, _LABEL_C272_
+    ld   hl, $A015
+    ld   de, _RAM_C308_
 _LABEL_C264_:
-	ld   a, [de]
-	cp   [hl]
-	jr   nz, _LABEL_C272_
-	inc  hl
-	inc  de
-	or   a
-	jr   nz, _LABEL_C264_
-	ld   hl, _RAM_C700_
-	jr   _LABEL_C2A6_
+    ld   a, [de]
+    cp   [hl]
+    jr   nz, _LABEL_C272_
+    inc  hl
+    inc  de
+    or   a
+    jr   nz, _LABEL_C264_
+    ld   hl, _RAM_C700_
+    jr   _LABEL_C2A6_
 
 _LABEL_C272_:
-	ld   hl, _RAM_C700_
-	ld   de, _RAM_C31D_
-	call _LABEL_1D26_
-	ld   a, $20
-	ldi  [hl], a
-	ld   de, _RAM_C322_
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_C28B_
-	call _LABEL_1D26_
-	ld   a, $20
-	ldi  [hl], a
+    ld   hl, _RAM_C700_
+    ld   de, _RAM_C31D_
+    call _LABEL_1D26_
+    ld   a, $20
+    ldi  [hl], a
+    ld   de, _RAM_C322_
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_C28B_
+    call _LABEL_1D26_
+    ld   a, $20
+    ldi  [hl], a
 _LABEL_C28B_:
-	ld   a, [_RAM_C306_]
-	or   a
-	jr   z, _LABEL_C2A6_
-	ld   a, [_RAM_C322_]
-	or   a
-	jr   nz, _LABEL_C2A2_
-	ld   a, $33
-	ldi  [hl], a
-	ldi  [hl], a
-	ld   a, $20
-	ldi  [hl], a
-	ld   [hl], $00
-	jr   _LABEL_C2C9_
+    ld   a, [_RAM_C306_]
+    or   a
+    jr   z, _LABEL_C2A6_
+    ld   a, [_RAM_C322_]
+    or   a
+    jr   nz, _LABEL_C2A2_
+    ld   a, $33
+    ldi  [hl], a
+    ldi  [hl], a
+    ld   a, $20
+    ldi  [hl], a
+    ld   [hl], $00
+    jr   _LABEL_C2C9_
 
 _LABEL_C2A2_:
-	xor  a
-	ld   [hl], a
-	jr   _LABEL_C2C9_
+    xor  a
+    ld   [hl], a
+    jr   _LABEL_C2C9_
 
 _LABEL_C2A6_:
-	ld   de, _RAM_C33C_
-	call _LABEL_1D26_
-	xor  a
-	ld   [hl], a
-	ld   hl, _RAM_C327_
-	ld   c, $00
+    ld   de, _RAM_C33C_
+    call _LABEL_1D26_
+    xor  a
+    ld   [hl], a
+    ld   hl, _RAM_C327_
+    ld   c, $00
 _LABEL_C2B3_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_C2BA_
-	inc  c
-	jr   _LABEL_C2B3_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_C2BA_
+    inc  c
+    jr   _LABEL_C2B3_
 
 _LABEL_C2BA_:
-	ld   a, $14
-	sub  c
-	or   a
-	rr   a
-	ld   h, $98
-	add  $20
-	ld   l, a
-	ld   de, $C327
-	rst  $10	; _LABEL_10_
+    ld   a, $14
+    sub  c
+    or   a
+    rr   a
+    ld   h, $98
+    add  $20
+    ld   l, a
+    ld   de, $C327
+    rst  $10    ; _LABEL_10_
 _LABEL_C2C9_:
-	ld   hl, _RAM_C700_
-	ld   c, $00
+    ld   hl, _RAM_C700_
+    ld   c, $00
 _LABEL_C2CE_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_C2D5_
-	inc  c
-	jr   _LABEL_C2CE_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_C2D5_
+    inc  c
+    jr   _LABEL_C2CE_
 
 _LABEL_C2D5_:
-	ld   a, $14
-	sub  c
-	or   a
-	rr   a
-	ld   h, $98
-	add  $40
-	ld   l, a
-	ld   de, $C700
-	rst  $10	; _LABEL_10_
-	ld   hl, _RAM_CF2E_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, $9A24
-	ld   b, $0C
+    ld   a, $14
+    sub  c
+    or   a
+    rr   a
+    ld   h, $98
+    add  $40
+    ld   l, a
+    ld   de, $C700
+    rst  $10    ; _LABEL_10_
+    ld   hl, _RAM_CF2E_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, $9A24
+    ld   b, $0C
 _LABEL_C2EF_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C2EF_
-	call _LABEL_9CE_
-	call _LABEL_92C_
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
-	ld   [keyboard_cur_mode__RAM_C280], a
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   a, $0D
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C2EF_
+    call _LABEL_9CE_
+    call _LABEL_92C_
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
+    ld   [keyboard_cur_mode__RAM_C280], a
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   a, $0D
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C30A_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_9CE_
-	call _LABEL_92C_
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_C30A_
-	or   a
-	jp   z, _LABEL_200_
-	push af
-	ld   a, [_RAM_C232_]
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $1058
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jp   z, _LABEL_C207_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_897_
-	jr   _LABEL_C30A_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_9CE_
+    call _LABEL_92C_
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_C30A_
+    or   a
+    jp   z, _LABEL_200_
+    push af
+    ld   a, [_RAM_C232_]
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $1058
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jp   z, _LABEL_C207_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_897_
+    jr   _LABEL_C30A_
 
 _LABEL_C335_:
-	ld   a, $0C
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $0D
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, [keyboard_cur_mode__RAM_C280]
-	cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
-	call nz, gfx__clear_shadow_oam__275B
+    ld   a, $0C
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $0D
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, [keyboard_cur_mode__RAM_C280]
+    cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
+    call nz, gfx__clear_shadow_oam__275B
 _LABEL_C348_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_9CE_
-	call _LABEL_92C_
-	ld   a, [keyboard_cur_mode__RAM_C280]
-	cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
-	call z, _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_C348_
-	or   a
-	jp   z, _LABEL_200_
-	jp   _LABEL_897_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_9CE_
+    call _LABEL_92C_
+    ld   a, [keyboard_cur_mode__RAM_C280]
+    cp   KEYBD_MODE_ALT_UNKNOWN_0x04 ; $04
+    call z, _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_C348_
+    or   a
+    jp   z, _LABEL_200_
+    jp   _LABEL_897_
 
 _LABEL_C363_:
-	ld   hl, _RAM_C11B_
-	ld   b, $12
-	ld   a, $20
+    ld   hl, _RAM_C11B_
+    ld   b, $12
+    ld   a, $20
 _LABEL_C36A_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C36A_
-	ld   [hl], b
-	ld   a, $14
-	ld   de, _DATA_2150_
-	ld   bc, $0F09
-	call _LABEL_BC3_
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   [_RAM_C239_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, $10
-	ld   [_RAM_C281_], a
-	ld   a, $90
-	ld   [_RAM_C282_], a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C36A_
+    ld   [hl], b
+    ld   a, $14
+    ld   de, _DATA_2150_
+    ld   bc, $0F09
+    call _LABEL_BC3_
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   [_RAM_C239_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, $10
+    ld   [_RAM_C281_], a
+    ld   a, $90
+    ld   [_RAM_C282_], a
 _LABEL_C391_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   WORKBOY_SCAN_KEY_NONE ; $FF
-	jr   z, _LABEL_C391_
-	or   a
-	jp   z, _LABEL_200_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   WORKBOY_SCAN_KEY_NONE ; $FF
+    jr   z, _LABEL_C391_
+    or   a
+    jp   z, _LABEL_200_
 
-	cp   WORKBOY_SYS_KEY_RETURN ; $0D
-	jp   z, _LABEL_C44F_
+    cp   WORKBOY_SYS_KEY_RETURN ; $0D
+    jp   z, _LABEL_C44F_
 
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B   ; Test for NUM Key, if so turn alt keymap ON
-	jr   nz, .key_next_test_caps_mode__C3B1
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_C391_
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B   ; Test for NUM Key, if so turn alt keymap ON
+    jr   nz, .key_next_test_caps_mode__C3B1
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_C391_
 
 .key_next_test_caps_mode__C3B1:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C   ; Test for CAPS Key, if so turn alt keymap OFF
-	jr   nz, _LABEL_C3BF_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_C391_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C   ; Test for CAPS Key, if so turn alt keymap OFF
+    jr   nz, _LABEL_C3BF_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_C391_
 
 _LABEL_C3BF_:
-	cp   $10
-	jr   nz, _LABEL_C3D1_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jr   z, _LABEL_C391_
-	sub  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_C391_
+    cp   $10
+    jr   nz, _LABEL_C3D1_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jr   z, _LABEL_C391_
+    sub  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_C391_
 
 _LABEL_C3D1_:
-	cp   $11
-	jr   nz, _LABEL_C3E3_
-	ld   a, [_RAM_C281_]
-	cp   $98
-	jr   z, _LABEL_C391_
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_C391_
+    cp   $11
+    jr   nz, _LABEL_C3E3_
+    ld   a, [_RAM_C281_]
+    cp   $98
+    jr   z, _LABEL_C391_
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_C391_
 
 _LABEL_C3E3_:
-	cp   $C7
-	jr   nz, _LABEL_C410_
-	ld   a, [_RAM_C281_]
-	ld   b, a
-	ld   a, $98
-	sub  b
-	jr   z, _LABEL_C391_
-	call _LABEL_21D7_
-	ld   b, a
-	ld   hl, _RAM_C12C_
-	ld   de, _RAM_C12B_
+    cp   $C7
+    jr   nz, _LABEL_C410_
+    ld   a, [_RAM_C281_]
+    ld   b, a
+    ld   a, $98
+    sub  b
+    jr   z, _LABEL_C391_
+    call _LABEL_21D7_
+    ld   b, a
+    ld   hl, _RAM_C12C_
+    ld   de, _RAM_C12B_
 _LABEL_C3FA_:
-	ld   a, [de]
-	dec  de
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_C3FA_
-	ld   [hl], $20
-	ld   de, $C11B
-	ld   hl, $9A01
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jr   _LABEL_C391_
+    ld   a, [de]
+    dec  de
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_C3FA_
+    ld   [hl], $20
+    ld   de, $C11B
+    ld   hl, $9A01
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jr   _LABEL_C391_
 
 _LABEL_C410_:
-	cp   $80
-	jr   nz, _LABEL_C429_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jp   z, _LABEL_C391_
-	sub  $08
-	ld   [_RAM_C281_], a
-	ld   a, $20
-	call _LABEL_76A_
-	jp   _LABEL_C391_
+    cp   $80
+    jr   nz, _LABEL_C429_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jp   z, _LABEL_C391_
+    sub  $08
+    ld   [_RAM_C281_], a
+    ld   a, $20
+    call _LABEL_76A_
+    jp   _LABEL_C391_
 
 _LABEL_C429_:
-	cp   $7E
-	jr   z, _LABEL_C437_
-	cp   $61
-	jp   nc, _LABEL_C391_
-	cp   $20
-	jp   c, _LABEL_C391_
+    cp   $7E
+    jr   z, _LABEL_C437_
+    cp   $61
+    jp   nc, _LABEL_C391_
+    cp   $20
+    jp   c, _LABEL_C391_
 _LABEL_C437_:
-	ld   c, a
-	ld   a, [_RAM_C281_]
-	cp   $98
-	jp   z, _LABEL_C391_
-	ld   a, c
-	call _LABEL_76A_
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jp   _LABEL_C391_
+    ld   c, a
+    ld   a, [_RAM_C281_]
+    cp   $98
+    jp   z, _LABEL_C391_
+    ld   a, c
+    call _LABEL_76A_
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jp   _LABEL_C391_
 
 _LABEL_C44F_:
-	ld   a, [_RAM_C281_]
-	ld   b, $12
-	ld   hl, _RAM_C12C_
+    ld   a, [_RAM_C281_]
+    ld   b, $12
+    ld   hl, _RAM_C12C_
 _LABEL_C457_:
-	ld   a, [hl]
-	cp   $20
-	jr   nz, _LABEL_C463_
-	dec  hl
-	dec  b
-	jr   nz, _LABEL_C457_
-	jp   _LABEL_C391_
+    ld   a, [hl]
+    cp   $20
+    jr   nz, _LABEL_C463_
+    dec  hl
+    dec  b
+    jr   nz, _LABEL_C457_
+    jp   _LABEL_C391_
 
 _LABEL_C463_:
-	inc  hl
-	ld   [hl], $00
-	call gfx__clear_shadow_oam__275B
-	ld   a, b
-	ld   [_RAM_C23B_], a
-	ret
+    inc  hl
+    ld   [hl], $00
+    call gfx__clear_shadow_oam__275B
+    ld   a, b
+    ld   [_RAM_C23B_], a
+    ret
 
 _LABEL_C46E_:
-	ld   a, [_RAM_C10D_]
-	push af
+    ld   a, [_RAM_C10D_]
+    push af
 _LABEL_C472_:
-	ld   hl, _RAM_C23A_
-	inc  [hl]
-	ld   a, [hl]
-	ld   c, a
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	inc  a
-	cp   c
-	jr   z, _LABEL_C4BD_
-	ld   a, [hl]
-	ld   [_RAM_C10D_], a
-	ld   de, $0003
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_680_
-	ld   a, [_RAM_C23B_]
-	ld   c, a
-	ld   a, $18
-	sub  c
-	ld   c, a
-	ld   a, $01
-	sbc  $00
-	ld   b, a
-	ld   de, $C11B
-	ld   hl, $C700
+    ld   hl, _RAM_C23A_
+    inc  [hl]
+    ld   a, [hl]
+    ld   c, a
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    inc  a
+    cp   c
+    jr   z, _LABEL_C4BD_
+    ld   a, [hl]
+    ld   [_RAM_C10D_], a
+    ld   de, $0003
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_680_
+    ld   a, [_RAM_C23B_]
+    ld   c, a
+    ld   a, $18
+    sub  c
+    ld   c, a
+    ld   a, $01
+    sbc  $00
+    ld   b, a
+    ld   de, $C11B
+    ld   hl, $C700
 _LABEL_C4A0_:
-	push hl
-	ld   de, _RAM_C11B_
+    push hl
+    ld   de, _RAM_C11B_
 _LABEL_C4A4_:
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_C4B8_
-	inc  de
-	cp   [hl]
-	jr   nz, _LABEL_C4AF_
-	inc  hl
-	jr   _LABEL_C4A4_
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_C4B8_
+    inc  de
+    cp   [hl]
+    jr   nz, _LABEL_C4AF_
+    inc  hl
+    jr   _LABEL_C4A4_
 
 _LABEL_C4AF_:
-	pop  hl
-	inc  hl
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_C4A0_
-	jr   _LABEL_C472_
+    pop  hl
+    inc  hl
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_C4A0_
+    jr   _LABEL_C472_
 
 _LABEL_C4B8_:
-	pop  hl
-	pop  af
-	ld   a, $01
-	ret
+    pop  hl
+    pop  af
+    ld   a, $01
+    ret
 
 _LABEL_C4BD_:
-	pop  af
-	ld   [_RAM_C10D_], a
-	xor  a
-	ret
+    pop  af
+    ld   [_RAM_C10D_], a
+    xor  a
+    ret
 
 _LABEL_C4C3_:
-	call gfx__turn_on_screen_bg_obj__2540
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   a, [_RAM_C59C_]
-	or   a
-	jr   z, _LABEL_C4F1_
-	ld   hl, $99A6
-	ld   de, $0068
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, _RAM_C59C_
-	ld   de, _RAM_C261_
-	ld   b, $04
+    call gfx__turn_on_screen_bg_obj__2540
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   a, [_RAM_C59C_]
+    or   a
+    jr   z, _LABEL_C4F1_
+    ld   hl, $99A6
+    ld   de, $0068
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C59C_
+    ld   de, _RAM_C261_
+    ld   b, $04
 _LABEL_C4E1_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_C4E1_
-	ld   a, $13
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_C4E1_
+    ld   a, $13
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_C4F1_:
-	ld   hl, $99E8
-	ld   de, $0067
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0063
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   de, $0064
-	ld   hl, (_TILEMAP0 + $80)
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   de, $0065
-	ld   hl, $98E0
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   de, $0066
-	ld   hl, $9940
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   a, $0A
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $09E0
-	ld   e, $06
-	call _LABEL_1CF6_
+    ld   hl, $99E8
+    ld   de, $0067
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0063
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   de, $0064
+    ld   hl, (_TILEMAP0 + $80)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   de, $0065
+    ld   hl, $98E0
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   de, $0066
+    ld   hl, $9940
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   a, $0A
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $09E0
+    ld   e, $06
+    call _LABEL_1CF6_
 _LABEL_C521_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_C539_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   nz, _LABEL_C55C_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_C55C_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_C539_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   nz, _LABEL_C55C_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_C55C_
 
 _LABEL_C539_:
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   z, _LABEL_C55C_
-	ld   e, a
-	ld   a, $19
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_C571_
-	bit  7, a
-	jr   nz, _LABEL_C581_
-	bit  2, a
-	jr   z, _LABEL_C55C_
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   z, _LABEL_C55C_
+    ld   e, a
+    ld   a, $19
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_C571_
+    bit  7, a
+    jr   nz, _LABEL_C581_
+    bit  2, a
+    jr   z, _LABEL_C55C_
 _LABEL_C553_:
-	ld   a, [_RAM_C3B0_]
-	bit  2, a
-	jr   nz, _LABEL_C553_
-	jr   _LABEL_C592_
+    ld   a, [_RAM_C3B0_]
+    bit  2, a
+    jr   nz, _LABEL_C553_
+    jr   _LABEL_C592_
 
 _LABEL_C55C_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_C521_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jr   z, _LABEL_C592_
-	cp   $12
-	jr   z, _LABEL_C581_
-	cp   $0F
-	jr   nz, _LABEL_C521_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_C521_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jr   z, _LABEL_C592_
+    cp   $12
+    jr   z, _LABEL_C581_
+    cp   $0F
+    jr   nz, _LABEL_C521_
 _LABEL_C571_:
-	ld   a, [_RAM_C399_]
-	cp   $06
-	jr   nz, _LABEL_C57A_
-	ld   a, $66
+    ld   a, [_RAM_C399_]
+    cp   $06
+    jr   nz, _LABEL_C57A_
+    ld   a, $66
 _LABEL_C57A_:
-	sub  $18
-	ld   [_RAM_C399_], a
-	jr   _LABEL_C521_
+    sub  $18
+    ld   [_RAM_C399_], a
+    jr   _LABEL_C521_
 
 _LABEL_C581_:
-	ld   a, [_RAM_C399_]
-	cp   $4E
-	jr   nz, _LABEL_C58A_
-	ld   a, $EE
+    ld   a, [_RAM_C399_]
+    cp   $4E
+    jr   nz, _LABEL_C58A_
+    ld   a, $EE
 _LABEL_C58A_:
-	add  $18
-	ld   [_RAM_C399_], a
-	jp   _LABEL_C521_
+    add  $18
+    ld   [_RAM_C399_], a
+    jp   _LABEL_C521_
 
 _LABEL_C592_:
-	ld   a, [_RAM_C399_]
-	cp   $06
-	jp   z, app_clock__launch__2F8E
-	cp   $36
-	jp   z, _LABEL_C7C2_
-	cp   $4E
-	jp   z, _LABEL_1E7F_
-	rst  $18	; Call VSYNC__RST_18
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
+    ld   a, [_RAM_C399_]
+    cp   $06
+    jp   z, app_clock__launch__2F8E
+    cp   $36
+    jp   z, _LABEL_C7C2_
+    cp   $4E
+    jp   z, _LABEL_1E7F_
+    rst  $18    ; Call VSYNC__RST_18
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C5AD_:
-	ld   hl, $99E0
-	ld   de, $002E
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, _RAM_C261_
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   b, $06
+    ld   hl, $99E0
+    ld   de, $002E
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C261_
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   b, $06
 _LABEL_C5BC_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C5BC_
-	ld   a, $12
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $0500
-	ld   de, $237B
-	ld   hl, $C261
-	ld   a, $88
-	call _LABEL_2411_
-	inc  a
-	jp   z, _LABEL_1E6A_
-	call _LABEL_C7A2_
-	or   a
-	jr   nz, _LABEL_C5AD_
-	ld   hl, _RAM_C261_
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   b, $06
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C5BC_
+    ld   a, $12
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $0500
+    ld   de, $237B
+    ld   hl, $C261
+    ld   a, $88
+    call _LABEL_2411_
+    inc  a
+    jp   z, _LABEL_1E6A_
+    call _LABEL_C7A2_
+    or   a
+    jr   nz, _LABEL_C5AD_
+    ld   hl, _RAM_C261_
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   b, $06
 _LABEL_C5E7_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_C5E7_
-	call _LABEL_C5F3_
-	jp   _LABEL_C4C3_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_C5E7_
+    call _LABEL_C5F3_
+    jp   _LABEL_C4C3_
 
 _LABEL_C5F3_:
-	ld   de, $2150
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 
-	ld   de, $0016
-	ld   hl, $99E1
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $0016
+    ld   hl, $99E1
+    rst  $20    ; GFX_COPY_STRING__RST_20
 
     .loop__LABEL_C601_:
-    	call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
+        call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
         IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
             ; TODO: Always succeed on Mega Duck Hardware?
             REPT 7
                 nop
             ENDR
         ELSE
-        	or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
-        	jr   z, .loop__LABEL_C601_
-        	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-        	jr   z, .loop__LABEL_C601_
+            or   a  ; if == WORKBOY_SCAN_KEY_EMPTY_MAYBE
+            jr   z, .loop__LABEL_C601_
+            cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+            jr   z, .loop__LABEL_C601_
         ENDC
-	call gfx__turn_off_screen_2827
-	jp   gfx__clear_tilemap_0__2722
+    call gfx__turn_off_screen_2827
+    jp   gfx__clear_tilemap_0__2722
 
 _LABEL_C611_:
-	ld   b, $0A
+    ld   b, $0A
 _LABEL_C613_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   z, _LABEL_C61D_
-	dec  b
-	jr   nz, _LABEL_C613_
-	ld   [hl], b
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   z, _LABEL_C61D_
+    dec  b
+    jr   nz, _LABEL_C613_
+    ld   [hl], b
 _LABEL_C61D_:
-	ret
+    ret
 
 ; Data from C61E to C7A1 (388 bytes)
 db $3D, $18, $42, $18, $4E, $0C, $50, $0C, $52, $18, $3D, $18, $42, $18, $4E, $0C
@@ -16992,269 +16992,269 @@ db $53, $0C, $52, $0C, $50, $0C, $52, $18, $50, $0C, $4E, $0C, $55, $18, $55, $1
 db $4E, $48, $FF, $01
 
 _LABEL_C7A2_:
-	ld   de, _RAM_C261_
-	ld   hl, _RAM_C267_
-	call _LABEL_2BA9_
-	call _LABEL_2BA9_
-	call _LABEL_2BA9_
-	ld   hl, _RAM_C267_
-	ldi  a, [hl]
-	cp   $18
-	ret  nc
-	ldi  a, [hl]
-	cp   $3C
-	ret  nc
-	ldi  a, [hl]
-	cp   $3C
-	ret  nc
-	xor  a
-	ret
+    ld   de, _RAM_C261_
+    ld   hl, _RAM_C267_
+    call _LABEL_2BA9_
+    call _LABEL_2BA9_
+    call _LABEL_2BA9_
+    ld   hl, _RAM_C267_
+    ldi  a, [hl]
+    cp   $18
+    ret  nc
+    ldi  a, [hl]
+    cp   $3C
+    ret  nc
+    ldi  a, [hl]
+    cp   $3C
+    ret  nc
+    xor  a
+    ret
 
 _LABEL_C7C2_:
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C7CA_:
-	ld   hl, $99A6
-	ld   de, $0068
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   hl, _RAM_C261_
-	ld   de, time__hours__high_digit_ascii__RAM_C39B
-	ld   b, $06
+    ld   hl, $99A6
+    ld   de, $0068
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   hl, _RAM_C261_
+    ld   de, time__hours__high_digit_ascii__RAM_C39B
+    ld   b, $06
 _LABEL_C7D9_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C7D9_
-	ld   a, $13
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $0300
-	ld   de, $2381
-	ld   hl, $C261
-	ld   a, $78
-	call _LABEL_2411_
-	inc  a
-	jp   z, _LABEL_1E6A_
-	call _LABEL_C7A2_
-	or   a
-	jr   nz, _LABEL_C7CA_
-	ld   de, _RAM_C261_
-	call _LABEL_C805_
-	jp   _LABEL_1E6A_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C7D9_
+    ld   a, $13
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $0300
+    ld   de, $2381
+    ld   hl, $C261
+    ld   a, $78
+    call _LABEL_2411_
+    inc  a
+    jp   z, _LABEL_1E6A_
+    call _LABEL_C7A2_
+    or   a
+    jr   nz, _LABEL_C7CA_
+    ld   de, _RAM_C261_
+    call _LABEL_C805_
+    jp   _LABEL_1E6A_
 
 _LABEL_C805_:
-	ld   hl, _RAM_C59C_
-	xor  a
-	cp   [hl]
-	jr   nz, _LABEL_C813_
-	ld   a, [_RAM_C59B_]
-	inc  a
-	ld   [_RAM_C59B_], a
+    ld   hl, _RAM_C59C_
+    xor  a
+    cp   [hl]
+    jr   nz, _LABEL_C813_
+    ld   a, [_RAM_C59B_]
+    inc  a
+    ld   [_RAM_C59B_], a
 _LABEL_C813_:
-	ld   b, $04
+    ld   b, $04
 _LABEL_C815_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C815_
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C815_
+    ret
 
 ; Data from C81C to C830 (21 bytes)
 ds 20, $2D
 db $00
 
 app_calendar__start__bank3_4831:  ; Former label C831
-	ld   hl, $00C2
-	ld   d, h
-	ld   e, l
-	ld   a, [_RAM_C154_]
-	add  l
-	ld   l, a
-	ld   e, a
-	add  hl, hl
-	ld   de, $CF00
-	add  hl, de
-	ld   a, [hl]
-	inc  hl
-	ld   h, [hl]
-	ld   l, a
-	ld   de, $99C5
-	ld   b, $09
+    ld   hl, $00C2
+    ld   d, h
+    ld   e, l
+    ld   a, [_RAM_C154_]
+    add  l
+    ld   l, a
+    ld   e, a
+    add  hl, hl
+    ld   de, $CF00
+    add  hl, de
+    ld   a, [hl]
+    inc  hl
+    ld   h, [hl]
+    ld   l, a
+    ld   de, $99C5
+    ld   b, $09
 _LABEL_C84A_:
-	ldi  a, [hl]
-	sub  $20
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_C84A_
-	ld   a, [hl]
-	cp   $1C
-	jr   nz, _LABEL_C862_
-	ld   a, [_RAM_C155_]
-	and  $03
-	jr   nz, _LABEL_C862_
-	ld   a, $1D
-	jr   _LABEL_C863_
+    ldi  a, [hl]
+    sub  $20
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_C84A_
+    ld   a, [hl]
+    cp   $1C
+    jr   nz, _LABEL_C862_
+    ld   a, [_RAM_C155_]
+    and  $03
+    jr   nz, _LABEL_C862_
+    ld   a, $1D
+    jr   _LABEL_C863_
 
 _LABEL_C862_:
-	ld   a, [hl]
+    ld   a, [hl]
 _LABEL_C863_:
-	inc  a
-	push af
-	ld   hl, _RAM_C265_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $39
-	inc  hl
-	ld   a, $30
-	ldi  [hl], a
-	ldi  [hl], a
-	ld   a, [_RAM_C155_]
-	call _LABEL_235A_
-	ld   de, _RAM_C265_
-	ld   b, $04
-	ld   hl, $99E8
+    inc  a
+    push af
+    ld   hl, _RAM_C265_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $39
+    inc  hl
+    ld   a, $30
+    ldi  [hl], a
+    ldi  [hl], a
+    ld   a, [_RAM_C155_]
+    call _LABEL_235A_
+    ld   de, _RAM_C265_
+    ld   b, $04
+    ld   hl, $99E8
 _LABEL_C880_:
-	ld   a, [de]
-	inc  de
-	sub  $20
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_C880_
-	pop  af
-	ld   c, a
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	ld   e, a
-	ld   hl, $98E3
-	add  a
-	add  l
-	ld   l, a
-	ld   a, [_RAM_C152_]
-	ld   d, a
-	ld   a, $01
+    ld   a, [de]
+    inc  de
+    sub  $20
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_C880_
+    pop  af
+    ld   c, a
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    ld   e, a
+    ld   hl, $98E3
+    add  a
+    add  l
+    ld   l, a
+    ld   a, [_RAM_C152_]
+    ld   d, a
+    ld   a, $01
 _LABEL_C89A_:
-	push af
-	push bc
-	push de
-	push hl
-	cp   d
-	jr   nz, _LABEL_C8AB_
-	push af
-	ld   a, l
-	ld   [_RAM_C13B_], a
-	ld   a, h
-	ld   [_RAM_C13C_], a
-	pop  af
+    push af
+    push bc
+    push de
+    push hl
+    cp   d
+    jr   nz, _LABEL_C8AB_
+    push af
+    ld   a, l
+    ld   [_RAM_C13B_], a
+    ld   a, h
+    ld   [_RAM_C13C_], a
+    pop  af
 _LABEL_C8AB_:
-	call some_calendar_func__bank3_4990
-	pop  hl
-	inc  hl
-	inc  hl
-	pop  de
-	inc  e
-	ld   a, e
-	cp   $07
-	jr   nz, _LABEL_C8BE_
-	ld   e, $00
-	ld   bc, $0012
-	add  hl, bc
+    call some_calendar_func__bank3_4990
+    pop  hl
+    inc  hl
+    inc  hl
+    pop  de
+    inc  e
+    ld   a, e
+    cp   $07
+    jr   nz, _LABEL_C8BE_
+    ld   e, $00
+    ld   bc, $0012
+    add  hl, bc
 _LABEL_C8BE_:
-	pop  bc
-	pop  af
-	inc  a
-	cp   c
-	jr   nz, _LABEL_C89A_
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   a, $03
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    pop  bc
+    pop  af
+    inc  a
+    cp   c
+    jr   nz, _LABEL_C89A_
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   a, $03
+    ld   [vblank__dispatch_select__RAM_C27C], a
 
 app_calendar__keyboard_poll_loop__bank3_48CC:
-	call serial_io__poll_keyboard__3278
-	or   a
-	jp   z, _LABEL_200_  ; Why does it jump back to init here when keyboard poll returns 0x00?
-	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-	jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
-	cp   $0F
-	jr   z, _LABEL_C8FD_
-	cp   $12
-	jr   nz, _LABEL_C91B_
-	ld   a, [_RAM_C154_]
-	dec  a
-	jr   nz, _LABEL_C8F2_
-	ld   a, [_RAM_C155_]
-	dec  a
-	cp   $FF
-	jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
-	ld   [_RAM_C155_], a
-	ld   a, $0C
+    call serial_io__poll_keyboard__3278
+    or   a
+    jp   z, _LABEL_200_  ; Why does it jump back to init here when keyboard poll returns 0x00?
+    cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
+    cp   $0F
+    jr   z, _LABEL_C8FD_
+    cp   $12
+    jr   nz, _LABEL_C91B_
+    ld   a, [_RAM_C154_]
+    dec  a
+    jr   nz, _LABEL_C8F2_
+    ld   a, [_RAM_C155_]
+    dec  a
+    cp   $FF
+    jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
+    ld   [_RAM_C155_], a
+    ld   a, $0C
 _LABEL_C8F2_:
-	ld   [_RAM_C154_], a
-	ld   a, $01
-	ld   [_RAM_C152_], a
-	jp   _LABEL_839_
+    ld   [_RAM_C154_], a
+    ld   a, $01
+    ld   [_RAM_C152_], a
+    jp   _LABEL_839_
 
 _LABEL_C8FD_:
-	ld   a, [_RAM_C154_]
-	inc  a
-	cp   $0D
-	jr   nz, _LABEL_C910_
-	ld   a, [_RAM_C155_]
-	inc  a
-	jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
-	ld   [_RAM_C155_], a
-	ld   a, $01
+    ld   a, [_RAM_C154_]
+    inc  a
+    cp   $0D
+    jr   nz, _LABEL_C910_
+    ld   a, [_RAM_C155_]
+    inc  a
+    jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
+    ld   [_RAM_C155_], a
+    ld   a, $01
 _LABEL_C910_:
-	ld   [_RAM_C154_], a
-	ld   a, $01
-	ld   [_RAM_C152_], a
-	jp   _LABEL_839_
+    ld   [_RAM_C154_], a
+    ld   a, $01
+    ld   [_RAM_C152_], a
+    jp   _LABEL_839_
 
 _LABEL_C91B_:
-	ld   a, $F0
-	ldh  [rOBP0], a
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   [gfx__shadow_y_scroll__RAM_C102], a
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	call _LABEL_41B_
-	call _LABEL_2735_
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $0068
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $0069
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	call _LABEL_BC3_
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jp   z, _LABEL_C95D_
-	jp   _LABEL_C9A7_
+    ld   a, $F0
+    ldh  [rOBP0], a
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   [gfx__shadow_y_scroll__RAM_C102], a
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    call _LABEL_41B_
+    call _LABEL_2735_
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $0068
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $0069
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    call _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jp   z, _LABEL_C95D_
+    jp   _LABEL_C9A7_
 
 _LABEL_C95D_:
-	ld   a, [_RAM_C152_]
-	ld   [_RAM_C5C6_], a
-	ld   a, [_RAM_C154_]
-	ld   [_RAM_C5C5_], a
-	ld   a, [_RAM_C155_]
-	ld   [_RAM_C5C4_], a
-	call _LABEL_CA12_
-	ld   a, [_RAM_C700_]
-	ld   [_RAM_C152_], a
-	ld   a, [_RAM_C701_]
-	ld   [_RAM_C154_], a
-	ld   a, [_RAM_C702_]
-	ld   [_RAM_C155_], a
-	call _LABEL_1273_
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	call _LABEL_C9FB_
-	jp   _LABEL_839_
+    ld   a, [_RAM_C152_]
+    ld   [_RAM_C5C6_], a
+    ld   a, [_RAM_C154_]
+    ld   [_RAM_C5C5_], a
+    ld   a, [_RAM_C155_]
+    ld   [_RAM_C5C4_], a
+    call _LABEL_CA12_
+    ld   a, [_RAM_C700_]
+    ld   [_RAM_C152_], a
+    ld   a, [_RAM_C701_]
+    ld   [_RAM_C154_], a
+    ld   a, [_RAM_C702_]
+    ld   [_RAM_C155_], a
+    call _LABEL_1273_
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    call _LABEL_C9FB_
+    jp   _LABEL_839_
 
 ; This gets called from at least two places:
 ; * Earlier above in the calendar app
@@ -17263,117 +17263,117 @@ _LABEL_C95D_:
 ;   never gets switched while the calendar (or other) apps
 ;   are running
 some_calendar_func__bank3_4990:  ; Formerly _C990_
-	ld   b, $00
+    ld   b, $00
 _LABEL_C992_:
-	cp   $0A
-	jr   c, _LABEL_C99B_
-	inc  b
-	sub  $0A
-	jr   _LABEL_C992_
+    cp   $0A
+    jr   c, _LABEL_C99B_
+    inc  b
+    sub  $0A
+    jr   _LABEL_C992_
 
 _LABEL_C99B_:
-	add  $C6
-	ld   c, a
-	ld   a, b
-	or   a
-	jr   z, _LABEL_C9A4_
-	add  $C2
+    add  $C6
+    ld   c, a
+    ld   a, b
+    or   a
+    jr   z, _LABEL_C9A4_
+    add  $C2
 _LABEL_C9A4_:
-	ldi  [hl], a
-	ld   [hl], c
-	ret
+    ldi  [hl], a
+    ld   [hl], c
+    ret
 
 _LABEL_C9A7_:
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ld   [_RAM_C5C6_], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ld   [_RAM_C5C4_], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ld   [_RAM_C5C5_], a
-	call _LABEL_CA12_
-	ld   a, [_RAM_C700_]
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   [_RAM_C152_], a
-	ld   a, [_RAM_C701_]
-	ld   [_RAM_C154_], a
-	ld   [date__month__decimal__maybe__RAM_C138], a
-	ld   a, [_RAM_C702_]
-	ld   [_RAM_C155_], a
-	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
-	call _LABEL_1273_
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
-	ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
-	ld   a, [_RAM_C152_]
-	ld   [date__days__decimal__maybe__RAM_C139], a
-	ld   a, [_RAM_C155_]
-	ld   [date__year__digit_decimal__maybe__RAM_C13A], a
-	ld   a, [_RAM_C154_]
-	ld   [date__month__decimal__maybe__RAM_C138], a
-	call _LABEL_C5F3_
-	call date__convert_from_bcd_to_decimal_maybe__288F_
-	jp   _LABEL_C91B_
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ld   [_RAM_C5C6_], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ld   [_RAM_C5C4_], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ld   [_RAM_C5C5_], a
+    call _LABEL_CA12_
+    ld   a, [_RAM_C700_]
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ld   [_RAM_C152_], a
+    ld   a, [_RAM_C701_]
+    ld   [_RAM_C154_], a
+    ld   [date__month__decimal__maybe__RAM_C138], a
+    ld   a, [_RAM_C702_]
+    ld   [_RAM_C155_], a
+    ld   [date__year__digit_decimal__maybe__RAM_C13A], a
+    call _LABEL_1273_
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    ld   [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304], a
+    ld   a, [_RAM_C152_]
+    ld   [date__days__decimal__maybe__RAM_C139], a
+    ld   a, [_RAM_C155_]
+    ld   [date__year__digit_decimal__maybe__RAM_C13A], a
+    ld   a, [_RAM_C154_]
+    ld   [date__month__decimal__maybe__RAM_C138], a
+    call _LABEL_C5F3_
+    call date__convert_from_bcd_to_decimal_maybe__288F_
+    jp   _LABEL_C91B_
 
 _LABEL_C9FB_:
-	ld   a, [_RAM_C152_]
-	ld   e, a
-	ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
+    ld   a, [_RAM_C152_]
+    ld   e, a
+    ld   a, [maybe_date_related_to__dayofweek_0_to_6__RAM_C153]
 _LABEL_CA02_:
-	dec  e
-	jr   z, _LABEL_CA0E_
-	dec  a
-	cp   $FF
-	jr   nz, _LABEL_CA02_
-	ld   a, $06
-	jr   _LABEL_CA02_
+    dec  e
+    jr   z, _LABEL_CA0E_
+    dec  a
+    cp   $FF
+    jr   nz, _LABEL_CA02_
+    ld   a, $06
+    jr   _LABEL_CA02_
 
 _LABEL_CA0E_:
-	ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
-	ret
+    ld   [maybe_date_related_to__dayofweek_0_to_6__RAM_C153], a
+    ret
 
 _LABEL_CA12_:
-	ld   hl, _RAM_C700_
-	ld   a, [_RAM_C5C6_]
-	ldi  [hl], a
-	ld   a, [_RAM_C5C5_]
-	ldi  [hl], a
-	ld   a, [_RAM_C5C4_]
-	ldi  [hl], a
-	call _LABEL_1352_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
-	ld   hl, $99E0
-	ld   de, $002C
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, [_RAM_C700_]
-	ld   hl, $C261
-	call _LABEL_2BBA_
-	ld   a, [_RAM_C701_]
-	ld   hl, $C263
-	call _LABEL_2BBA_
-	ld   hl, _RAM_C265_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $39
-	inc  hl
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $30
-	ld   a, [_RAM_C702_]
-	call _LABEL_235A_
-	ld   a, $10
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $0700
-	ld   de, $2373
-	ld   hl, $C261
-	ld   a, $88
-	call _LABEL_2411_
-	inc  a
-	jp   z, _LABEL_C91B_
-	call _LABEL_B6C_
-	or   a
-	jr   nz, _LABEL_CA12_
-	ret
+    ld   hl, _RAM_C700_
+    ld   a, [_RAM_C5C6_]
+    ldi  [hl], a
+    ld   a, [_RAM_C5C5_]
+    ldi  [hl], a
+    ld   a, [_RAM_C5C4_]
+    ldi  [hl], a
+    call _LABEL_1352_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
+    ld   hl, $99E0
+    ld   de, $002C
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C700_]
+    ld   hl, $C261
+    call _LABEL_2BBA_
+    ld   a, [_RAM_C701_]
+    ld   hl, $C263
+    call _LABEL_2BBA_
+    ld   hl, _RAM_C265_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $39
+    inc  hl
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $30
+    ld   a, [_RAM_C702_]
+    call _LABEL_235A_
+    ld   a, $10
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $0700
+    ld   de, $2373
+    ld   hl, $C261
+    ld   a, $88
+    call _LABEL_2411_
+    inc  a
+    jp   z, _LABEL_C91B_
+    call _LABEL_B6C_
+    or   a
+    jr   nz, _LABEL_CA12_
+    ret
 
 ; Data from CA77 to CA9E (40 bytes)
 db $41, $46, $4D, $43, $45, $4E, $50, $51, $4E, $53, $41, $4C, $44, $56, $52, $45
@@ -17381,247 +17381,247 @@ db $4E, $54, $46, $45, $44, $53, $50, $51, $4E, $4C, $48, $42, $45, $50, $41, $5
 db $4E, $54, $46, $43, $52, $50, $45, $55
 
 _LABEL_CA9F_:
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	ld   a, [_RAM_C10C_]
-	or   a
-	jr   z, _LABEL_CAC0_
-	ld   hl, $9F76
-	ld   de, $008C
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    ld   a, [_RAM_C10C_]
+    or   a
+    jr   z, _LABEL_CAC0_
+    ld   hl, $9F76
+    ld   de, $008C
 _LABEL_CAB3_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_CAB3_
-	ld   bc, _RAM_C700_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_CAB3_
+    ld   bc, _RAM_C700_
 _LABEL_CABA_:
-	ldi  a, [hl]
-	ld   [bc], a
-	inc  bc
-	dec  e
-	jr   nz, _LABEL_CABA_
+    ldi  a, [hl]
+    ld   [bc], a
+    inc  bc
+    dec  e
+    jr   nz, _LABEL_CABA_
 _LABEL_CAC0_:
-	call _LABEL_E3A3_
+    call _LABEL_E3A3_
 _LABEL_CAC3_:
-	call gfx__clear_shadow_oam__275B
+    call gfx__clear_shadow_oam__275B
 _LABEL_CAC6_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_CAC6_
-	or   a
-	jp   z, _LABEL_200_
-	push af
-	ld   hl, $4A77
-	ld   a, [_RAM_C232_]
-	add  a
-	add  a
-	add  a
-	ld   d, $00
-	ld   e, a
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   z, _LABEL_CB15_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_CB85_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_CE1F_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_CB36_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_CB2B_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_CDE1_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_CE10_
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_200_
-	cp   $09
-	jr   nz, _LABEL_CAC6_
-	ld   a, [_RAM_C10C_]
-	or   a
-	jr   z, _LABEL_CAC3_
-	ld   hl, _RAM_C778_
-	call _LABEL_EA22_
-	jp   _LABEL_CAC3_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_CAC6_
+    or   a
+    jp   z, _LABEL_200_
+    push af
+    ld   hl, $4A77
+    ld   a, [_RAM_C232_]
+    add  a
+    add  a
+    add  a
+    ld   d, $00
+    ld   e, a
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   z, _LABEL_CB15_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_CB85_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_CE1F_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_CB36_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_CB2B_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_CDE1_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_CE10_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_200_
+    cp   $09
+    jr   nz, _LABEL_CAC6_
+    ld   a, [_RAM_C10C_]
+    or   a
+    jr   z, _LABEL_CAC3_
+    ld   hl, _RAM_C778_
+    call _LABEL_EA22_
+    jp   _LABEL_CAC3_
 
 _LABEL_CB15_:
-	ld   a, [_SRAM_2001_]
-	or   a
-	jp   z, _LABEL_CAC3_
-	call _LABEL_4C9_
-	call gfx__clear_shadow_oam__275B
-	ld   a, [_RAM_C10C_]
-	call _LABEL_7B6_
-	jp   _LABEL_CA9F_
+    ld   a, [_SRAM_2001_]
+    or   a
+    jp   z, _LABEL_CAC3_
+    call _LABEL_4C9_
+    call gfx__clear_shadow_oam__275B
+    ld   a, [_RAM_C10C_]
+    call _LABEL_7B6_
+    jp   _LABEL_CA9F_
 
 _LABEL_CB2B_:
-	ld   a, [_RAM_C10C_]
-	or   a
-	jr   z, _LABEL_CAC3_
-	ld   a, $01
-	jp   _LABEL_CE33_
+    ld   a, [_RAM_C10C_]
+    or   a
+    jr   z, _LABEL_CAC3_
+    ld   a, $01
+    jp   _LABEL_CE33_
 
 _LABEL_CB36_:
-	ld   a, [_RAM_C10C_]
-	or   a
-	jp   z, _LABEL_CAC3_
-	call _LABEL_132B_
-	push af
-	call _LABEL_62C_
-	pop  af
-	or   a
-	jp   z, _LABEL_CAC3_
-	ld   a, [_RAM_C10C_]
-	ld   c, a
-	ld   a, [_SRAM_2001_]
-	cp   c
-	jr   nz, _LABEL_CB5D_
-	dec  a
-	ld   [_SRAM_2001_], a
-	ld   [_RAM_C10C_], a
-	jp   _LABEL_CA9F_
+    ld   a, [_RAM_C10C_]
+    or   a
+    jp   z, _LABEL_CAC3_
+    call _LABEL_132B_
+    push af
+    call _LABEL_62C_
+    pop  af
+    or   a
+    jp   z, _LABEL_CAC3_
+    ld   a, [_RAM_C10C_]
+    ld   c, a
+    ld   a, [_SRAM_2001_]
+    cp   c
+    jr   nz, _LABEL_CB5D_
+    dec  a
+    ld   [_SRAM_2001_], a
+    ld   [_RAM_C10C_], a
+    jp   _LABEL_CA9F_
 
 _LABEL_CB5D_:
-	dec  a
-	ld   [_SRAM_2001_], a
-	sub  c
-	inc  a
-	push af
-	ld   a, [_RAM_C10C_]
-	ld   de, $008C
-	ld   hl, $9F76
+    dec  a
+    ld   [_SRAM_2001_], a
+    sub  c
+    inc  a
+    push af
+    ld   a, [_RAM_C10C_]
+    ld   de, $008C
+    ld   hl, $9F76
 _LABEL_CB6D_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_CB6D_
-	ld   b, h
-	ld   c, l
-	add  hl, de
-	pop  af
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_CB6D_
+    ld   b, h
+    ld   c, l
+    add  hl, de
+    pop  af
 _LABEL_CB75_:
-	push af
-	ld   e, $8C
+    push af
+    ld   e, $8C
 _LABEL_CB78_:
-	ldi  a, [hl]
-	ld   [bc], a
-	inc  bc
-	dec  e
-	jr   nz, _LABEL_CB78_
-	pop  af
-	dec  a
-	jr   nz, _LABEL_CB75_
-	jp   _LABEL_CA9F_
+    ldi  a, [hl]
+    ld   [bc], a
+    inc  bc
+    dec  e
+    jr   nz, _LABEL_CB78_
+    pop  af
+    dec  a
+    jr   nz, _LABEL_CB75_
+    jp   _LABEL_CA9F_
 
 _LABEL_CB85_:
-	ld   a, [_SRAM_2001_]
-	or   a
-	jp   z, _LABEL_CAC3_
-	ld   de, _DATA_2150_
-	ld   bc, $0F09
-	ld   a, $14
-	call _LABEL_BC3_
+    ld   a, [_SRAM_2001_]
+    or   a
+    jp   z, _LABEL_CAC3_
+    ld   de, _DATA_2150_
+    ld   bc, $0F09
+    ld   a, $14
+    call _LABEL_BC3_
 _LABEL_CB97_:
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   a, $15
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, $90
-	call _LABEL_CCBD_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jr   z, _LABEL_CB97_
-	sub  $10
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   [_RAM_C23B_], a
-	xor  a
-	ld   [_RAM_C5C7_], a
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   a, $15
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $90
+    call _LABEL_CCBD_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jr   z, _LABEL_CB97_
+    sub  $10
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   [_RAM_C23B_], a
+    xor  a
+    ld   [_RAM_C5C7_], a
 _LABEL_CBBE_:
-	call _LABEL_CC76_
-	push af
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	pop  af
-	or   a
-	jr   z, _LABEL_CC24_
-	ld   de, $0001
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0017
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $2150
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, [_RAM_C5C7_]
-	ld   [_RAM_C10C_], a
-	call _LABEL_7B6_
-	ld   a, [_RAM_C5C7_]
-	ld   hl, $9F76
-	ld   de, $008C
+    call _LABEL_CC76_
+    push af
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    pop  af
+    or   a
+    jr   z, _LABEL_CC24_
+    ld   de, $0001
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0017
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C5C7_]
+    ld   [_RAM_C10C_], a
+    call _LABEL_7B6_
+    ld   a, [_RAM_C5C7_]
+    ld   hl, $9F76
+    ld   de, $008C
 _LABEL_CBF5_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_CBF5_
-	ld   bc, _RAM_C700_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_CBF5_
+    ld   bc, _RAM_C700_
 _LABEL_CBFC_:
-	ldi  a, [hl]
-	ld   [bc], a
-	inc  bc
-	dec  e
-	jr   nz, _LABEL_CBFC_
-	call _LABEL_E3A3_
+    ldi  a, [hl]
+    ld   [bc], a
+    inc  bc
+    dec  e
+    jr   nz, _LABEL_CBFC_
+    call _LABEL_E3A3_
 _LABEL_CC05_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_CC05_
-	or   a
-	jp   z, _LABEL_CA9F_
-	push af
-	ld   hl, $1058
-	ld   a, [_RAM_C232_]
-	add  a
-	ld   e, a
-	ld   d, $00
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   z, _LABEL_CBBE_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_CC3E_
-	jr   _LABEL_CC05_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_CC05_
+    or   a
+    jp   z, _LABEL_CA9F_
+    push af
+    ld   hl, $1058
+    ld   a, [_RAM_C232_]
+    add  a
+    ld   e, a
+    ld   d, $00
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   z, _LABEL_CBBE_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_CC3E_
+    jr   _LABEL_CC05_
 
 _LABEL_CC24_:
-	ld   de, $2150
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0085
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0086
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0085
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0086
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_CC39_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_CC39_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_CC39_
 _LABEL_CC3E_:
-	call _LABEL_62C_
-	jp   _LABEL_CA9F_
+    call _LABEL_62C_
+    jp   _LABEL_CA9F_
 
 ; Data from CC44 to CC75 (50 bytes)
 db $11, $83, $C2, $21, $05, $9A, $06, $0A, $1A, $13, $D6, $20, $22, $05, $20, $F8
@@ -17630,593 +17630,593 @@ db $29, $19, $11, $83, $C2, $06, $0A, $1A, $13, $D6, $20, $22, $05, $20, $F8, $C
 db $F7, $25
 
 _LABEL_CC76_:
-	ld   a, [_SRAM_2001_]
-	ld   c, a
-	ld   a, [_RAM_C5C7_]
-	cp   c
-	jr   z, _LABEL_CCBB_
-	inc  a
-	ld   [_RAM_C5C7_], a
-	ld   hl, $9F76
-	ld   de, $008C
+    ld   a, [_SRAM_2001_]
+    ld   c, a
+    ld   a, [_RAM_C5C7_]
+    cp   c
+    jr   z, _LABEL_CCBB_
+    inc  a
+    ld   [_RAM_C5C7_], a
+    ld   hl, $9F76
+    ld   de, $008C
 _LABEL_CC8A_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_CC8A_
-	ld   a, [_RAM_C23B_]
-	ld   d, a
-	ld   a, $14
-	sub  d
-	ld   b, a
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_CC8A_
+    ld   a, [_RAM_C23B_]
+    ld   d, a
+    ld   a, $14
+    sub  d
+    ld   b, a
 _LABEL_CC96_:
-	push bc
-	push hl
-	ld   de, _RAM_C11B_
-	ld   a, [_RAM_C23B_]
-	ld   b, a
+    push bc
+    push hl
+    ld   de, _RAM_C11B_
+    ld   a, [_RAM_C23B_]
+    ld   b, a
 _LABEL_CC9F_:
-	ld   a, [de]
-	inc  de
-	cp   [hl]
-	jr   nz, _LABEL_CCAA_
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_CC9F_
-	jr   _LABEL_CCB6_
+    ld   a, [de]
+    inc  de
+    cp   [hl]
+    jr   nz, _LABEL_CCAA_
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_CC9F_
+    jr   _LABEL_CCB6_
 
 _LABEL_CCAA_:
-	pop  hl
-	pop  bc
+    pop  hl
+    pop  bc
 _LABEL_CCAC_:
-	ldi  a, [hl]
-	dec  b
-	jr   z, _LABEL_CC76_
-	cp   $20
-	jr   nz, _LABEL_CCAC_
-	jr   _LABEL_CC96_
+    ldi  a, [hl]
+    dec  b
+    jr   z, _LABEL_CC76_
+    cp   $20
+    jr   nz, _LABEL_CCAC_
+    jr   _LABEL_CC96_
 
 _LABEL_CCB6_:
-	pop  hl
-	pop  bc
-	ld   a, $01
-	ret
+    pop  hl
+    pop  bc
+    ld   a, $01
+    ret
 
 _LABEL_CCBB_:
-	xor  a
-	ret
+    xor  a
+    ret
 
 _LABEL_CCBD_:
-	push af
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   [_RAM_C239_], a
-	ld   a, [_RAM_C281_]
-	ld   [_RAM_C237_], a
-	ld   a, [_RAM_C282_]
-	ld   [_RAM_C238_], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   hl, _RAM_C11B_
-	ld   b, $12
-	ld   a, $20
+    push af
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   [_RAM_C239_], a
+    ld   a, [_RAM_C281_]
+    ld   [_RAM_C237_], a
+    ld   a, [_RAM_C282_]
+    ld   [_RAM_C238_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   hl, _RAM_C11B_
+    ld   b, $12
+    ld   a, $20
 _LABEL_CCD9_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_CCD9_
-	ld   [hl], b
-	ld   a, $10
-	ld   [_RAM_C281_], a
-	pop  af
-	ld   [_RAM_C282_], a
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_CCD9_
+    ld   [hl], b
+    ld   a, $10
+    ld   [_RAM_C281_], a
+    pop  af
+    ld   [_RAM_C282_], a
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_CCEF_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_CCEF_
-	or   a
-	jp   z, _LABEL_200_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_CCEF_
+    or   a
+    jp   z, _LABEL_200_
 
-	cp   WORKBOY_SYS_KEY_RETURN ; $0D
-	jp   z, _LABEL_CDB9_
+    cp   WORKBOY_SYS_KEY_RETURN ; $0D
+    jp   z, _LABEL_CDB9_
 
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-	jr   nz, _LABEL_CD0F_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_CCEF_
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+    jr   nz, _LABEL_CD0F_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_CCEF_
 
 _LABEL_CD0F_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_CD1D_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_CCEF_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_CD1D_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_CCEF_
 
 _LABEL_CD1D_:
-	cp   $10
-	jr   nz, _LABEL_CD2F_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jr   z, _LABEL_CCEF_
-	sub  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_CCEF_
+    cp   $10
+    jr   nz, _LABEL_CD2F_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jr   z, _LABEL_CCEF_
+    sub  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_CCEF_
 
 _LABEL_CD2F_:
-	cp   $11
-	jr   nz, _LABEL_CD41_
-	ld   a, [_RAM_C281_]
-	cp   $98
-	jr   z, _LABEL_CCEF_
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_CCEF_
+    cp   $11
+    jr   nz, _LABEL_CD41_
+    ld   a, [_RAM_C281_]
+    cp   $98
+    jr   z, _LABEL_CCEF_
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_CCEF_
 
 _LABEL_CD41_:
-	cp   $C7
-	jr   nz, _LABEL_CD7A_
-	ld   a, [_RAM_C281_]
-	ld   b, a
-	ld   a, $98
-	sub  b
-	jr   z, _LABEL_CCEF_
-	call _LABEL_21D7_
-	ld   b, a
-	ld   hl, _RAM_C12C_
-	ld   de, _RAM_C12B_
+    cp   $C7
+    jr   nz, _LABEL_CD7A_
+    ld   a, [_RAM_C281_]
+    ld   b, a
+    ld   a, $98
+    sub  b
+    jr   z, _LABEL_CCEF_
+    call _LABEL_21D7_
+    ld   b, a
+    ld   hl, _RAM_C12C_
+    ld   de, _RAM_C12B_
 _LABEL_CD58_:
-	ld   a, [de]
-	ldd  [hl], a
-	dec  de
-	dec  b
-	jr   nz, _LABEL_CD58_
-	ld   [hl], $20
-	ld   a, [_RAM_C282_]
-	sub  $10
-	ld   h, $00
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	ld   de, (_TILEMAP0 + $01)
-	add  hl, de
-	ld   de, $C11B
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   _LABEL_CCEF_
+    ld   a, [de]
+    ldd  [hl], a
+    dec  de
+    dec  b
+    jr   nz, _LABEL_CD58_
+    ld   [hl], $20
+    ld   a, [_RAM_C282_]
+    sub  $10
+    ld   h, $00
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    ld   de, (_TILEMAP0 + $01)
+    add  hl, de
+    ld   de, $C11B
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   _LABEL_CCEF_
 
 _LABEL_CD7A_:
-	cp   $80
-	jr   nz, _LABEL_CD93_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jp   z, _LABEL_CCEF_
-	sub  $08
-	ld   [_RAM_C281_], a
-	ld   a, $20
-	call _LABEL_76A_
-	jp   _LABEL_CCEF_
+    cp   $80
+    jr   nz, _LABEL_CD93_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jp   z, _LABEL_CCEF_
+    sub  $08
+    ld   [_RAM_C281_], a
+    ld   a, $20
+    call _LABEL_76A_
+    jp   _LABEL_CCEF_
 
 _LABEL_CD93_:
-	cp   $7E
-	jr   z, _LABEL_CDA1_
-	cp   $20
-	jp   c, _LABEL_CCEF_
-	cp   $61
-	jp   nc, _LABEL_CCEF_
+    cp   $7E
+    jr   z, _LABEL_CDA1_
+    cp   $20
+    jp   c, _LABEL_CCEF_
+    cp   $61
+    jp   nc, _LABEL_CCEF_
 _LABEL_CDA1_:
-	ld   c, a
-	ld   a, [_RAM_C281_]
-	cp   $98
-	jp   z, _LABEL_CCEF_
-	ld   a, c
-	call _LABEL_76A_
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jp   _LABEL_CCEF_
+    ld   c, a
+    ld   a, [_RAM_C281_]
+    cp   $98
+    jp   z, _LABEL_CCEF_
+    ld   a, c
+    call _LABEL_76A_
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jp   _LABEL_CCEF_
 
 _LABEL_CDB9_:
-	ld   b, $12
-	ld   hl, _RAM_C12C_
+    ld   b, $12
+    ld   hl, _RAM_C12C_
 _LABEL_CDBE_:
-	ld   a, [hl]
-	cp   $20
-	jr   nz, _LABEL_CDC7_
-	dec  hl
-	dec  b
-	jr   nz, _LABEL_CDBE_
+    ld   a, [hl]
+    cp   $20
+    jr   nz, _LABEL_CDC7_
+    dec  hl
+    dec  b
+    jr   nz, _LABEL_CDBE_
 _LABEL_CDC7_:
-	ld   a, b
-	add  a
-	add  a
-	add  a
-	add  $10
-	ld   [_RAM_C281_], a
-	call _LABEL_21D7_
-	ld   hl, $C119
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $00
-	jp   gfx__clear_shadow_oam__275B
+    ld   a, b
+    add  a
+    add  a
+    add  a
+    add  $10
+    ld   [_RAM_C281_], a
+    call _LABEL_21D7_
+    ld   hl, $C119
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $00
+    jp   gfx__clear_shadow_oam__275B
 
 _LABEL_CDE1_:
-	ld   a, [_SRAM_2001_]
-	ld   c, a
-	ld   a, [_RAM_C10C_]
-	cp   c
-	jp   z, _LABEL_CAC3_
-	inc  a
+    ld   a, [_SRAM_2001_]
+    ld   c, a
+    ld   a, [_RAM_C10C_]
+    cp   c
+    jp   z, _LABEL_CAC3_
+    inc  a
 _LABEL_CDED_:
-	ld   [_RAM_C10C_], a
-	ld   hl, $9F76
-	ld   de, $008C
+    ld   [_RAM_C10C_], a
+    ld   hl, $9F76
+    ld   de, $008C
 _LABEL_CDF6_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_CDF6_
-	ld   b, e
-	ld   de, _RAM_C700_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_CDF6_
+    ld   b, e
+    ld   de, _RAM_C700_
 _LABEL_CDFE_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_CDFE_
-	call _LABEL_E3A3_
-	ld   a, [_RAM_C10C_]
-	call _LABEL_7B6_
-	jp   _LABEL_CAC3_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_CDFE_
+    call _LABEL_E3A3_
+    ld   a, [_RAM_C10C_]
+    call _LABEL_7B6_
+    jp   _LABEL_CAC3_
 
 _LABEL_CE10_:
-	ld   a, [_RAM_C10C_]
-	or   a
-	jp   z, _LABEL_CAC3_
-	cp   $01
-	jp   z, _LABEL_CAC3_
-	dec  a
-	jr   _LABEL_CDED_
+    ld   a, [_RAM_C10C_]
+    or   a
+    jp   z, _LABEL_CAC3_
+    cp   $01
+    jp   z, _LABEL_CAC3_
+    dec  a
+    jr   _LABEL_CDED_
 
 _LABEL_CE1F_:
-	ld   a, [_SRAM_2001_]
-	cp   $3A
-	jp   z, _LABEL_CAC3_
-	ld   hl, _RAM_C700_
-	ld   b, $8C
-	ld   a, $20
+    ld   a, [_SRAM_2001_]
+    cp   $3A
+    jp   z, _LABEL_CAC3_
+    ld   hl, _RAM_C700_
+    ld   b, $8C
+    ld   a, $20
 _LABEL_CE2E_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_CE2E_
-	xor  a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_CE2E_
+    xor  a
 _LABEL_CE33_:
-	ld   [_RAM_C5C8_], a
-	or   a
-	jr   nz, _LABEL_CE43_
-	call _LABEL_E3C3_
-	ld   a, [_SRAM_2001_]
-	inc  a
-	call _LABEL_7B6_
+    ld   [_RAM_C5C8_], a
+    or   a
+    jr   nz, _LABEL_CE43_
+    call _LABEL_E3C3_
+    ld   a, [_SRAM_2001_]
+    inc  a
+    call _LABEL_7B6_
 _LABEL_CE43_:
-	call _LABEL_1563_
-	call _LABEL_CE9C_
-	ld   hl, $C700
-	ld   b, $78
-	ld   a, $20
+    call _LABEL_1563_
+    call _LABEL_CE9C_
+    ld   hl, $C700
+    ld   b, $78
+    ld   a, $20
 _LABEL_CE50_:
-	cp   [hl]
-	jr   nz, _LABEL_CE60_
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_CE50_
-	call _LABEL_1563_
-	call _LABEL_E3A3_
-	jp   _LABEL_CAC3_
+    cp   [hl]
+    jr   nz, _LABEL_CE60_
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_CE50_
+    call _LABEL_1563_
+    call _LABEL_E3A3_
+    jp   _LABEL_CAC3_
 
 _LABEL_CE60_:
-	call _LABEL_CFB6_
-	ld   a, [_RAM_C5C8_]
-	or   a
-	jr   nz, _LABEL_CE73_
-	ld   a, [_SRAM_2001_]
-	inc  a
-	ld   [_SRAM_2001_], a
-	ld   [_RAM_C10C_], a
+    call _LABEL_CFB6_
+    ld   a, [_RAM_C5C8_]
+    or   a
+    jr   nz, _LABEL_CE73_
+    ld   a, [_SRAM_2001_]
+    inc  a
+    ld   [_SRAM_2001_], a
+    ld   [_RAM_C10C_], a
 _LABEL_CE73_:
-	ld   hl, _SRAM_2002_
-	ld   a, [_RAM_C10C_]
-	dec  a
-	jr   z, _LABEL_CE83_
-	ld   de, $008C
+    ld   hl, _SRAM_2002_
+    ld   a, [_RAM_C10C_]
+    dec  a
+    jr   z, _LABEL_CE83_
+    ld   de, $008C
 _LABEL_CE7F_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_CE7F_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_CE7F_
 _LABEL_CE83_:
-	ld   de, _RAM_C700_
-	ld   b, $8C
+    ld   de, _RAM_C700_
+    ld   b, $8C
 _LABEL_CE88_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_CE88_
-	call _LABEL_1563_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jp   _LABEL_CAC3_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_CE88_
+    call _LABEL_1563_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jp   _LABEL_CAC3_
 
 _LABEL_CE9C_:
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	ld   a, $20
-	ld   [_RAM_C282_], a
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    ld   a, $20
+    ld   [_RAM_C282_], a
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_CEAF_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_CEAF_
-	or   a
-	ret  z
-	cp   $0B
-	jr   nz, _LABEL_CEC8_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_CEAF_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_CEAF_
+    or   a
+    ret  z
+    cp   $0B
+    jr   nz, _LABEL_CEC8_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_CEAF_
 
 _LABEL_CEC8_:
-	cp   $C7
-	jr   nz, _LABEL_CEE9_
-	ld   a, [_RAM_C281_]
-	sub  $08
-	call _LABEL_21D7_
-	ld   c, a
-	ld   a, [_RAM_C282_]
-	sub  $20
-	call _LABEL_21D7_
-	ld   b, a
-	ld   hl, _RAM_C700_
-	ld   de, (_TILEMAP0 + $40)
-	call _LABEL_2173_
-	jr   _LABEL_CEAF_
+    cp   $C7
+    jr   nz, _LABEL_CEE9_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    call _LABEL_21D7_
+    ld   c, a
+    ld   a, [_RAM_C282_]
+    sub  $20
+    call _LABEL_21D7_
+    ld   b, a
+    ld   hl, _RAM_C700_
+    ld   de, (_TILEMAP0 + $40)
+    call _LABEL_2173_
+    jr   _LABEL_CEAF_
 
 _LABEL_CEE9_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_CEF7_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_CEAF_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_CEF7_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_CEAF_
 
 _LABEL_CEF7_:
-	cp   $0F
-	jr   c, _LABEL_CF1F_
-	cp   $13
-	jr   nc, _LABEL_CF1F_
-	cp   $0F
-	jr   z, _LABEL_CF10_
-	cp   $10
-	jr   z, _LABEL_CF15_
-	cp   $11
-	jr   z, _LABEL_CF1A_
+    cp   $0F
+    jr   c, _LABEL_CF1F_
+    cp   $13
+    jr   nc, _LABEL_CF1F_
+    cp   $0F
+    jr   z, _LABEL_CF10_
+    cp   $10
+    jr   z, _LABEL_CF15_
+    cp   $11
+    jr   z, _LABEL_CF1A_
 _LABEL_CF0B_:
-	call _LABEL_CF4C_
-	jr   _LABEL_CEAF_
+    call _LABEL_CF4C_
+    jr   _LABEL_CEAF_
 
 _LABEL_CF10_:
-	call _LABEL_CF5B_
-	jr   _LABEL_CEAF_
+    call _LABEL_CF5B_
+    jr   _LABEL_CEAF_
 
 _LABEL_CF15_:
-	call _LABEL_CF68_
-	jr   _LABEL_CEAF_
+    call _LABEL_CF68_
+    jr   _LABEL_CEAF_
 
 _LABEL_CF1A_:
-	call _LABEL_CF7A_
-	jr   _LABEL_CEAF_
+    call _LABEL_CF7A_
+    jr   _LABEL_CEAF_
 
 _LABEL_CF1F_:
-	cp   $80
-	jr   nz, _LABEL_CF2E_
-	call _LABEL_CF68_
-	ld   a, $20
-	call _LABEL_CF8A_
-	jp   _LABEL_CEAF_
+    cp   $80
+    jr   nz, _LABEL_CF2E_
+    call _LABEL_CF68_
+    ld   a, $20
+    call _LABEL_CF8A_
+    jp   _LABEL_CEAF_
 
 _LABEL_CF2E_:
-	cp   $7E
-	jr   z, _LABEL_CF42_
-	cp   $61
-	jp   nc, _LABEL_CEAF_
-	cp   $0D
-	jr   nz, _LABEL_CF42_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_CF0B_
+    cp   $7E
+    jr   z, _LABEL_CF42_
+    cp   $61
+    jp   nc, _LABEL_CEAF_
+    cp   $0D
+    jr   nz, _LABEL_CF42_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_CF0B_
 
 _LABEL_CF42_:
-	cp   $20
-	jp   c, _LABEL_CEAF_
-	call _LABEL_CF8A_
-	jr   _LABEL_CF1A_
+    cp   $20
+    jp   c, _LABEL_CEAF_
+    call _LABEL_CF8A_
+    jr   _LABEL_CF1A_
 
 _LABEL_CF4C_:
-	ld   a, [_RAM_C282_]
-	add  $08
-	cp   $50
-	jr   nz, _LABEL_CF57_
-	ld   a, $20
+    ld   a, [_RAM_C282_]
+    add  $08
+    cp   $50
+    jr   nz, _LABEL_CF57_
+    ld   a, $20
 _LABEL_CF57_:
-	ld   [_RAM_C282_], a
-	ret
+    ld   [_RAM_C282_], a
+    ret
 
 _LABEL_CF5B_:
-	ld   a, [_RAM_C282_]
-	sub  $08
-	cp   $18
-	jr   nz, _LABEL_CF57_
-	ld   a, $48
-	jr   _LABEL_CF57_
+    ld   a, [_RAM_C282_]
+    sub  $08
+    cp   $18
+    jr   nz, _LABEL_CF57_
+    ld   a, $48
+    jr   _LABEL_CF57_
 
 _LABEL_CF68_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	jr   nz, _LABEL_CF76_
-	ld   a, $A0
-	ld   [_RAM_C281_], a
-	jr   _LABEL_CF5B_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    jr   nz, _LABEL_CF76_
+    ld   a, $A0
+    ld   [_RAM_C281_], a
+    jr   _LABEL_CF5B_
 
 _LABEL_CF76_:
-	ld   [_RAM_C281_], a
-	ret
+    ld   [_RAM_C281_], a
+    ret
 
 _LABEL_CF7A_:
-	ld   a, [_RAM_C281_]
-	add  $08
-	cp   $A8
-	jr   nz, _LABEL_CF76_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_CF4C_
+    ld   a, [_RAM_C281_]
+    add  $08
+    cp   $A8
+    jr   nz, _LABEL_CF76_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_CF4C_
 
 _LABEL_CF8A_:
-	push af
-	ld   a, [_RAM_C282_]
-	ld   hl, $C700
-	ld   bc, $0014
-	sub  $20
-	jr   z, _LABEL_CF9D_
+    push af
+    ld   a, [_RAM_C282_]
+    ld   hl, $C700
+    ld   bc, $0014
+    sub  $20
+    jr   z, _LABEL_CF9D_
 _LABEL_CF98_:
-	add  hl, bc
-	sub  $08
-	jr   nz, _LABEL_CF98_
+    add  hl, bc
+    sub  $08
+    jr   nz, _LABEL_CF98_
 _LABEL_CF9D_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	pop  af
-	ld   [hl], a
-	jp   _LABEL_73A_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    pop  af
+    ld   [hl], a
+    jp   _LABEL_73A_
 
 _LABEL_CFB6_:
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	ld   a, $78
-	ld   [_RAM_C282_], a
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    ld   a, $78
+    ld   [_RAM_C282_], a
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_CFD1_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_CFD1_
-	or   a
-	ret  z
-	cp   $10
-	jr   c, _LABEL_CFF2_
-	cp   $12
-	jr   nc, _LABEL_CFF2_
-	cp   $11
-	jr   z, _LABEL_CFED_
-	call _LABEL_D019_
-	jr   _LABEL_CFD1_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_CFD1_
+    or   a
+    ret  z
+    cp   $10
+    jr   c, _LABEL_CFF2_
+    cp   $12
+    jr   nc, _LABEL_CFF2_
+    cp   $11
+    jr   z, _LABEL_CFED_
+    call _LABEL_D019_
+    jr   _LABEL_CFD1_
 
 _LABEL_CFED_:
-	call _LABEL_D026_
-	jr   _LABEL_CFD1_
+    call _LABEL_D026_
+    jr   _LABEL_CFD1_
 
 _LABEL_CFF2_:
-	cp   $80
-	jr   nz, _LABEL_D001_
-	call _LABEL_D019_
-	ld   a, $20
-	call _LABEL_D035_
-	jp   _LABEL_CFD1_
+    cp   $80
+    jr   nz, _LABEL_D001_
+    call _LABEL_D019_
+    ld   a, $20
+    call _LABEL_D035_
+    jp   _LABEL_CFD1_
 
 _LABEL_D001_:
-	cp   $0D
-	ret  z
-	cp   $20
-	jr   z, _LABEL_D014_
-	cp   $2D
-	jr   z, _LABEL_D014_
-	cp   $30
-	jr   c, _LABEL_CFD1_
-	cp   $3A
-	jr   nc, _LABEL_CFD1_
+    cp   $0D
+    ret  z
+    cp   $20
+    jr   z, _LABEL_D014_
+    cp   $2D
+    jr   z, _LABEL_D014_
+    cp   $30
+    jr   c, _LABEL_CFD1_
+    cp   $3A
+    jr   nc, _LABEL_CFD1_
 _LABEL_D014_:
-	call _LABEL_D035_
-	jr   _LABEL_CFED_
+    call _LABEL_D035_
+    jr   _LABEL_CFED_
 
 _LABEL_D019_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	jr   nz, _LABEL_D022_
-	ld   a, $A0
+    ld   a, [_RAM_C281_]
+    sub  $08
+    jr   nz, _LABEL_D022_
+    ld   a, $A0
 _LABEL_D022_:
-	ld   [_RAM_C281_], a
-	ret
+    ld   [_RAM_C281_], a
+    ret
 
 _LABEL_D026_:
-	ld   a, [_RAM_C281_]
-	add  $08
-	cp   $A8
-	jr   nz, _LABEL_D031_
-	ld   a, $08
+    ld   a, [_RAM_C281_]
+    add  $08
+    cp   $A8
+    jr   nz, _LABEL_D031_
+    ld   a, $08
 _LABEL_D031_:
-	ld   [_RAM_C281_], a
-	ret
+    ld   [_RAM_C281_], a
+    ret
 
 _LABEL_D035_:
-	push af
-	ld   hl, $C778
-	ld   a, [_RAM_C281_]
-	sub  $08
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	pop  af
-	ld   [hl], a
-	jp   _LABEL_73A_
+    push af
+    ld   hl, $C778
+    ld   a, [_RAM_C281_]
+    sub  $08
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    pop  af
+    ld   [hl], a
+    jp   _LABEL_73A_
 
 ; Pointer Table from D052 to D081 (24 entries, indexed by _RAM_C5C9_)
 _DATA_D052_:
@@ -18345,714 +18345,714 @@ _DATA_D0FF_:
 db $31, $2E, $31, $30, $32, $00
 
 _LABEL_D105_:
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jr   z, _LABEL_D113_
-	ld   a, $0C
-	ld   [_RAM_C5C9_], a
-	jr   _LABEL_D117_
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jr   z, _LABEL_D113_
+    ld   a, $0C
+    ld   [_RAM_C5C9_], a
+    jr   _LABEL_D117_
 
 _LABEL_D113_:
-	xor  a
-	ld   [_RAM_C5C9_], a
+    xor  a
+    ld   [_RAM_C5C9_], a
 _LABEL_D117_:
-	call gfx__turn_off_screen_2827
-	call _LABEL_2735_
-	ld   a, [_RAM_C5C9_]
-	or   a
-	jr   z, _LABEL_D128_
-	ld   hl, _RAM_CFF0_
-	jr   _LABEL_D12B_
+    call gfx__turn_off_screen_2827
+    call _LABEL_2735_
+    ld   a, [_RAM_C5C9_]
+    or   a
+    jr   z, _LABEL_D128_
+    ld   hl, _RAM_CFF0_
+    jr   _LABEL_D12B_
 
 _LABEL_D128_:
-	ld   hl, _RAM_CFD8_
+    ld   hl, _RAM_CFD8_
 _LABEL_D12B_:
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, (_TILEMAP0 + $60)
-	ld   a, $0C
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, (_TILEMAP0 + $60)
+    ld   a, $0C
 _LABEL_D133_:
-	push af
-	push hl
-	rst  $10	; _LABEL_10_
-	pop  hl
-	ld   bc, $0020
-	add  hl, bc
-	pop  af
-	dec  a
-	jr   nz, _LABEL_D133_
-	ld   bc, $09E0
-	ld   e, $16
-	call _LABEL_1CF6_
-	call gfx__turn_on_screen_bg_obj__2540
+    push af
+    push hl
+    rst  $10    ; _LABEL_10_
+    pop  hl
+    ld   bc, $0020
+    add  hl, bc
+    pop  af
+    dec  a
+    jr   nz, _LABEL_D133_
+    ld   bc, $09E0
+    ld   e, $16
+    call _LABEL_1CF6_
+    call gfx__turn_on_screen_bg_obj__2540
 _LABEL_D14A_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_D162_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   nz, _LABEL_D185_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_D185_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_D162_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   nz, _LABEL_D185_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_D185_
 
 _LABEL_D162_:
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   z, _LABEL_D185_
-	ld   e, a
-	ld   a, $19
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_D19A_
-	bit  7, a
-	jr   nz, _LABEL_D1AA_
-	bit  2, a
-	jr   z, _LABEL_D185_
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   z, _LABEL_D185_
+    ld   e, a
+    ld   a, $19
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_D19A_
+    bit  7, a
+    jr   nz, _LABEL_D1AA_
+    bit  2, a
+    jr   z, _LABEL_D185_
 _LABEL_D17C_:
-	ld   a, [_RAM_C3B0_]
-	bit  2, a
-	jr   nz, _LABEL_D17C_
-	jr   _LABEL_D1BB_
+    ld   a, [_RAM_C3B0_]
+    bit  2, a
+    jr   nz, _LABEL_D17C_
+    jr   _LABEL_D1BB_
 
 _LABEL_D185_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_D14A_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jr   z, _LABEL_D1BB_
-	cp   $12
-	jr   z, _LABEL_D1AA_
-	cp   $0F
-	jr   nz, _LABEL_D14A_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_D14A_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jr   z, _LABEL_D1BB_
+    cp   $12
+    jr   z, _LABEL_D1AA_
+    cp   $0F
+    jr   nz, _LABEL_D14A_
 _LABEL_D19A_:
-	ld   a, [_RAM_C399_]
-	cp   $16
-	jr   nz, _LABEL_D1A3_
-	ld   a, $76
+    ld   a, [_RAM_C399_]
+    cp   $16
+    jr   nz, _LABEL_D1A3_
+    ld   a, $76
 _LABEL_D1A3_:
-	sub  $08
-	ld   [_RAM_C399_], a
-	jr   _LABEL_D14A_
+    sub  $08
+    ld   [_RAM_C399_], a
+    jr   _LABEL_D14A_
 
 _LABEL_D1AA_:
-	ld   a, [_RAM_C399_]
-	cp   $6E
-	jr   nz, _LABEL_D1B3_
-	ld   a, $0E
+    ld   a, [_RAM_C399_]
+    cp   $6E
+    jr   nz, _LABEL_D1B3_
+    ld   a, $0E
 _LABEL_D1B3_:
-	add  $08
-	ld   [_RAM_C399_], a
-	jp   _LABEL_D14A_
+    add  $08
+    ld   [_RAM_C399_], a
+    jp   _LABEL_D14A_
 
 _LABEL_D1BB_:
-	ld   a, [_RAM_C399_]
-	sub  $16
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   c, a
-	ld   a, [_RAM_C5C9_]
-	add  c
-	ld   [_RAM_C5C9_], a
-	ld   de, $006A
-	call _LABEL_1D2D_
-	ld   a, $14
-	ld   bc, $0009
-	call _LABEL_BC3_
-	ld   a, $0C
-	ld   de, _DATA_2150_
-	ld   bc, $0F09
-	call _LABEL_BC3_
-	ld   a, $30
-	ld   [_RAM_C281_], a
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
-	ld   a, $90
-	ld   [_RAM_C282_], a
-	ld   hl, _RAM_C283_
-	ld   b, $1C
-	ld   a, $20
+    ld   a, [_RAM_C399_]
+    sub  $16
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   c, a
+    ld   a, [_RAM_C5C9_]
+    add  c
+    ld   [_RAM_C5C9_], a
+    ld   de, $006A
+    call _LABEL_1D2D_
+    ld   a, $14
+    ld   bc, $0009
+    call _LABEL_BC3_
+    ld   a, $0C
+    ld   de, _DATA_2150_
+    ld   bc, $0F09
+    call _LABEL_BC3_
+    ld   a, $30
+    ld   [_RAM_C281_], a
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
+    ld   a, $90
+    ld   [_RAM_C282_], a
+    ld   hl, _RAM_C283_
+    ld   b, $1C
+    ld   a, $20
 _LABEL_D200_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_D200_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, $17
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	xor  a
-	ld   [_RAM_C474_], a
-	ld   [_RAM_C475_], a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_D200_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, $17
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    xor  a
+    ld   [_RAM_C474_], a
+    ld   [_RAM_C475_], a
 _LABEL_D213_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_D213_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jp   z, _LABEL_D2B5_
-	cp   $80
-	jr   z, _LABEL_D263_
-	cp   $0A
-	jr   z, _LABEL_D29B_
-	cp   $2E
-	jr   z, _LABEL_D283_
-	cp   $30
-	jr   c, _LABEL_D213_
-	cp   $3A
-	jr   nc, _LABEL_D213_
-	ld   c, a
-	ld   a, [_RAM_C474_]
-	cp   $09
-	jr   z, _LABEL_D213_
-	or   a
-	jr   nz, _LABEL_D24A_
-	ld   a, c
-	cp   $30
-	jr   z, _LABEL_D213_
-	xor  a
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_D213_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jp   z, _LABEL_D2B5_
+    cp   $80
+    jr   z, _LABEL_D263_
+    cp   $0A
+    jr   z, _LABEL_D29B_
+    cp   $2E
+    jr   z, _LABEL_D283_
+    cp   $30
+    jr   c, _LABEL_D213_
+    cp   $3A
+    jr   nc, _LABEL_D213_
+    ld   c, a
+    ld   a, [_RAM_C474_]
+    cp   $09
+    jr   z, _LABEL_D213_
+    or   a
+    jr   nz, _LABEL_D24A_
+    ld   a, c
+    cp   $30
+    jr   z, _LABEL_D213_
+    xor  a
 _LABEL_D24A_:
-	inc  a
-	ld   [_RAM_C474_], a
-	ld   hl, $C283
-	dec  a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], c
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_D213_
+    inc  a
+    ld   [_RAM_C474_], a
+    ld   hl, $C283
+    dec  a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], c
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_D213_
 
 _LABEL_D263_:
-	ld   a, [_RAM_C474_]
-	or   a
-	jr   z, _LABEL_D213_
-	ld   hl, $C283
-	dec  a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $20
-	ld   hl, _RAM_C474_
-	dec  [hl]
-	ld   a, [_RAM_C281_]
-	sub  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_D213_
+    ld   a, [_RAM_C474_]
+    or   a
+    jr   z, _LABEL_D213_
+    ld   hl, $C283
+    dec  a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $20
+    ld   hl, _RAM_C474_
+    dec  [hl]
+    ld   a, [_RAM_C281_]
+    sub  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_D213_
 
 _LABEL_D283_:
-	ld   a, [_RAM_C474_]
-	cp   $08
-	jr   nc, _LABEL_D213_
-	ld   a, [_RAM_C475_]
-	or   a
-	jr   nz, _LABEL_D213_
-	inc  a
-	ld   [_RAM_C475_], a
-	ld   c, $2E
-	ld   a, [_RAM_C474_]
-	jr   _LABEL_D24A_
+    ld   a, [_RAM_C474_]
+    cp   $08
+    jr   nc, _LABEL_D213_
+    ld   a, [_RAM_C475_]
+    or   a
+    jr   nz, _LABEL_D213_
+    inc  a
+    ld   [_RAM_C475_], a
+    ld   c, $2E
+    ld   a, [_RAM_C474_]
+    jr   _LABEL_D24A_
 
 _LABEL_D29B_:
-	ld   b, $14
-	ld   hl, _RAM_C283_
-	ld   a, $20
+    ld   b, $14
+    ld   hl, _RAM_C283_
+    ld   a, $20
 _LABEL_D2A2_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_D2A2_
-	xor  a
-	ld   [_RAM_C475_], a
-	ld   [_RAM_C474_], a
-	ld   a, $30
-	ld   [_RAM_C281_], a
-	jp   _LABEL_D213_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_D2A2_
+    xor  a
+    ld   [_RAM_C475_], a
+    ld   [_RAM_C474_], a
+    ld   a, $30
+    ld   [_RAM_C281_], a
+    jp   _LABEL_D213_
 
 _LABEL_D2B5_:
-	ld   a, [_RAM_C474_]
-	or   a
-	jp   z, _LABEL_D213_
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   hl, $C283
-	ld   a, [_RAM_C474_]
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $00
-	ld   de, _RAM_C283_
-	ld   hl, _RAM_C3E0_
-	ld   b, $0A
+    ld   a, [_RAM_C474_]
+    or   a
+    jp   z, _LABEL_D213_
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   hl, $C283
+    ld   a, [_RAM_C474_]
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $00
+    ld   de, _RAM_C283_
+    ld   hl, _RAM_C3E0_
+    ld   b, $0A
 _LABEL_D2D6_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_D2D6_
-	ld   a, [_RAM_C5C9_]
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   hl, _DATA_D052_
-	add  hl, de
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	ld   de, _RAM_C3EC_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_D2D6_
+    ld   a, [_RAM_C5C9_]
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   hl, _DATA_D052_
+    add  hl, de
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    ld   de, _RAM_C3EC_
 _LABEL_D2ED_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	or   a
-	jr   nz, _LABEL_D2ED_
-	call _LABEL_D11_
-	call gfx__clear_shadow_oam__275B
-	ld   b, $0A
-	ld   hl, _RAM_C283_
-	ld   a, $20
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    or   a
+    jr   nz, _LABEL_D2ED_
+    call _LABEL_D11_
+    call gfx__clear_shadow_oam__275B
+    ld   b, $0A
+    ld   hl, _RAM_C283_
+    ld   a, $20
 _LABEL_D300_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_D300_
-	ld   hl, _RAM_C455_
-	ld   de, _RAM_C283_
-	ld   b, $09
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_D300_
+    ld   hl, _RAM_C455_
+    ld   de, _RAM_C283_
+    ld   b, $09
 _LABEL_D30C_:
-	ldi  a, [hl]
-	or   a
-	jr   z, _LABEL_D315_
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_D30C_
+    ldi  a, [hl]
+    or   a
+    jr   z, _LABEL_D315_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_D30C_
 _LABEL_D315_:
-	ld   de, $006C
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   a, $17
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   de, $006C
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   a, $17
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_D321_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_D321_
-	or   a
-	jp   z, _LABEL_200_
-	rst  $18	; Call VSYNC__RST_18
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_D321_
+    or   a
+    jp   z, _LABEL_200_
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	jp   app_conversion__launch__1598
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    jp   app_conversion__launch__1598
 
 _LABEL_D337_:
-	ld   hl, (_TILEMAP0 + $24)
-	ld   de, _DATA_9C_
-	rst  $10	; _LABEL_10_
-	ld   b, $07
-	ld   hl, _RAM_D00C_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
+    ld   hl, (_TILEMAP0 + $24)
+    ld   de, _DATA_9C_
+    rst  $10    ; _LABEL_10_
+    ld   b, $07
+    ld   hl, _RAM_D00C_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
 _LABEL_D346_:
-	push bc
-	ld   a, [de]
-	inc  de
-	ld   l, a
-	ld   a, [de]
-	inc  de
-	ld   h, a
-	rst  $10	; _LABEL_10_
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_D346_
-	call gfx__turn_on_screen_bg_obj__2540
-	jp   _LABEL_D56A_
+    push bc
+    ld   a, [de]
+    inc  de
+    ld   l, a
+    ld   a, [de]
+    inc  de
+    ld   h, a
+    rst  $10    ; _LABEL_10_
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_D346_
+    call gfx__turn_on_screen_bg_obj__2540
+    jp   _LABEL_D56A_
 
 _LABEL_D358_:
-	ld   a, [_RAM_C399_]
-	ld   [_RAM_C5CC_], a
-	ld   de, $009D
-	ld   hl, (_TILEMAP0 + $24)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_D56A_
-	ld   a, [_RAM_C5CC_]
-	sub  $1E
-	call util__rr_downshift_A_by_4__2909
-	ld   [_RAM_C5CA_], a
-	ld   a, [_RAM_C399_]
-	sub  $1E
-	call util__rr_downshift_A_by_4__2909
-	ld   [_RAM_C5CB_], a
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	jp   gfx__turn_off_screen_2827
+    ld   a, [_RAM_C399_]
+    ld   [_RAM_C5CC_], a
+    ld   de, $009D
+    ld   hl, (_TILEMAP0 + $24)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_D56A_
+    ld   a, [_RAM_C5CC_]
+    sub  $1E
+    call util__rr_downshift_A_by_4__2909
+    ld   [_RAM_C5CA_], a
+    ld   a, [_RAM_C399_]
+    sub  $1E
+    call util__rr_downshift_A_by_4__2909
+    ld   [_RAM_C5CB_], a
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    jp   gfx__turn_off_screen_2827
 
 _LABEL_D386_:
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $009D
-	call _LABEL_1D2D_
-	ld   bc, $0309
-	call _LABEL_BC3_
-	ld   a, $0C
-	call _LABEL_E25B_
-	ld   hl, _RAM_C283_
-	ld   de, _RAM_C3E0_
-	ld   bc, _RAM_C29F_
-	ld   a, $0A
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $009D
+    call _LABEL_1D2D_
+    ld   bc, $0309
+    call _LABEL_BC3_
+    ld   a, $0C
+    call _LABEL_E25B_
+    ld   hl, _RAM_C283_
+    ld   de, _RAM_C3E0_
+    ld   bc, _RAM_C29F_
+    ld   a, $0A
 _LABEL_D3AB_:
-	push af
-	ldi  a, [hl]
-	ld   [de], a
-	ld   [bc], a
-	inc  bc
-	inc  de
-	or   a
-	jr   z, _LABEL_D3BB_
-	pop  af
-	dec  a
-	jr   nz, _LABEL_D3AB_
-	ld   [bc], a
-	ld   [de], a
-	push af
+    push af
+    ldi  a, [hl]
+    ld   [de], a
+    ld   [bc], a
+    inc  bc
+    inc  de
+    or   a
+    jr   z, _LABEL_D3BB_
+    pop  af
+    dec  a
+    jr   nz, _LABEL_D3AB_
+    ld   [bc], a
+    ld   [de], a
+    push af
 _LABEL_D3BB_:
-	pop  af
-	jp   gfx__clear_shadow_oam__275B
+    pop  af
+    jp   gfx__clear_shadow_oam__275B
 
 _LABEL_D3BF_:
-	push hl
-	add  $94
-	ld   l, a
-	ld   h, $00
-	add  hl, hl
-	ld   de, _RAM_CF00_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   a, [de]
-	inc  de
-	pop  hl
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ret
+    push hl
+    add  $94
+    ld   l, a
+    ld   h, $00
+    add  hl, hl
+    ld   de, _RAM_CF00_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   a, [de]
+    inc  de
+    pop  hl
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ret
 
 _LABEL_D3D2_:
-	add  $94
-	ld   l, a
-	ld   h, $00
-	add  hl, hl
-	ld   de, _RAM_CF00_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   a, [de]
-	inc  de
-	ret
+    add  $94
+    ld   l, a
+    ld   h, $00
+    add  hl, hl
+    ld   de, _RAM_CF00_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   a, [de]
+    inc  de
+    ret
 
 ; Data from D3E2 to D3E8 (7 bytes)
 db $3D, $00, $52, $61, $74, $65, $00
 
 _LABEL_D3E9_:
-	ld   de, $53E4
-	ld   hl, _TILEMAP0
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   hl, _RAM_C700_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $20
-	inc  hl
-	push hl
-	ld   a, [_RAM_C5CA_]
-	call _LABEL_D3D2_
-	pop  hl
+    ld   de, $53E4
+    ld   hl, _TILEMAP0
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   hl, _RAM_C700_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $20
+    inc  hl
+    push hl
+    ld   a, [_RAM_C5CA_]
+    call _LABEL_D3D2_
+    pop  hl
 _LABEL_D401_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_D401_
-	dec  hl
-	dec  hl
-	ld   a, [hl]
-	cp   $73
-	jr   nz, _LABEL_D410_
-	ld   [hl], $00
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_D401_
+    dec  hl
+    dec  hl
+    ld   a, [hl]
+    cp   $73
+    jr   nz, _LABEL_D410_
+    ld   [hl], $00
 _LABEL_D410_:
-	ld   de, $C700
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   de, $53E2
-	ld   hl, (_TILEMAP0 + $40)
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   de, _RAM_C283_
-	ld   hl, _RAM_C700_
+    ld   de, $C700
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   de, $53E2
+    ld   hl, (_TILEMAP0 + $40)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   de, _RAM_C283_
+    ld   hl, _RAM_C700_
 _LABEL_D424_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_D42C_
-	ldi  [hl], a
-	jr   _LABEL_D424_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_D42C_
+    ldi  [hl], a
+    jr   _LABEL_D424_
 
 _LABEL_D42C_:
-	ld   [hl], $20
-	inc  hl
-	push hl
-	ld   a, [_RAM_C5CB_]
-	call _LABEL_D3D2_
-	pop  hl
+    ld   [hl], $20
+    inc  hl
+    push hl
+    ld   a, [_RAM_C5CB_]
+    call _LABEL_D3D2_
+    pop  hl
 _LABEL_D437_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_D437_
-	ld   de, $C700
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_D437_
+    ld   de, $C700
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ret
 
 _LABEL_D445_:
-	ld   hl, _RAM_C455_
+    ld   hl, _RAM_C455_
 _LABEL_D448_:
-	ldi  a, [hl]
-	or   a
-	ret  z
-	cp   $2E
-	jr   nz, _LABEL_D448_
-	ld   c, $03
+    ldi  a, [hl]
+    or   a
+    ret  z
+    cp   $2E
+    jr   nz, _LABEL_D448_
+    ld   c, $03
 _LABEL_D451_:
-	ldi  a, [hl]
-	or   a
-	ret  z
-	dec  c
-	jr   nz, _LABEL_D451_
-	ld   [hl], c
-	ret
+    ldi  a, [hl]
+    or   a
+    ret  z
+    dec  c
+    jr   nz, _LABEL_D451_
+    ld   [hl], c
+    ret
 
 _LABEL_D459_:
-	call _LABEL_D386_
-	call gfx__turn_off_screen_2827
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $009E
-	call _LABEL_1D2D_
-	ld   bc, $0309
-	call _LABEL_BC3_
-	ld   a, $0C
-	call _LABEL_E25B_
-	ld   hl, _RAM_C283_
-	ld   de, _RAM_C3EC_
-	ld   b, $0A
+    call _LABEL_D386_
+    call gfx__turn_off_screen_2827
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $009E
+    call _LABEL_1D2D_
+    ld   bc, $0309
+    call _LABEL_BC3_
+    ld   a, $0C
+    call _LABEL_E25B_
+    ld   hl, _RAM_C283_
+    ld   de, _RAM_C3EC_
+    ld   b, $0A
 _LABEL_D481_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	or   a
-	jr   z, _LABEL_D48C_
-	dec  b
-	jr   nz, _LABEL_D481_
-	xor  a
-	ld   [de], a
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    or   a
+    jr   z, _LABEL_D48C_
+    dec  b
+    jr   nz, _LABEL_D481_
+    xor  a
+    ld   [de], a
 _LABEL_D48C_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call gfx__clear_shadow_oam__275B
-	call gfx__turn_off_screen_2827
-	xor  a
-	ld   [_RAM_C5CC_], a
-	call _LABEL_2735_
-	call _LABEL_D337_
-	call _LABEL_D358_
-	call gfx__clear_shadow_oam__275B
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call gfx__clear_shadow_oam__275B
+    call gfx__turn_off_screen_2827
+    xor  a
+    ld   [_RAM_C5CC_], a
+    call _LABEL_2735_
+    call _LABEL_D337_
+    call _LABEL_D358_
+    call gfx__clear_shadow_oam__275B
 _LABEL_D4A6_:
-	call gfx__clear_tilemap_0__2722
-	call _LABEL_D3E9_
-	ld   a, $03
-	ld   [_RAM_C479_], a
-	call _LABEL_D16_
-	ld   de, $C29F
-	ld   hl, $98C0
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   a, [_RAM_C5CA_]
-	ld   hl, $98E0
-	call _LABEL_D3BF_
-	ld   de, $53E2
-	ld   hl, $9900
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	call _LABEL_D445_
-	ld   de, $C455
-	ld   hl, $9920
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   a, [_RAM_C5CB_]
-	ld   hl, $9940
-	call _LABEL_D3BF_
-	ld   de, _RAM_C283_
-	ld   hl, _RAM_C3EC_
-	call _LABEL_C611_
-	ld   de, _RAM_C29F_
-	ld   hl, _RAM_C3E0_
-	call _LABEL_C611_
-	ld   a, $02
-	ld   [_RAM_C479_], a
-	call _LABEL_D16_
-	ld   de, $C29F
-	ld   hl, $99A0
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   a, [_RAM_C5CB_]
-	ld   hl, $99C0
-	call _LABEL_D3BF_
-	ld   de, $53E2
-	ld   hl, $99E0
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	call _LABEL_D445_
-	ld   de, $C455
-	ld   hl, $9A00
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	ld   a, [_RAM_C5CA_]
-	ld   hl, $9A20
-	call _LABEL_D3BF_
+    call gfx__clear_tilemap_0__2722
+    call _LABEL_D3E9_
+    ld   a, $03
+    ld   [_RAM_C479_], a
+    call _LABEL_D16_
+    ld   de, $C29F
+    ld   hl, $98C0
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   a, [_RAM_C5CA_]
+    ld   hl, $98E0
+    call _LABEL_D3BF_
+    ld   de, $53E2
+    ld   hl, $9900
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    call _LABEL_D445_
+    ld   de, $C455
+    ld   hl, $9920
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   a, [_RAM_C5CB_]
+    ld   hl, $9940
+    call _LABEL_D3BF_
+    ld   de, _RAM_C283_
+    ld   hl, _RAM_C3EC_
+    call _LABEL_C611_
+    ld   de, _RAM_C29F_
+    ld   hl, _RAM_C3E0_
+    call _LABEL_C611_
+    ld   a, $02
+    ld   [_RAM_C479_], a
+    call _LABEL_D16_
+    ld   de, $C29F
+    ld   hl, $99A0
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   a, [_RAM_C5CB_]
+    ld   hl, $99C0
+    call _LABEL_D3BF_
+    ld   de, $53E2
+    ld   hl, $99E0
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    call _LABEL_D445_
+    ld   de, $C455
+    ld   hl, $9A00
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    ld   a, [_RAM_C5CA_]
+    ld   hl, $9A20
+    call _LABEL_D3BF_
 _LABEL_D522_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	inc  a
-	jr   z, _LABEL_D522_
-	ld   hl, _RAM_C283_
-	ld   de, _RAM_C800_
-	ld   b, $0A
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    inc  a
+    jr   z, _LABEL_D522_
+    ld   hl, _RAM_C283_
+    ld   de, _RAM_C800_
+    ld   b, $0A
 _LABEL_D52E_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_D52E_
-	call gfx__turn_off_screen_2827
-	call _LABEL_D386_
-	ld   de, _RAM_C283_
-	ld   hl, _RAM_C800_
-	ld   b, $0A
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_D52E_
+    call gfx__turn_off_screen_2827
+    call _LABEL_D386_
+    ld   de, _RAM_C283_
+    ld   hl, _RAM_C800_
+    ld   b, $0A
 _LABEL_D542_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_D542_
-	jp   _LABEL_D4A6_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_D542_
+    jp   _LABEL_D4A6_
 
 ; Data from D54B to D569 (31 bytes)
 db $02, $07, $0C, $F5, $21, $1A, $D0, $2A, $66, $6F, $F1, $5F, $87, $87, $57, $83
 db $5F, $7A, $87, $87, $83, $16, $00, $5F, $19, $2A, $5D, $54, $C3, $C3, $0B
 
 _LABEL_D56A_:
-	ld   a, $64
-	ld   [_RAM_C240_], a
-	ld   bc, $09E0
-	ld   e, $1E
-	ld   a, [_RAM_C5CC_]
-	cp   e
-	jr   nz, _LABEL_D57C_
-	ld   e, $2E
+    ld   a, $64
+    ld   [_RAM_C240_], a
+    ld   bc, $09E0
+    ld   e, $1E
+    ld   a, [_RAM_C5CC_]
+    cp   e
+    jr   nz, _LABEL_D57C_
+    ld   e, $2E
 _LABEL_D57C_:
-	call _LABEL_1CF6_
+    call _LABEL_1CF6_
 _LABEL_D57F_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_D597_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   nz, _LABEL_D5BA_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_D5BA_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_D597_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   nz, _LABEL_D5BA_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_D5BA_
 
 _LABEL_D597_:
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   z, _LABEL_D5BA_
-	ld   e, a
-	ld   a, $19
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_D5CF_
-	bit  7, a
-	jr   nz, _LABEL_D5E6_
-	bit  2, a
-	jr   z, _LABEL_D5BA_
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   z, _LABEL_D5BA_
+    ld   e, a
+    ld   a, $19
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_D5CF_
+    bit  7, a
+    jr   nz, _LABEL_D5E6_
+    bit  2, a
+    jr   z, _LABEL_D5BA_
 _LABEL_D5B1_:
-	ld   a, [_RAM_C3B0_]
-	bit  2, a
-	jr   nz, _LABEL_D5B1_
-	jr   _LABEL_D5FE_
+    ld   a, [_RAM_C3B0_]
+    bit  2, a
+    jr   nz, _LABEL_D5B1_
+    jr   _LABEL_D5FE_
 
 _LABEL_D5BA_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_D57F_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jr   z, _LABEL_D5FE_
-	cp   $12
-	jr   z, _LABEL_D5E6_
-	cp   $0F
-	jr   nz, _LABEL_D57F_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_D57F_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jr   z, _LABEL_D5FE_
+    cp   $12
+    jr   z, _LABEL_D5E6_
+    cp   $0F
+    jr   nz, _LABEL_D57F_
 _LABEL_D5CF_:
-	ld   a, [_RAM_C399_]
-	cp   $1E
-	jr   nz, _LABEL_D5D8_
-	ld   a, $8E
+    ld   a, [_RAM_C399_]
+    cp   $1E
+    jr   nz, _LABEL_D5D8_
+    ld   a, $8E
 _LABEL_D5D8_:
-	sub  $10
-	ld   [_RAM_C399_], a
-	ld   e, a
-	ld   a, [_RAM_C5CC_]
-	cp   e
-	jr   z, _LABEL_D5CF_
-	jr   _LABEL_D57F_
+    sub  $10
+    ld   [_RAM_C399_], a
+    ld   e, a
+    ld   a, [_RAM_C5CC_]
+    cp   e
+    jr   z, _LABEL_D5CF_
+    jr   _LABEL_D57F_
 
 _LABEL_D5E6_:
-	ld   a, [_RAM_C399_]
-	cp   $7E
-	jr   nz, _LABEL_D5EF_
-	ld   a, $0E
+    ld   a, [_RAM_C399_]
+    cp   $7E
+    jr   nz, _LABEL_D5EF_
+    ld   a, $0E
 _LABEL_D5EF_:
-	add  $10
-	ld   [_RAM_C399_], a
-	ld   e, a
-	ld   a, [_RAM_C5CC_]
-	cp   e
-	jr   z, _LABEL_D5E6_
-	jp   _LABEL_D57F_
+    add  $10
+    ld   [_RAM_C399_], a
+    ld   e, a
+    ld   a, [_RAM_C5CC_]
+    cp   e
+    jr   z, _LABEL_D5E6_
+    jp   _LABEL_D57F_
 
 _LABEL_D5FE_:
-	ret
+    ret
 
 ; Pointer Table from D5FF to D608 (5 entries, indexed by _RAM_C259_)
 _DATA_D5FF_:
@@ -19102,147 +19102,147 @@ db $3D, $7F, $0D, $0C, $30, $20, $3A, $40
 ; Copies rows of text from RAM to hardware tile map
 ; Source is RAM because it copies there in order to patch the displayed version text
 gfx__title_screen_copy_text_D6D6_:
-	call gfx__turn_on_screen_bg_obj__2540
+    call gfx__turn_on_screen_bg_obj__2540
     ; Load tilemap data for title screen background borders with text "(c) 1992"
-	ld   de, _DATA_7_
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 8)) ; $9900 ; Row 8
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, _DATA_7_
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 8)) ; $9900 ; Row 8
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Montague-Weston."
-	ld   de, $0008
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 9)) ; $9920 ; Row 9
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $0008
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 9)) ; $9920 ; Row 9
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Licensed"
-	ld   de, $0009
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 10)) ; $9940 ; Row 10
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $0009
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 10)) ; $9940 ; Row 10
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "exclusively to"
-	ld   de, $000A
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 11)) ; $9960 ; Row 11
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $000A
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 11)) ; $9960 ; Row 11
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Fabtek, Inc."
-	ld   de, $000B
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 12)) ; $9980 ; Row 12
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $000B
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 12)) ; $9980 ; Row 12
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Version 8.87" - RAM Patched from "Version 5.74
-	ld   de, $000C
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 13)) ; $99A0 ; Row 13
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $000C
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 13)) ; $99A0 ; Row 13
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Licensed by"
-	ld   de, $000D
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 14)) ; $99C0 ; Row 14
-	rst  $28	; COPY_STRING_VRAM__RST_28
+    ld   de, $000D
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 14)) ; $99C0 ; Row 14
+    rst  $28    ; COPY_STRING_VRAM__RST_28
 
     ; Load tilemap data text "Nintendo"
     ld   de, $000E
-	ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 15)) ; $992E ; Row 15
-	rst  $28	; COPY_STRING_VRAM__RST_28
-	jp   gfx__turn_on_screen_bg_obj__2540
+    ld   hl, (_TILEMAP0 + (_TILEMAP_WIDTH * 15)) ; $992E ; Row 15
+    rst  $28    ; COPY_STRING_VRAM__RST_28
+    jp   gfx__turn_on_screen_bg_obj__2540
 
 _LABEL_D714_:
-	call _LABEL_41B_
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00A0
-	call _LABEL_1D2D_
-	ld   bc, $0009
-	call _LABEL_BC3_
-	ld   de, $00A1
-	call _LABEL_1D2D_
-	ld   bc, $0409
-	call _LABEL_BC3_
-	ld   de, $00A2
-	call _LABEL_1D2D_
-	ld   bc, $0809
-	call _LABEL_BC3_
-	ld   de, $00D6
-	call _LABEL_1D2D_
-	ld   bc, $0C09
-	call _LABEL_BC3_
-	ld   hl, _DATA_DB3C_
-	call _LABEL_2003_
-	ld   a, [_RAM_C25B_]
-	sub  $06
-	ld   [_RAM_C25B_], a
-	ld   a, [_RAM_C25C_]
-	add  $06
-	ld   [_RAM_C25C_], a
-	call sys_run_submenu_result_in_A__206D
-	cp   $01
-	jr   z, _LABEL_D78B_
-	cp   $03
-	jr   z, _LABEL_D777_
-	call _LABEL_8BC_
-	jp   app_syscontrol__launch__0D49
+    call _LABEL_41B_
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00A0
+    call _LABEL_1D2D_
+    ld   bc, $0009
+    call _LABEL_BC3_
+    ld   de, $00A1
+    call _LABEL_1D2D_
+    ld   bc, $0409
+    call _LABEL_BC3_
+    ld   de, $00A2
+    call _LABEL_1D2D_
+    ld   bc, $0809
+    call _LABEL_BC3_
+    ld   de, $00D6
+    call _LABEL_1D2D_
+    ld   bc, $0C09
+    call _LABEL_BC3_
+    ld   hl, _DATA_DB3C_
+    call _LABEL_2003_
+    ld   a, [_RAM_C25B_]
+    sub  $06
+    ld   [_RAM_C25B_], a
+    ld   a, [_RAM_C25C_]
+    add  $06
+    ld   [_RAM_C25C_], a
+    call sys_run_submenu_result_in_A__206D
+    cp   $01
+    jr   z, _LABEL_D78B_
+    cp   $03
+    jr   z, _LABEL_D777_
+    call _LABEL_8BC_
+    jp   app_syscontrol__launch__0D49
 
 _LABEL_D777_:
-	call gfx__clear_tilemap_0__2722
-	call _LABEL_F790_
-	ld   [_SRAM_1F9_], a
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	call _LABEL_F68_
-	jp   app_syscontrol__launch__0D49
+    call gfx__clear_tilemap_0__2722
+    call _LABEL_F790_
+    ld   [_SRAM_1F9_], a
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    call _LABEL_F68_
+    jp   app_syscontrol__launch__0D49
 
 _LABEL_D78B_:
-	call gfx__clear_tilemap_0__2722
-	ld   de, $00A4
-	ld   hl, $98A0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00A5
-	ld   hl, $98E0
-	rst  $20	; GFX_COPY_STRING__RST_20
+    call gfx__clear_tilemap_0__2722
+    ld   de, $00A4
+    ld   hl, $98A0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00A5
+    ld   hl, $98E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_D79C_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_D79C_
-	ld   hl, $1071
-	push af
-	ld   a, [_RAM_C232_]
-	ld   e, a
-	ld   d, $00
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jp   nz, app_syscontrol__launch__0D49
-	xor  a
-	ld   [_SRAM_221_], a
-	ld   [_SRAM_1F9_], a
-	ld   [_SRAM_231_], a
-	ld   [_RAM_C10B_], a
-	ld   [_SRAM_A04_], a
-	ld   [_RAM_C5CD_], a
-	inc  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	dec  a
-	ld   [_RAM_C10C_], a
-	ld   [_SRAM_2001_], a
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_D79C_
+    ld   hl, $1071
+    push af
+    ld   a, [_RAM_C232_]
+    ld   e, a
+    ld   d, $00
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jp   nz, app_syscontrol__launch__0D49
+    xor  a
+    ld   [_SRAM_221_], a
+    ld   [_SRAM_1F9_], a
+    ld   [_SRAM_231_], a
+    ld   [_RAM_C10B_], a
+    ld   [_SRAM_A04_], a
+    ld   [_RAM_C5CD_], a
+    inc  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    dec  a
+    ld   [_RAM_C10C_], a
+    ld   [_SRAM_2001_], a
 
-	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	xor  a
-	ld   [_RAM_C10D_], a
-	ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
+    ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    ld   [_RAM_C10D_], a
+    ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
     ; a = 0 for SRAM  bank 0
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	inc  a
-	ld   [_SRAM_9EF_], a
-	ld   hl, _SRAM_1F5_
-	ld   de, _DATA_E42A_
-	ld   b, $04
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    inc  a
+    ld   [_SRAM_9EF_], a
+    ld   hl, _SRAM_1F5_
+    ld   de, _DATA_E42A_
+    ld   b, $04
 _LABEL_D7EA_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_D7EA_
-	jp   app_syscontrol__launch__0D49
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_D7EA_
+    jp   app_syscontrol__launch__0D49
 
 ; Data from D7F3 to D7F9 (7 bytes)
 db $03, $05, $09, $0D, $02, $05, $09
@@ -19252,188 +19252,188 @@ _DATA_D7FA_:
 db $02, $01, $05
 
 _LABEL_D7FD_:
-	ld   a, $01
-	ld   [_RAM_C19A_], a
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	ld   a, $10
-	ld   [_RAM_C282_], a
-	call _LABEL_1563_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $01
+    ld   [_RAM_C19A_], a
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    ld   a, $10
+    ld   [_RAM_C282_], a
+    call _LABEL_1563_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_D820_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_D820_
-	or   a
-	jr   nz, _LABEL_D836_
-	call _LABEL_E67B_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_D820_
+    or   a
+    jr   nz, _LABEL_D836_
+    call _LABEL_E67B_
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	jp   gfx__clear_shadow_oam__275B
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    jp   gfx__clear_shadow_oam__275B
 
 _LABEL_D836_:
-	cp   $09
-	jr   nz, _LABEL_D863_
-	ld   a, [_RAM_C282_]
-	sub  $10
-	or   a
-	rr   a
-	ld   d, $00
-	ld   e, a
-	ld   h, d
-	ld   l, a
-	add  hl, hl
-	add  hl, hl
-	add  hl, de
-	ld   de, _RAM_C700_
-	add  hl, de
-	ld   b, h
-	ld   c, l
-	ld   de, $0014
-	add  hl, de
-	ld   a, [hl]
-	ld   [hl], $00
-	push hl
-	push af
-	ld   h, b
-	ld   l, c
-	call _LABEL_EA22_
-	pop  af
-	pop  hl
-	ld   [hl], a
-	ld   a, $0D
+    cp   $09
+    jr   nz, _LABEL_D863_
+    ld   a, [_RAM_C282_]
+    sub  $10
+    or   a
+    rr   a
+    ld   d, $00
+    ld   e, a
+    ld   h, d
+    ld   l, a
+    add  hl, hl
+    add  hl, hl
+    add  hl, de
+    ld   de, _RAM_C700_
+    add  hl, de
+    ld   b, h
+    ld   c, l
+    ld   de, $0014
+    add  hl, de
+    ld   a, [hl]
+    ld   [hl], $00
+    push hl
+    push af
+    ld   h, b
+    ld   l, c
+    call _LABEL_EA22_
+    pop  af
+    pop  hl
+    ld   [hl], a
+    ld   a, $0D
 _LABEL_D863_:
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-	jr   nz, _LABEL_D871_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_D820_
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+    jr   nz, _LABEL_D871_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_D820_
 
 _LABEL_D871_:
-	cp   $C7
-	jr   nz, _LABEL_D892_
-	ld   a, [_RAM_C281_]
-	sub  $08
-	call _LABEL_21D7_
-	ld   c, a
-	ld   a, [_RAM_C282_]
-	sub  $10
-	call _LABEL_21D7_
-	ld   b, a
-	ld   hl, _RAM_C700_
-	ld   de, _TILEMAP0
-	call _LABEL_2173_
-	jr   _LABEL_D820_
+    cp   $C7
+    jr   nz, _LABEL_D892_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    call _LABEL_21D7_
+    ld   c, a
+    ld   a, [_RAM_C282_]
+    sub  $10
+    call _LABEL_21D7_
+    ld   b, a
+    ld   hl, _RAM_C700_
+    ld   de, _TILEMAP0
+    call _LABEL_2173_
+    jr   _LABEL_D820_
 
 _LABEL_D892_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_D8A1_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jp   _LABEL_D820_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_D8A1_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jp   _LABEL_D820_
 
 _LABEL_D8A1_:
     ; Checking for arrow keys?
-	cp   WORKBOY_SYS_KEY_ARROW_UP ; $0F
-	jr   c, _LABEL_D8CD_
-	cp   $13
-	jr   nc, _LABEL_D8CD_
-	cp   WORKBOY_SYS_KEY_ARROW_UP ; $0F
-	jr   z, _LABEL_D8BB_
-	cp   WORKBOY_SYS_KEY_ARROW_LEFT ; $10
-	jr   z, _LABEL_D8C1_
-	cp   WORKBOY_SYS_KEY_ARROW_RIGHT ; $11
-	jr   z, _LABEL_D8C7_
+    cp   WORKBOY_SYS_KEY_ARROW_UP ; $0F
+    jr   c, _LABEL_D8CD_
+    cp   $13
+    jr   nc, _LABEL_D8CD_
+    cp   WORKBOY_SYS_KEY_ARROW_UP ; $0F
+    jr   z, _LABEL_D8BB_
+    cp   WORKBOY_SYS_KEY_ARROW_LEFT ; $10
+    jr   z, _LABEL_D8C1_
+    cp   WORKBOY_SYS_KEY_ARROW_RIGHT ; $11
+    jr   z, _LABEL_D8C7_
 _LABEL_D8B5_:
-	call _LABEL_D8FA_
-	jp   _LABEL_D820_
+    call _LABEL_D8FA_
+    jp   _LABEL_D820_
 
 _LABEL_D8BB_:
-	call _LABEL_D909_
-	jp   _LABEL_D820_
+    call _LABEL_D909_
+    jp   _LABEL_D820_
 
 _LABEL_D8C1_:
-	call _LABEL_D916_
-	jp   _LABEL_D820_
+    call _LABEL_D916_
+    jp   _LABEL_D820_
 
 _LABEL_D8C7_:
-	call _LABEL_D928_
-	jp   _LABEL_D820_
+    call _LABEL_D928_
+    jp   _LABEL_D820_
 
 _LABEL_D8CD_:
-	cp   $80
-	jr   nz, _LABEL_D8DC_
-	call _LABEL_D916_
-	ld   a, $20
-	call _LABEL_711_
-	jp   _LABEL_D820_
+    cp   $80
+    jr   nz, _LABEL_D8DC_
+    call _LABEL_D916_
+    ld   a, $20
+    call _LABEL_711_
+    jp   _LABEL_D820_
 
 _LABEL_D8DC_:
-	cp   $7E
-	jr   z, _LABEL_D8F0_
-	cp   $61
-	jp   nc, _LABEL_D820_
-	cp   $0D
-	jr   nz, _LABEL_D8F0_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_D8B5_
+    cp   $7E
+    jr   z, _LABEL_D8F0_
+    cp   $61
+    jp   nc, _LABEL_D820_
+    cp   $0D
+    jr   nz, _LABEL_D8F0_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_D8B5_
 
 _LABEL_D8F0_:
-	cp   $20
-	jp   c, _LABEL_D820_
-	call _LABEL_711_
-	jr   _LABEL_D8C7_
+    cp   $20
+    jp   c, _LABEL_D820_
+    call _LABEL_711_
+    jr   _LABEL_D8C7_
 
 _LABEL_D8FA_:
-	ld   a, [_RAM_C282_]
-	add  $08
-	cp   $80
-	jr   nz, _LABEL_D905_
-	ld   a, $10
+    ld   a, [_RAM_C282_]
+    add  $08
+    cp   $80
+    jr   nz, _LABEL_D905_
+    ld   a, $10
 _LABEL_D905_:
-	ld   [_RAM_C282_], a
-	ret
+    ld   [_RAM_C282_], a
+    ret
 
 _LABEL_D909_:
-	ld   a, [_RAM_C282_]
-	sub  $08
-	cp   $08
-	jr   nz, _LABEL_D905_
-	ld   a, $78
-	jr   _LABEL_D905_
+    ld   a, [_RAM_C282_]
+    sub  $08
+    cp   $08
+    jr   nz, _LABEL_D905_
+    ld   a, $78
+    jr   _LABEL_D905_
 
 _LABEL_D916_:
-	ld   a, [_RAM_C281_]
-	sub  $08
-	jr   nz, _LABEL_D924_
-	ld   a, $A0
-	ld   [_RAM_C281_], a
-	jr   _LABEL_D909_
+    ld   a, [_RAM_C281_]
+    sub  $08
+    jr   nz, _LABEL_D924_
+    ld   a, $A0
+    ld   [_RAM_C281_], a
+    jr   _LABEL_D909_
 
 _LABEL_D924_:
-	ld   [_RAM_C281_], a
-	ret
+    ld   [_RAM_C281_], a
+    ret
 
 _LABEL_D928_:
-	ld   a, [_RAM_C281_]
-	add  $08
-	cp   $A8
-	jr   nz, _LABEL_D924_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_D8FA_
+    ld   a, [_RAM_C281_]
+    add  $08
+    cp   $A8
+    jr   nz, _LABEL_D924_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_D8FA_
 
 ; Data from D938 to DB30 (505 bytes)
 db $42, $41, $4E, $4B, $20, $00, $CD, $1B, $04, $CD, $22, $27, $3E, $5D, $EA, $AC
@@ -19482,1364 +19482,1364 @@ _DATA_DB3C_:
 db $03, $04, $08, $0C
 
 _LABEL_DB40_:
-	ld   a, $20
-	ld   b, $14
-	ld   hl, _RAM_C11B_
+    ld   a, $20
+    ld   b, $14
+    ld   hl, _RAM_C11B_
 _LABEL_DB47_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_DB47_
-	ld   [hl], b
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_DB47_
+    ld   [hl], b
 _LABEL_DB4C_:
-	ld   de, $C11B
-	ld   hl, (_TILEMAP0 + $60)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_2769_
-	ld   a, [_RAM_C258_]
-	ld   c, a
-	ld   a, [_RAM_C259_]
-	ld   b, a
-	ld   a, [_RAM_C25A_]
-	ld   e, a
-	call _LABEL_1504_
-	ld   a, [_RAM_C592_]
-	or   a
-	jr   z, _LABEL_DB79_
-	ld   b, a
-	call _LABEL_DC0E_
-	cp   $0A
-	jr   z, _LABEL_DB4C_
-	cp   $FF
-	jr   nz, _LABEL_DB80_
-	jr   _LABEL_DB4C_
+    ld   de, $C11B
+    ld   hl, (_TILEMAP0 + $60)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_2769_
+    ld   a, [_RAM_C258_]
+    ld   c, a
+    ld   a, [_RAM_C259_]
+    ld   b, a
+    ld   a, [_RAM_C25A_]
+    ld   e, a
+    call _LABEL_1504_
+    ld   a, [_RAM_C592_]
+    or   a
+    jr   z, _LABEL_DB79_
+    ld   b, a
+    call _LABEL_DC0E_
+    cp   $0A
+    jr   z, _LABEL_DB4C_
+    cp   $FF
+    jr   nz, _LABEL_DB80_
+    jr   _LABEL_DB4C_
 
 _LABEL_DB79_:
-	ld   a, $39
-	ld   [_RAM_C25A_], a
-	jr   _LABEL_DB4C_
+    ld   a, $39
+    ld   [_RAM_C25A_], a
+    jr   _LABEL_DB4C_
 
 _LABEL_DB80_:
-	or   a
-	jp   z, _LABEL_200_
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-	jr   nz, _LABEL_DB98_
-	ld   a, [_RAM_C234_]
-	dec  a
-	jr   z, _LABEL_DB4C_
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	call _LABEL_1241_
-	jr   _LABEL_DB4C_
+    or   a
+    jp   z, _LABEL_200_
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+    jr   nz, _LABEL_DB98_
+    ld   a, [_RAM_C234_]
+    dec  a
+    jr   z, _LABEL_DB4C_
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    call _LABEL_1241_
+    jr   _LABEL_DB4C_
 
 _LABEL_DB98_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_DBAC_
-	ld   a, [_RAM_C234_]
-	or   a
-	jr   z, _LABEL_DB4C_
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	call _LABEL_1210_
-	jr   _LABEL_DB4C_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_DBAC_
+    ld   a, [_RAM_C234_]
+    or   a
+    jr   z, _LABEL_DB4C_
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    call _LABEL_1210_
+    jr   _LABEL_DB4C_
 
 _LABEL_DBAC_:
-	cp   $80
-	jr   nz, _LABEL_DBCC_
-	ld   a, [_RAM_C281_]
-	cp   $08
-	jr   z, _LABEL_DB4C_
-	sub  $08
-	ld   [_RAM_C281_], a
-	call _LABEL_21D7_
-	ld   hl, $C11A
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $20
-	jr   _LABEL_DB4C_
+    cp   $80
+    jr   nz, _LABEL_DBCC_
+    ld   a, [_RAM_C281_]
+    cp   $08
+    jr   z, _LABEL_DB4C_
+    sub  $08
+    ld   [_RAM_C281_], a
+    call _LABEL_21D7_
+    ld   hl, $C11A
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $20
+    jr   _LABEL_DB4C_
 
 _LABEL_DBCC_:
-	cp   $0D
-	jr   nz, _LABEL_DBEB_
-	ld   a, [_RAM_C281_]
-	cp   $08
-	jp   z, _LABEL_DB4C_
-	call _LABEL_21D7_
-	dec  a
-	ld   [_RAM_C23B_], a
-	ld   hl, $C11B
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $00
-	ret
+    cp   $0D
+    jr   nz, _LABEL_DBEB_
+    ld   a, [_RAM_C281_]
+    cp   $08
+    jp   z, _LABEL_DB4C_
+    call _LABEL_21D7_
+    dec  a
+    ld   [_RAM_C23B_], a
+    ld   hl, $C11B
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $00
+    ret
 
 _LABEL_DBEB_:
-	cp   $61
-	jp   nc, _LABEL_DB4C_
-	ld   e, a
-	ld   a, [_RAM_C281_]
-	cp   $A0
-	jp   z, _LABEL_DB4C_
-	add  $08
-	ld   [_RAM_C281_], a
-	call _LABEL_21D7_
-	ld   hl, $C119
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], e
-	jp   _LABEL_DB4C_
+    cp   $61
+    jp   nc, _LABEL_DB4C_
+    ld   e, a
+    ld   a, [_RAM_C281_]
+    cp   $A0
+    jp   z, _LABEL_DB4C_
+    add  $08
+    ld   [_RAM_C281_], a
+    call _LABEL_21D7_
+    ld   hl, $C119
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], e
+    jp   _LABEL_DB4C_
 
 _LABEL_DC0E_:
-	ld   b, a
-	and  $03
-	or   a
-	jr   z, _LABEL_DC50_
-	ld   a, [_RAM_C259_]
-	cp   $52
-	jr   c, _LABEL_DC50_
-	sub  $52
-	ld   c, a
-	and  $0F
-	cp   $0B
-	jr   nc, _LABEL_DC50_
-	ld   a, c
-	call util__rr_downshift_A_by_4__2909
-	add  a
-	ld   hl, _DATA_D5FF_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ldi  a, [hl]
-	ld   h, [hl]
-	ld   l, a
-	call _LABEL_DC9C_
-	ld   [_RAM_C5D1_], a
-	cp   $FF
-	jr   z, _LABEL_DC50_
-	ld   e, a
-	ld   a, [_RAM_C25A_]
-	cp   $3A
-	jr   nz, _LABEL_DC4A_
-	ld   a, $FF
-	ret
+    ld   b, a
+    and  $03
+    or   a
+    jr   z, _LABEL_DC50_
+    ld   a, [_RAM_C259_]
+    cp   $52
+    jr   c, _LABEL_DC50_
+    sub  $52
+    ld   c, a
+    and  $0F
+    cp   $0B
+    jr   nc, _LABEL_DC50_
+    ld   a, c
+    call util__rr_downshift_A_by_4__2909
+    add  a
+    ld   hl, _DATA_D5FF_
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ldi  a, [hl]
+    ld   h, [hl]
+    ld   l, a
+    call _LABEL_DC9C_
+    ld   [_RAM_C5D1_], a
+    cp   $FF
+    jr   z, _LABEL_DC50_
+    ld   e, a
+    ld   a, [_RAM_C25A_]
+    cp   $3A
+    jr   nz, _LABEL_DC4A_
+    ld   a, $FF
+    ret
 
 _LABEL_DC4A_:
-	inc  a
-	ld   [_RAM_C25A_], a
-	ld   a, e
-	ret
+    inc  a
+    ld   [_RAM_C25A_], a
+    ld   a, e
+    ret
 
 _LABEL_DC50_:
-	ld   a, $39
-	ld   [_RAM_C25A_], a
-	ld   a, [_RAM_C592_]
-	ld   b, a
-	bit  7, b
-	call nz, _LABEL_DC70_
-	bit  6, b
-	call nz, _LABEL_DC7B_
-	bit  5, b
-	call nz, _LABEL_DC86_
-	bit  4, b
-	call nz, _LABEL_DC91_
-	ld   a, $FF
-	ret
+    ld   a, $39
+    ld   [_RAM_C25A_], a
+    ld   a, [_RAM_C592_]
+    ld   b, a
+    bit  7, b
+    call nz, _LABEL_DC70_
+    bit  6, b
+    call nz, _LABEL_DC7B_
+    bit  5, b
+    call nz, _LABEL_DC86_
+    bit  4, b
+    call nz, _LABEL_DC91_
+    ld   a, $FF
+    ret
 
 _LABEL_DC70_:
-	ld   a, [_RAM_C259_]
-	inc  a
-	cp   $98
-	ret  z
-	ld   [_RAM_C259_], a
-	ret
+    ld   a, [_RAM_C259_]
+    inc  a
+    cp   $98
+    ret  z
+    ld   [_RAM_C259_], a
+    ret
 
 _LABEL_DC7B_:
-	ld   a, [_RAM_C259_]
-	dec  a
-	cp   $51
-	ret  z
-	ld   [_RAM_C259_], a
-	ret
+    ld   a, [_RAM_C259_]
+    dec  a
+    cp   $51
+    ret  z
+    ld   [_RAM_C259_], a
+    ret
 
 _LABEL_DC86_:
-	ld   a, [_RAM_C258_]
-	dec  a
-	cp   $03
-	ret  z
-	ld   [_RAM_C258_], a
-	ret
+    ld   a, [_RAM_C258_]
+    dec  a
+    cp   $03
+    ret  z
+    ld   [_RAM_C258_], a
+    ret
 
 _LABEL_DC91_:
-	ld   a, [_RAM_C258_]
-	inc  a
-	cp   $96
-	ret  z
-	ld   [_RAM_C258_], a
-	ret
+    ld   a, [_RAM_C258_]
+    inc  a
+    cp   $96
+    ret  z
+    ld   [_RAM_C258_], a
+    ret
 
 _LABEL_DC9C_:
-	ldi  a, [hl]
-	cp   $FF
-	ret  z
-	ld   c, a
-	ldi  a, [hl]
-	ld   b, a
-	inc  b
-	ldi  a, [hl]
-	ld   e, a
-	ld   a, [_RAM_C258_]
-	cp   c
-	jr   c, _LABEL_DCC4_
-	cp   b
-	jr   nc, _LABEL_DC9C_
-	ld   hl, _DATA_D686_
-	ld   a, [_RAM_C234_]
-	or   a
-	jr   z, _LABEL_DCBB_
-	ld   hl, _DATA_D6AE_
+    ldi  a, [hl]
+    cp   $FF
+    ret  z
+    ld   c, a
+    ldi  a, [hl]
+    ld   b, a
+    inc  b
+    ldi  a, [hl]
+    ld   e, a
+    ld   a, [_RAM_C258_]
+    cp   c
+    jr   c, _LABEL_DCC4_
+    cp   b
+    jr   nc, _LABEL_DC9C_
+    ld   hl, _DATA_D686_
+    ld   a, [_RAM_C234_]
+    or   a
+    jr   z, _LABEL_DCBB_
+    ld   hl, _DATA_D6AE_
 _LABEL_DCBB_:
-	ld   a, e
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ldi  a, [hl]
-	ret
+    ld   a, e
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ldi  a, [hl]
+    ret
 
 _LABEL_DCC4_:
-	ld   a, $FF
-	ret
+    ld   a, $FF
+    ret
 
 _LABEL_DCC7_:
-	call gfx__clear_tilemap_0__2722
-	ld   de, $00AA
-	ld   hl, $98E4
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0006
-	ld   hl, $9923
-	rst  $20	; GFX_COPY_STRING__RST_20
+    call gfx__clear_tilemap_0__2722
+    ld   de, $00AA
+    ld   hl, $98E4
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0006
+    ld   hl, $9923
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_DCD8_:
-	ld   a, [_RAM_C592_]
-	or   a
-	jr   nz, _LABEL_DCD8_
+    ld   a, [_RAM_C592_]
+    or   a
+    jr   nz, _LABEL_DCD8_
 _LABEL_DCDE_:
-	ld   a, [_RAM_C592_]
-	or   a
-	jr   z, _LABEL_DCDE_
-	jp   _LABEL_200_
+    ld   a, [_RAM_C592_]
+    or   a
+    jr   z, _LABEL_DCDE_
+    jp   _LABEL_200_
 
 _LABEL_DCE7_:
-	ld   a, $02
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__clear_shadow_oam__275B
-	call gfx__clear_tilemap_0__2722
-	ld   a, $01
-	ld   [_RAM_C10D_], a
-	call _LABEL_680_
-	xor  a
-	ld   [_RAM_C23A_], a
+    ld   a, $02
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__clear_shadow_oam__275B
+    call gfx__clear_tilemap_0__2722
+    ld   a, $01
+    ld   [_RAM_C10D_], a
+    call _LABEL_680_
+    xor  a
+    ld   [_RAM_C23A_], a
 _LABEL_DCFE_:
-	call _LABEL_C46E_
-	or   a
-	jr   nz, _LABEL_DD22_
-	ld   de, $0003
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_7B3_
-	ld   de, $00E0
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00E1
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_DCD8_
-	jp   _LABEL_200_
+    call _LABEL_C46E_
+    or   a
+    jr   nz, _LABEL_DD22_
+    ld   de, $0003
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_7B3_
+    ld   de, $00E0
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00E1
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_DCD8_
+    jp   _LABEL_200_
 
 _LABEL_DD22_:
-	ld   a, [_RAM_C23A_]
-	ld   [_RAM_C10D_], a
-	call _LABEL_6D0_
-	ld   de, $0003
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_7B3_
-	ld   de, $00D1
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $2150
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C23A_]
+    ld   [_RAM_C10D_], a
+    call _LABEL_6D0_
+    ld   de, $0003
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_7B3_
+    ld   de, $00D1
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_DD43_:
-	ld   a, [_RAM_C592_]
-	and  $03
-	jr   z, _LABEL_DD43_
-	bit  0, a
-	jr   nz, _LABEL_DD54_
-	bit  1, a
-	jr   z, _LABEL_DD43_
-	jr   _LABEL_DCFE_
+    ld   a, [_RAM_C592_]
+    and  $03
+    jr   z, _LABEL_DD43_
+    bit  0, a
+    jr   nz, _LABEL_DD54_
+    bit  1, a
+    jr   z, _LABEL_DD43_
+    jr   _LABEL_DCFE_
 
 _LABEL_DD54_:
-	call _LABEL_667_
-	jp   _LABEL_200_
+    call _LABEL_667_
+    jp   _LABEL_200_
 
 _LABEL_DD5A_:
-	ld   a, $01
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	call gfx__clear_shadow_oam__275B
-	call gfx__clear_tilemap_0__2722
-	ld   a, [_SRAM_2001_]
-	or   a
-	jp   z, _LABEL_DCC7_
-	xor  a
-	ld   [_RAM_C5C7_], a
+    ld   a, $01
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    call gfx__clear_shadow_oam__275B
+    call gfx__clear_tilemap_0__2722
+    ld   a, [_SRAM_2001_]
+    or   a
+    jp   z, _LABEL_DCC7_
+    xor  a
+    ld   [_RAM_C5C7_], a
 _LABEL_DD70_:
-	call _LABEL_CC76_
-	or   a
-	jr   z, _LABEL_DDBE_
-	ld   de, $0001
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00D1
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $2150
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, [_RAM_C5C7_]
-	ld   [_RAM_C10C_], a
-	call _LABEL_7B6_
-	ld   a, [_RAM_C5C7_]
-	ld   hl, $9F76
-	ld   de, $008C
+    call _LABEL_CC76_
+    or   a
+    jr   z, _LABEL_DDBE_
+    ld   de, $0001
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00D1
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C5C7_]
+    ld   [_RAM_C10C_], a
+    call _LABEL_7B6_
+    ld   a, [_RAM_C5C7_]
+    ld   hl, $9F76
+    ld   de, $008C
 _LABEL_DD9D_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_DD9D_
-	ld   bc, _RAM_C700_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_DD9D_
+    ld   bc, _RAM_C700_
 _LABEL_DDA4_:
-	ldi  a, [hl]
-	ld   [bc], a
-	inc  bc
-	dec  e
-	jr   nz, _LABEL_DDA4_
-	call _LABEL_E3A3_
+    ldi  a, [hl]
+    ld   [bc], a
+    inc  bc
+    dec  e
+    jr   nz, _LABEL_DDA4_
+    call _LABEL_E3A3_
 _LABEL_DDAD_:
-	ld   a, [_RAM_C592_]
-	and  $03
-	jr   z, _LABEL_DDAD_
-	bit  0, a
-	jr   nz, _LABEL_DDD6_
-	bit  1, a
-	jr   z, _LABEL_DDAD_
-	jr   _LABEL_DD70_
+    ld   a, [_RAM_C592_]
+    and  $03
+    jr   z, _LABEL_DDAD_
+    bit  0, a
+    jr   nz, _LABEL_DDD6_
+    bit  1, a
+    jr   z, _LABEL_DDAD_
+    jr   _LABEL_DD70_
 
 _LABEL_DDBE_:
-	ld   de, $2150
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0085
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $0086
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
-	jp   _LABEL_DCD8_
+    ld   de, $2150
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0085
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $0086
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    jp   _LABEL_DCD8_
 
 _LABEL_DDD6_:
-	jp   _LABEL_200_
+    jp   _LABEL_200_
 
 _LABEL_DDD9_:
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call gfx__clear_shadow_oam__275B
-	ld   a, [_SRAM_9EF_]
-	or   a
-	jp   z, _LABEL_DE1C_
-	call _LABEL_41B_
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00A5
-	call _LABEL_1D2D_
-	ld   bc, $0309
-	call _LABEL_BC3_
-	ld   a, $0F
-	call _LABEL_E25B_
-	xor  a
-	ld   [_SRAM_9EF_], a
-	call gfx__clear_shadow_oam__275B
-	ld   hl, _SRAM_9F0_
-	ld   de, _RAM_C283_
-	ld   bc, _SRAM_9FA_
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call gfx__clear_shadow_oam__275B
+    ld   a, [_SRAM_9EF_]
+    or   a
+    jp   z, _LABEL_DE1C_
+    call _LABEL_41B_
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00A5
+    call _LABEL_1D2D_
+    ld   bc, $0309
+    call _LABEL_BC3_
+    ld   a, $0F
+    call _LABEL_E25B_
+    xor  a
+    ld   [_SRAM_9EF_], a
+    call gfx__clear_shadow_oam__275B
+    ld   hl, _SRAM_9F0_
+    ld   de, _RAM_C283_
+    ld   bc, _SRAM_9FA_
 _LABEL_DE14_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	ld   [bc], a
-	inc  bc
-	or   a
-	jr   nz, _LABEL_DE14_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    ld   [bc], a
+    inc  bc
+    or   a
+    jr   nz, _LABEL_DE14_
 _LABEL_DE1C_:
-	call _LABEL_41B_
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   hl, _RAM_C283_
-	ld   b, $14
-	ld   a, $20
+    call _LABEL_41B_
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   hl, _RAM_C283_
+    ld   b, $14
+    ld   a, $20
 _LABEL_DE2F_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_DE2F_
-	ld   hl, _RAM_C288_
-	ld   de, _SRAM_9FA_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_DE2F_
+    ld   hl, _RAM_C288_
+    ld   de, _SRAM_9FA_
 _LABEL_DE39_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_DE41_
-	ldi  [hl], a
-	jr   _LABEL_DE39_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_DE41_
+    ldi  [hl], a
+    jr   _LABEL_DE39_
 
 _LABEL_DE41_:
-	ld   de, $00A7
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $00A8
-	call _LABEL_1D2D_
-	ld   bc, $0509
-	call _LABEL_BC3_
-	ld   de, $00A6
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	call _LABEL_BC3_
-	ld   de, _RAM_C283_
-	ld   bc, $0D09
-	ld   a, $0C
-	call _LABEL_BC3_
+    ld   de, $00A7
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $00A8
+    call _LABEL_1D2D_
+    ld   bc, $0509
+    call _LABEL_BC3_
+    ld   de, $00A6
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    call _LABEL_BC3_
+    ld   de, _RAM_C283_
+    ld   bc, $0D09
+    ld   a, $0C
+    call _LABEL_BC3_
 _LABEL_DE70_:
-	ld   hl, _DATA_D7FA_
-	call _LABEL_2003_
-	call sys_run_submenu_result_in_A__206D
-	cp   $02
-	jp   z, _LABEL_E026_
-	ld   a, [_SRAM_A04_]
-	or   a
-	jr   nz, _LABEL_DEB4_
-	ld   a, [_SRAM_1F9_]
-	or   a
-	jr   nz, _LABEL_DE70_
-	ld   b, $05
+    ld   hl, _DATA_D7FA_
+    call _LABEL_2003_
+    call sys_run_submenu_result_in_A__206D
+    cp   $02
+    jp   z, _LABEL_E026_
+    ld   a, [_SRAM_A04_]
+    or   a
+    jr   nz, _LABEL_DEB4_
+    ld   a, [_SRAM_1F9_]
+    or   a
+    jr   nz, _LABEL_DE70_
+    ld   b, $05
 _LABEL_DE8C_:
-	push bc
-	ld   de, $00AA
-	ld   hl, (_TILEMAP0 + $44)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   b, $0A
+    push bc
+    ld   de, $00AA
+    ld   hl, (_TILEMAP0 + $44)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   b, $0A
 _LABEL_DE96_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  b
-	jr   nz, _LABEL_DE96_
-	ld   de, $00AB
-	ld   hl, (_TILEMAP0 + $44)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   b, $0A
+    rst  $18    ; Call VSYNC__RST_18
+    dec  b
+    jr   nz, _LABEL_DE96_
+    ld   de, $00AB
+    ld   hl, (_TILEMAP0 + $44)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   b, $0A
 _LABEL_DEA3_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  b
-	jr   nz, _LABEL_DEA3_
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_DE8C_
-	ld   de, $00AC
-	ld   hl, (_TILEMAP0 + $44)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	jr   _LABEL_DE70_
+    rst  $18    ; Call VSYNC__RST_18
+    dec  b
+    jr   nz, _LABEL_DEA3_
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_DE8C_
+    ld   de, $00AC
+    ld   hl, (_TILEMAP0 + $44)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    jr   _LABEL_DE70_
 
 _LABEL_DEB4_:
-	ld   a, [_SRAM_A04_]
-	ld   [_RAM_C5CD_], a
+    ld   a, [_SRAM_A04_]
+    ld   [_RAM_C5CD_], a
 _LABEL_DEBA_:
-	call gfx__turn_off_screen_2827
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   hl, _RAM_D06C_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   hl, _RAM_C283_
-	ld   b, $14
+    call gfx__turn_off_screen_2827
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   hl, _RAM_D06C_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   hl, _RAM_C283_
+    ld   b, $14
 _LABEL_DED1_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_DED1_
-	ld   a, [_RAM_C5CD_]
-	ld   b, $00
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_DED1_
+    ld   a, [_RAM_C5CD_]
+    ld   b, $00
 _LABEL_DEDC_:
-	cp   $0A
-	jr   c, _LABEL_DEE5_
-	sub  $0A
-	inc  b
-	jr   _LABEL_DEDC_
+    cp   $0A
+    jr   c, _LABEL_DEE5_
+    sub  $0A
+    inc  b
+    jr   _LABEL_DEDC_
 
 _LABEL_DEE5_:
-	add  $30
-	ld   [_RAM_C294_], a
-	ld   a, b
-	add  $30
-	ld   [_RAM_C293_], a
-	ld   de, _RAM_C283_
-	ld   bc, $0009
-	ld   a, $12
-	call _LABEL_BC3_
-	ld   a, [_RAM_C5CD_]
-	ld   hl, $A9E5
-	ld   de, $0020
+    add  $30
+    ld   [_RAM_C294_], a
+    ld   a, b
+    add  $30
+    ld   [_RAM_C293_], a
+    ld   de, _RAM_C283_
+    ld   bc, $0009
+    ld   a, $12
+    call _LABEL_BC3_
+    ld   a, [_RAM_C5CD_]
+    ld   hl, $A9E5
+    ld   de, $0020
 _LABEL_DF04_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_DF04_
-	ld   bc, _RAM_C5D2_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_DF04_
+    ld   bc, _RAM_C5D2_
 _LABEL_DF0B_:
-	ldi  a, [hl]
-	ld   [bc], a
-	inc  bc
-	dec  e
-	jr   nz, _LABEL_DF0B_
-	call _LABEL_DFC0_
-	ld   hl, _RAM_C283_
-	ld   a, $20
-	ld   b, $14
+    ldi  a, [hl]
+    ld   [bc], a
+    inc  bc
+    dec  e
+    jr   nz, _LABEL_DF0B_
+    call _LABEL_DFC0_
+    ld   hl, _RAM_C283_
+    ld   a, $20
+    ld   b, $14
 _LABEL_DF1B_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_DF1B_
-	ld   hl, _RAM_C288_
-	ld   de, _RAM_C5D5_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_DF1B_
+    ld   hl, _RAM_C288_
+    ld   de, _RAM_C5D5_
 _LABEL_DF25_:
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_DF2D_
-	ldi  [hl], a
-	inc  de
-	jr   _LABEL_DF25_
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_DF2D_
+    ldi  [hl], a
+    inc  de
+    jr   _LABEL_DF25_
 
 _LABEL_DF2D_:
-	ld   de, _RAM_C283_
-	ld   bc, $0609
-	ld   a, $0C
-	call _LABEL_BC3_
-	ld   a, [_RAM_C5DF_]
-	or   a
-	jr   nz, _LABEL_DF43_
-	ld   de, $00B0
-	jr   _LABEL_DF46_
+    ld   de, _RAM_C283_
+    ld   bc, $0609
+    ld   a, $0C
+    call _LABEL_BC3_
+    ld   a, [_RAM_C5DF_]
+    or   a
+    jr   nz, _LABEL_DF43_
+    ld   de, $00B0
+    jr   _LABEL_DF46_
 
 _LABEL_DF43_:
-	ld   de, $00B1
+    ld   de, $00B1
 _LABEL_DF46_:
-	call _LABEL_1D2D_
-	ld   bc, $0909
-	call _LABEL_BC3_
-	ld   hl, _RAM_C283_
-	ld   b, $14
-	ld   a, $20
+    call _LABEL_1D2D_
+    ld   bc, $0909
+    call _LABEL_BC3_
+    ld   hl, _RAM_C283_
+    ld   b, $14
+    ld   a, $20
 _LABEL_DF56_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_DF56_
-	ld   de, _RAM_C5E0_
-	ld   hl, _RAM_C284_
-	ld   b, $12
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_DF56_
+    ld   de, _RAM_C5E0_
+    ld   hl, _RAM_C284_
+    ld   b, $12
 _LABEL_DF62_:
-	ld   a, [de]
-	or   a
-	jr   z, _LABEL_DF6B_
-	ldi  [hl], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_DF62_
+    ld   a, [de]
+    or   a
+    jr   z, _LABEL_DF6B_
+    ldi  [hl], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_DF62_
 _LABEL_DF6B_:
-	ld   de, _RAM_C283_
-	ld   bc, $0C09
-	ld   a, $14
-	call _LABEL_BC3_
-	ld   de, $00B6
-	ld   hl, $9A01
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   de, _RAM_C283_
+    ld   bc, $0C09
+    ld   a, $14
+    call _LABEL_BC3_
+    ld   de, $00B6
+    ld   hl, $9A01
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_DF7D_:
-	ld   a, [_RAM_C232_]
-	ld   e, a
-	add  a
-	add  e
-	ld   e, a
-	ld   d, $00
-	ld   hl, $0F59
-	add  hl, de
-	push hl
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	pop  hl
-	cp   $FF
-	jr   z, _LABEL_DF7D_
-	or   a
-	jp   z, _LABEL_200_
-	cp   [hl]
-	jr   z, _LABEL_DFA3_
-	inc  hl
-	cp   [hl]
-	jr   z, _LABEL_DFB4_
-	inc  hl
-	cp   [hl]
-	jp   z, app_checkbook__launch__0AF1
-	jr   _LABEL_DF7D_
+    ld   a, [_RAM_C232_]
+    ld   e, a
+    add  a
+    add  e
+    ld   e, a
+    ld   d, $00
+    ld   hl, $0F59
+    add  hl, de
+    push hl
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    pop  hl
+    cp   $FF
+    jr   z, _LABEL_DF7D_
+    or   a
+    jp   z, _LABEL_200_
+    cp   [hl]
+    jr   z, _LABEL_DFA3_
+    inc  hl
+    cp   [hl]
+    jr   z, _LABEL_DFB4_
+    inc  hl
+    cp   [hl]
+    jp   z, app_checkbook__launch__0AF1
+    jr   _LABEL_DF7D_
 
 _LABEL_DFA3_:
-	ld   a, [_SRAM_A04_]
-	ld   c, a
-	ld   a, [_RAM_C5CD_]
-	cp   c
-	jr   z, _LABEL_DF7D_
-	inc  a
-	ld   [_RAM_C5CD_], a
-	jp   _LABEL_DEBA_
+    ld   a, [_SRAM_A04_]
+    ld   c, a
+    ld   a, [_RAM_C5CD_]
+    cp   c
+    jr   z, _LABEL_DF7D_
+    inc  a
+    ld   [_RAM_C5CD_], a
+    jp   _LABEL_DEBA_
 
 _LABEL_DFB4_:
-	ld   a, [_RAM_C5CD_]
-	dec  a
-	jr   z, _LABEL_DF7D_
-	ld   [_RAM_C5CD_], a
-	jp   _LABEL_DEBA_
+    ld   a, [_RAM_C5CD_]
+    dec  a
+    jr   z, _LABEL_DF7D_
+    ld   [_RAM_C5CD_], a
+    jp   _LABEL_DEBA_
 
 _LABEL_DFC0_:
-	ld   de, _DATA_2150_
-	ld   bc, $0309
-	ld   a, $0C
-	call _LABEL_BC3_
-	ld   hl, _RAM_C700_
-	ld   a, [_RAM_C5D2_]
-	ldi  [hl], a
-	ld   a, [_RAM_C5D3_]
-	ldi  [hl], a
-	ld   a, [_RAM_C5D4_]
-	ldi  [hl], a
-	ld   a, [_SRAM_2A_]
-	or   a
-	jr   z, _LABEL_DFEE_
-	ld   a, [_RAM_C700_]
-	ld   c, a
-	ld   a, [_RAM_C701_]
-	ld   [_RAM_C700_], a
-	ld   a, c
-	ld   [_RAM_C701_], a
+    ld   de, _DATA_2150_
+    ld   bc, $0309
+    ld   a, $0C
+    call _LABEL_BC3_
+    ld   hl, _RAM_C700_
+    ld   a, [_RAM_C5D2_]
+    ldi  [hl], a
+    ld   a, [_RAM_C5D3_]
+    ldi  [hl], a
+    ld   a, [_RAM_C5D4_]
+    ldi  [hl], a
+    ld   a, [_SRAM_2A_]
+    or   a
+    jr   z, _LABEL_DFEE_
+    ld   a, [_RAM_C700_]
+    ld   c, a
+    ld   a, [_RAM_C701_]
+    ld   [_RAM_C700_], a
+    ld   a, c
+    ld   [_RAM_C701_], a
 _LABEL_DFEE_:
-	ld   a, [_RAM_C700_]
-	ld   hl, $C261
-	call _LABEL_2BBA_
-	ld   a, [_RAM_C701_]
-	ld   hl, $C263
-	call _LABEL_2BBA_
-	ld   hl, _RAM_C265_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $39
-	inc  hl
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $30
-	ld   a, [_RAM_C702_]
-	call _LABEL_235A_
-	ld   de, $00AE
-	ld   hl, (_TILEMAP0 + $87)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $18
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
+    ld   a, [_RAM_C700_]
+    ld   hl, $C261
+    call _LABEL_2BBA_
+    ld   a, [_RAM_C701_]
+    ld   hl, $C263
+    call _LABEL_2BBA_
+    ld   hl, _RAM_C265_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $39
+    inc  hl
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $30
+    ld   a, [_RAM_C702_]
+    call _LABEL_235A_
+    ld   de, $00AE
+    ld   hl, (_TILEMAP0 + $87)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $18
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
-	xor  a
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ret
+    xor  a
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ret
 
 _LABEL_E026_:
-	call gfx__turn_off_screen_2827
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00AC
-	call _LABEL_1D2D_
-	ld   bc, $0009
-	ld   a, $14
-	call _LABEL_BC3_
-	call _LABEL_E1CF_
-	ld   de, _RAM_C700_
-	ld   hl, _RAM_C5D2_
-	ld   b, $03
+    call gfx__turn_off_screen_2827
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00AC
+    call _LABEL_1D2D_
+    ld   bc, $0009
+    ld   a, $14
+    call _LABEL_BC3_
+    call _LABEL_E1CF_
+    ld   de, _RAM_C700_
+    ld   hl, _RAM_C5D2_
+    ld   b, $03
 _LABEL_E04B_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_E04B_
-	ld   de, $00AF
-	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $06
-	call _LABEL_E25B_
-	ld   hl, _RAM_C5D5_
-	ld   de, _RAM_C283_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_E04B_
+    ld   de, $00AF
+    ld   hl, (_TILEMAP0 + $21)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $06
+    call _LABEL_E25B_
+    ld   hl, _RAM_C5D5_
+    ld   de, _RAM_C283_
 _LABEL_E063_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_E063_
-	ld   de, $00B0
-	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00B0
-	call _LABEL_1D2D_
-	ld   bc, $0909
-	call _LABEL_BC3_
-	ld   de, $00B1
-	call _LABEL_1D2D_
-	ld   bc, $0C09
-	call _LABEL_BC3_
-	call gfx__clear_shadow_oam__275B
-	ld   hl, _DATA_E1CC_
-	call _LABEL_2003_
-	call sys_run_submenu_result_in_A__206D
-	push af
-	cp   $01
-	jr   z, _LABEL_E0A0_
-	ld   de, $00B3
-	ld   hl, $9947
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_E063_
+    ld   de, $00B0
+    ld   hl, (_TILEMAP0 + $21)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00B0
+    call _LABEL_1D2D_
+    ld   bc, $0909
+    call _LABEL_BC3_
+    ld   de, $00B1
+    call _LABEL_1D2D_
+    ld   bc, $0C09
+    call _LABEL_BC3_
+    call gfx__clear_shadow_oam__275B
+    ld   hl, _DATA_E1CC_
+    call _LABEL_2003_
+    call sys_run_submenu_result_in_A__206D
+    push af
+    cp   $01
+    jr   z, _LABEL_E0A0_
+    ld   de, $00B3
+    ld   hl, $9947
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_E0A0_:
-	ld   de, $00B4
-	ld   hl, $9986
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00B4
-	ld   hl, $99A6
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00B4
-	ld   hl, $99C6
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  af
-	dec  a
-	ld   [_RAM_C5DF_], a
-	ld   de, $00B5
-	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, _DATA_2150_
-	ld   bc, $0C09
-	ld   a, $14
-	call _LABEL_BC3_
-	ld   a, $F2
-	ldh  [rOBP0], a
+    ld   de, $00B4
+    ld   hl, $9986
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00B4
+    ld   hl, $99A6
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00B4
+    ld   hl, $99C6
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  af
+    dec  a
+    ld   [_RAM_C5DF_], a
+    ld   de, $00B5
+    ld   hl, (_TILEMAP0 + $21)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, _DATA_2150_
+    ld   bc, $0C09
+    ld   a, $14
+    call _LABEL_BC3_
+    ld   a, $F2
+    ldh  [rOBP0], a
 _LABEL_E0D0_:
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   a, $07
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   a, $10
-	ld   [_RAM_C281_], a
-	ld   a, $78
-	call _LABEL_CCBD_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jr   z, _LABEL_E0D0_
-	sub  $10
-	or   a
-	rr   a
-	or   a
-	rr   a
-	or   a
-	rr   a
-	ld   [_RAM_C23B_], a
-	ld   hl, _RAM_C5E0_
-	ld   a, $20
-	ld   b, $12
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   a, $07
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   a, $10
+    ld   [_RAM_C281_], a
+    ld   a, $78
+    call _LABEL_CCBD_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jr   z, _LABEL_E0D0_
+    sub  $10
+    or   a
+    rr   a
+    or   a
+    rr   a
+    or   a
+    rr   a
+    ld   [_RAM_C23B_], a
+    ld   hl, _RAM_C5E0_
+    ld   a, $20
+    ld   b, $12
 _LABEL_E0FF_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_E0FF_
-	ld   de, _RAM_C11B_
-	ld   hl, _RAM_C5E0_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_E0FF_
+    ld   de, _RAM_C11B_
+    ld   hl, _RAM_C5E0_
 _LABEL_E109_:
-	ld   a, [de]
-	inc  de
-	or   a
-	jr   z, _LABEL_E111_
-	ldi  [hl], a
-	jr   _LABEL_E109_
+    ld   a, [de]
+    inc  de
+    or   a
+    jr   z, _LABEL_E111_
+    ldi  [hl], a
+    jr   _LABEL_E109_
 
 _LABEL_E111_:
-	ld   a, [_SRAM_A04_]
-	cp   $32
-	jr   nz, _LABEL_E15A_
-	ld   de, _SRAM_9F0_
-	ld   hl, _RAM_C3E0_
+    ld   a, [_SRAM_A04_]
+    cp   $32
+    jr   nz, _LABEL_E15A_
+    ld   de, _SRAM_9F0_
+    ld   hl, _RAM_C3E0_
 _LABEL_E11E_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_E11E_
-	ld   de, _SRAM_A08_
-	ld   hl, _RAM_C3EC_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_E11E_
+    ld   de, _SRAM_A08_
+    ld   hl, _RAM_C3EC_
 _LABEL_E12A_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_E12A_
-	ld   a, [_SRAM_A12_]
-	ld   [_RAM_C479_], a
-	call _LABEL_D16_
-	ld   hl, _RAM_C455_
-	ld   de, _SRAM_9F0_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_E12A_
+    ld   a, [_SRAM_A12_]
+    ld   [_RAM_C479_], a
+    call _LABEL_D16_
+    ld   hl, _RAM_C455_
+    ld   de, _SRAM_9F0_
 _LABEL_E13F_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	or   a
-	jr   nz, _LABEL_E13F_
-	ld   hl, _SRAM_A05_
-	ld   de, _SRAM_A25_
-	ld   bc, $0620
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    or   a
+    jr   nz, _LABEL_E13F_
+    ld   hl, _SRAM_A05_
+    ld   de, _SRAM_A25_
+    ld   bc, $0620
 _LABEL_E14E_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_E14E_
-	ld   hl, _SRAM_A04_
-	dec  [hl]
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_E14E_
+    ld   hl, _SRAM_A04_
+    dec  [hl]
 _LABEL_E15A_:
-	ld   hl, _SRAM_A04_
-	inc  [hl]
-	ld   a, [hl]
-	ld   hl, $A9E5
-	ld   de, $0020
+    ld   hl, _SRAM_A04_
+    inc  [hl]
+    ld   a, [hl]
+    ld   hl, $A9E5
+    ld   de, $0020
 _LABEL_E165_:
-	add  hl, de
-	dec  a
-	jr   nz, _LABEL_E165_
-	ld   bc, _RAM_C5D2_
+    add  hl, de
+    dec  a
+    jr   nz, _LABEL_E165_
+    ld   bc, _RAM_C5D2_
 _LABEL_E16C_:
-	ld   a, [bc]
-	inc  bc
-	ldi  [hl], a
-	dec  e
-	jr   nz, _LABEL_E16C_
-	ld   a, [_SRAM_A04_]
-	call _LABEL_E17B_
-	jp   app_checkbook__launch__0AF1
+    ld   a, [bc]
+    inc  bc
+    ldi  [hl], a
+    dec  e
+    jr   nz, _LABEL_E16C_
+    ld   a, [_SRAM_A04_]
+    call _LABEL_E17B_
+    jp   app_checkbook__launch__0AF1
 
 _LABEL_E17B_:
-	push af
-	ld   de, _SRAM_9F0_
-	ld   hl, _RAM_C455_
+    push af
+    ld   de, _SRAM_9F0_
+    ld   hl, _RAM_C455_
 _LABEL_E182_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_E182_
-	pop  af
-	ld   hl, _SRAM_A05_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_E182_
+    pop  af
+    ld   hl, _SRAM_A05_
 _LABEL_E18C_:
-	push af
-	ld   de, _RAM_C5D2_
-	ld   b, $20
+    push af
+    ld   de, _RAM_C5D2_
+    ld   b, $20
 _LABEL_E192_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_E192_
-	push hl
-	ld   de, _RAM_C455_
-	ld   hl, _RAM_C3E0_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_E192_
+    push hl
+    ld   de, _RAM_C455_
+    ld   hl, _RAM_C3E0_
 _LABEL_E19F_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_E19F_
-	ld   de, _RAM_C5D5_
-	ld   hl, _RAM_C3EC_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_E19F_
+    ld   de, _RAM_C5D5_
+    ld   hl, _RAM_C3EC_
 _LABEL_E1AB_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	or   a
-	jr   nz, _LABEL_E1AB_
-	ld   a, [_RAM_C5DF_]
-	ld   [_RAM_C479_], a
-	call _LABEL_D16_
-	pop  hl
-	pop  af
-	dec  a
-	jr   nz, _LABEL_E18C_
-	ld   hl, _RAM_C455_
-	ld   de, _SRAM_9FA_
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    or   a
+    jr   nz, _LABEL_E1AB_
+    ld   a, [_RAM_C5DF_]
+    ld   [_RAM_C479_], a
+    call _LABEL_D16_
+    pop  hl
+    pop  af
+    dec  a
+    jr   nz, _LABEL_E18C_
+    ld   hl, _RAM_C455_
+    ld   de, _SRAM_9FA_
 _LABEL_E1C5_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	or   a
-	jr   nz, _LABEL_E1C5_
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    or   a
+    jr   nz, _LABEL_E1C5_
+    ret
 
 ; Data from E1CC to E1CE (3 bytes)
 _DATA_E1CC_:
 db $02, $09, $0C
 
 _LABEL_E1CF_:
-	ld   de, _DATA_2150_
-	ld   bc, $0309
-	ld   a, $0C
-	call _LABEL_BC3_
+    ld   de, _DATA_2150_
+    ld   bc, $0309
+    ld   a, $0C
+    call _LABEL_BC3_
 _LABEL_E1DA_:
-	ld   hl, _RAM_C700_
-	ld   a, [date__days__decimal__maybe__RAM_C139]
-	ldi  [hl], a
-	ld   a, [date__month__decimal__maybe__RAM_C138]
-	ldi  [hl], a
-	ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
-	ldi  [hl], a
-	ld   a, [_SRAM_2A_]
-	or   a
-	jr   z, _LABEL_E1FD_
-	ld   a, [_RAM_C700_]
-	ld   c, a
-	ld   a, [_RAM_C701_]
-	ld   [_RAM_C700_], a
-	ld   a, c
-	ld   [_RAM_C701_], a
+    ld   hl, _RAM_C700_
+    ld   a, [date__days__decimal__maybe__RAM_C139]
+    ldi  [hl], a
+    ld   a, [date__month__decimal__maybe__RAM_C138]
+    ldi  [hl], a
+    ld   a, [date__year__digit_decimal__maybe__RAM_C13A]
+    ldi  [hl], a
+    ld   a, [_SRAM_2A_]
+    or   a
+    jr   z, _LABEL_E1FD_
+    ld   a, [_RAM_C700_]
+    ld   c, a
+    ld   a, [_RAM_C701_]
+    ld   [_RAM_C700_], a
+    ld   a, c
+    ld   [_RAM_C701_], a
 _LABEL_E1FD_:
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
-	ld   a, [_RAM_C700_]
-	ld   hl, _RAM_C261_
-	call _LABEL_2BBA_
-	ld   a, [_RAM_C701_]
-	ld   hl, $C263
-	call _LABEL_2BBA_
-	ld   hl, _RAM_C265_
-	ld   [hl], $31
-	inc  hl
-	ld   [hl], $39
-	inc  hl
-	ld   [hl], $30
-	inc  hl
-	ld   [hl], $30
-	ld   a, [_RAM_C702_]
-	call _LABEL_235A_
-	ld   de, $00AE
-	ld   hl, (_TILEMAP0 + $87)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $18
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	ld   bc, $0700
-	ld   de, $2373
-	ld   hl, $C261
-	ld   a, $C7
-	ld   [_RAM_C260_], a
-	ld   a, $30
-	call _LABEL_2411_
-	push af
-	xor  a
-	ld   [_RAM_C260_], a
-	pop  af
-	inc  a
-	jp   z, app_checkbook__launch__0AF1
-	call _LABEL_B6C_
-	or   a
-	jr   nz, _LABEL_E1DA_
-	ret
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
+    ld   a, [_RAM_C700_]
+    ld   hl, _RAM_C261_
+    call _LABEL_2BBA_
+    ld   a, [_RAM_C701_]
+    ld   hl, $C263
+    call _LABEL_2BBA_
+    ld   hl, _RAM_C265_
+    ld   [hl], $31
+    inc  hl
+    ld   [hl], $39
+    inc  hl
+    ld   [hl], $30
+    inc  hl
+    ld   [hl], $30
+    ld   a, [_RAM_C702_]
+    call _LABEL_235A_
+    ld   de, $00AE
+    ld   hl, (_TILEMAP0 + $87)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $18
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    ld   bc, $0700
+    ld   de, $2373
+    ld   hl, $C261
+    ld   a, $C7
+    ld   [_RAM_C260_], a
+    ld   a, $30
+    call _LABEL_2411_
+    push af
+    xor  a
+    ld   [_RAM_C260_], a
+    pop  af
+    inc  a
+    jp   z, app_checkbook__launch__0AF1
+    call _LABEL_B6C_
+    or   a
+    jr   nz, _LABEL_E1DA_
+    ret
 
 _LABEL_E25B_:
-	ld   [_RAM_C5F2_], a
-	ld   de, _DATA_2150_
-	ld   c, $09
-	ld   b, a
-	inc  a
-	ld   [_RAM_C5F2_], a
-	ld   a, $0C
-	call _LABEL_BC3_
-	ld   a, $30
-	ld   [_RAM_C281_], a
-	ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
-	ld   [keyboard_cur_mode__RAM_C280], a
-	ld   a, [_RAM_C5F2_]
-	add  a
-	add  a
-	add  a
-	add  $10
-	ld   [_RAM_C282_], a
-	ld   hl, _RAM_C283_
-	ld   b, $1C
-	ld   a, $20
+    ld   [_RAM_C5F2_], a
+    ld   de, _DATA_2150_
+    ld   c, $09
+    ld   b, a
+    inc  a
+    ld   [_RAM_C5F2_], a
+    ld   a, $0C
+    call _LABEL_BC3_
+    ld   a, $30
+    ld   [_RAM_C281_], a
+    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   [keyboard_cur_mode__RAM_C280], a
+    ld   a, [_RAM_C5F2_]
+    add  a
+    add  a
+    add  a
+    add  $10
+    ld   [_RAM_C282_], a
+    ld   hl, _RAM_C283_
+    ld   b, $1C
+    ld   a, $20
 _LABEL_E289_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_E289_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, $19
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	xor  a
-	ld   [_RAM_C474_], a
-	ld   [_RAM_C475_], a
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_E289_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, $19
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    xor  a
+    ld   [_RAM_C474_], a
+    ld   [_RAM_C475_], a
 _LABEL_E29C_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_E29C_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jp   z, _LABEL_E362_
-	cp   $80
-	jr   z, _LABEL_E30D_
-	cp   $2D
-	jr   z, _LABEL_E2FD_
-	cp   $0A
-	jp   z, _LABEL_E348_
-	cp   $2E
-	jr   z, _LABEL_E32E_
-	cp   $30
-	jr   c, _LABEL_E29C_
-	cp   $3A
-	jr   nc, _LABEL_E29C_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_E29C_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jp   z, _LABEL_E362_
+    cp   $80
+    jr   z, _LABEL_E30D_
+    cp   $2D
+    jr   z, _LABEL_E2FD_
+    cp   $0A
+    jp   z, _LABEL_E348_
+    cp   $2E
+    jr   z, _LABEL_E32E_
+    cp   $30
+    jr   c, _LABEL_E29C_
+    cp   $3A
+    jr   nc, _LABEL_E29C_
 _LABEL_E2C7_:
-	ld   c, a
-	ld   a, [_RAM_C474_]
-	cp   $09
-	jr   z, _LABEL_E29C_
-	or   a
-	jr   nz, _LABEL_E2D2_
+    ld   c, a
+    ld   a, [_RAM_C474_]
+    cp   $09
+    jr   z, _LABEL_E29C_
+    or   a
+    jr   nz, _LABEL_E2D2_
 _LABEL_E2D2_:
-	cp   $01
-	jr   nz, _LABEL_E2E4_
-	ld   a, c
-	cp   $30
-	jr   nz, _LABEL_E2E2_
-	ld   a, [_RAM_C283_]
-	cp   $30
-	jr   z, _LABEL_E29C_
+    cp   $01
+    jr   nz, _LABEL_E2E4_
+    ld   a, c
+    cp   $30
+    jr   nz, _LABEL_E2E2_
+    ld   a, [_RAM_C283_]
+    cp   $30
+    jr   z, _LABEL_E29C_
 _LABEL_E2E2_:
-	ld   a, $01
+    ld   a, $01
 _LABEL_E2E4_:
-	inc  a
-	ld   [_RAM_C474_], a
-	ld   hl, $C283
-	dec  a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], c
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jr   _LABEL_E29C_
+    inc  a
+    ld   [_RAM_C474_], a
+    ld   hl, $C283
+    dec  a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], c
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jr   _LABEL_E29C_
 
 _LABEL_E2FD_:
-	ld   a, [_SRAM_9EF_]
-	or   a
-	jr   z, _LABEL_E29C_
-	ld   a, [_RAM_C474_]
-	or   a
-	jr   nz, _LABEL_E29C_
-	ld   a, $2D
-	jr   _LABEL_E2C7_
+    ld   a, [_SRAM_9EF_]
+    or   a
+    jr   z, _LABEL_E29C_
+    ld   a, [_RAM_C474_]
+    or   a
+    jr   nz, _LABEL_E29C_
+    ld   a, $2D
+    jr   _LABEL_E2C7_
 
 _LABEL_E30D_:
-	ld   a, [_RAM_C474_]
-	or   a
-	jr   z, _LABEL_E29C_
-	ld   hl, $C283
-	dec  a
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $20
-	ld   hl, _RAM_C474_
-	dec  [hl]
-	ld   a, [_RAM_C281_]
-	sub  $08
-	ld   [_RAM_C281_], a
-	jp   _LABEL_E29C_
+    ld   a, [_RAM_C474_]
+    or   a
+    jr   z, _LABEL_E29C_
+    ld   hl, $C283
+    dec  a
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $20
+    ld   hl, _RAM_C474_
+    dec  [hl]
+    ld   a, [_RAM_C281_]
+    sub  $08
+    ld   [_RAM_C281_], a
+    jp   _LABEL_E29C_
 
 _LABEL_E32E_:
-	ld   a, [_RAM_C474_]
-	cp   $08
-	jp   nc, _LABEL_E29C_
-	ld   a, [_RAM_C475_]
-	or   a
-	jp   nz, _LABEL_E29C_
-	inc  a
-	ld   [_RAM_C475_], a
-	ld   c, $2E
-	ld   a, [_RAM_C474_]
-	jr   _LABEL_E2D2_
+    ld   a, [_RAM_C474_]
+    cp   $08
+    jp   nc, _LABEL_E29C_
+    ld   a, [_RAM_C475_]
+    or   a
+    jp   nz, _LABEL_E29C_
+    inc  a
+    ld   [_RAM_C475_], a
+    ld   c, $2E
+    ld   a, [_RAM_C474_]
+    jr   _LABEL_E2D2_
 
 _LABEL_E348_:
-	ld   b, $14
-	ld   hl, _RAM_C283_
-	ld   a, $20
+    ld   b, $14
+    ld   hl, _RAM_C283_
+    ld   a, $20
 _LABEL_E34F_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_E34F_
-	xor  a
-	ld   [_RAM_C475_], a
-	ld   [_RAM_C474_], a
-	ld   a, $30
-	ld   [_RAM_C281_], a
-	jp   _LABEL_E29C_
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_E34F_
+    xor  a
+    ld   [_RAM_C475_], a
+    ld   [_RAM_C474_], a
+    ld   a, $30
+    ld   [_RAM_C281_], a
+    jp   _LABEL_E29C_
 
 _LABEL_E362_:
-	ld   a, [_RAM_C474_]
-	or   a
-	jp   z, _LABEL_E29C_
-	ld   hl, $C283
-	push af
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   [hl], $00
-	pop  af
-	ld   hl, _RAM_C283_
-	ld   b, a
+    ld   a, [_RAM_C474_]
+    or   a
+    jp   z, _LABEL_E29C_
+    ld   hl, $C283
+    push af
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   [hl], $00
+    pop  af
+    ld   hl, _RAM_C283_
+    ld   b, a
 _LABEL_E37A_:
-	ldi  a, [hl]
-	cp   $30
-	jr   c, _LABEL_E383_
-	cp   $3A
-	jr   c, _LABEL_E389_
+    ldi  a, [hl]
+    cp   $30
+    jr   c, _LABEL_E383_
+    cp   $3A
+    jr   c, _LABEL_E389_
 _LABEL_E383_:
-	dec  b
-	jr   nz, _LABEL_E37A_
-	jp   _LABEL_E29C_
+    dec  b
+    jr   nz, _LABEL_E37A_
+    jp   _LABEL_E29C_
 
 _LABEL_E389_:
-	ld   hl, _RAM_C283_
-	ld   b, $09
+    ld   hl, _RAM_C283_
+    ld   b, $09
 _LABEL_E38E_:
-	ldi  a, [hl]
-	cp   $31
-	jr   c, _LABEL_E396_
-	cp   $3A
-	ret  c
+    ldi  a, [hl]
+    cp   $31
+    jr   c, _LABEL_E396_
+    cp   $3A
+    ret  c
 _LABEL_E396_:
-	dec  b
-	jr   nz, _LABEL_E38E_
-	ld   a, $30
-	ld   [_RAM_C283_], a
-	xor  a
-	ld   [_RAM_C284_], a
-	ret
+    dec  b
+    jr   nz, _LABEL_E38E_
+    ld   a, $30
+    ld   [_RAM_C283_], a
+    xor  a
+    ld   [_RAM_C284_], a
+    ret
 
 _LABEL_E3A3_:
-	call gfx__clear_shadow_oam__275B
-	ld   a, [_SRAM_2001_]
-	or   a
-	jr   nz, _LABEL_E3C3_
-	ld   hl, _TILEMAP0
-	ld   b, $0E
+    call gfx__clear_shadow_oam__275B
+    ld   a, [_SRAM_2001_]
+    or   a
+    jr   nz, _LABEL_E3C3_
+    ld   hl, _TILEMAP0
+    ld   b, $0E
 _LABEL_E3B1_:
-	push bc
-	push hl
-	ld   de, $2150
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  hl
-	ld   de, $0020
-	add  hl, de
-	pop  bc
-	dec  b
-	jr   nz, _LABEL_E3B1_
-	jp   _LABEL_62C_
+    push bc
+    push hl
+    ld   de, $2150
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  hl
+    ld   de, $0020
+    add  hl, de
+    pop  bc
+    dec  b
+    jr   nz, _LABEL_E3B1_
+    jp   _LABEL_62C_
 
 _LABEL_E3C3_:
-	call gfx__clear_shadow_oam__275B
-	ld   de, $00B8
-	ld   hl, _TILEMAP0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $481C
-	ld   hl, (_TILEMAP0 + $20)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   a, $06
-	ld   de, $C700
-	ld   bc, _RAM_C714_
-	ld   hl, (_TILEMAP0 + $40)
+    call gfx__clear_shadow_oam__275B
+    ld   de, $00B8
+    ld   hl, _TILEMAP0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $481C
+    ld   hl, (_TILEMAP0 + $20)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   a, $06
+    ld   de, $C700
+    ld   bc, _RAM_C714_
+    ld   hl, (_TILEMAP0 + $40)
 _LABEL_E3DF_:
-	push af
-	push de
-	push hl
-	push bc
-	ld   a, [bc]
-	push af
-	xor  a
-	ld   [bc], a
-	rst  $20	; GFX_COPY_STRING__RST_20
-	pop  af
-	pop  bc
-	ld   [bc], a
-	ld   a, c
-	add  $14
-	ld   c, a
-	ld   a, b
-	adc  $00
-	ld   b, a
-	pop  hl
-	pop  de
-	ld   a, l
-	add  $20
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   a, e
-	add  $14
-	ld   e, a
-	ld   a, d
-	adc  $00
-	ld   d, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_E3DF_
-	ld   de, $481C
-	ld   hl, $9900
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00B9
-	ld   hl, $9960
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $481C
-	ld   hl, $9980
-	rst  $20	; GFX_COPY_STRING__RST_20
-	xor  a
-	ld   [_RAM_C78C_], a
-	ld   de, $C778
-	ld   hl, $99A0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ret
+    push af
+    push de
+    push hl
+    push bc
+    ld   a, [bc]
+    push af
+    xor  a
+    ld   [bc], a
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    pop  af
+    pop  bc
+    ld   [bc], a
+    ld   a, c
+    add  $14
+    ld   c, a
+    ld   a, b
+    adc  $00
+    ld   b, a
+    pop  hl
+    pop  de
+    ld   a, l
+    add  $20
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   a, e
+    add  $14
+    ld   e, a
+    ld   a, d
+    adc  $00
+    ld   d, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_E3DF_
+    ld   de, $481C
+    ld   hl, $9900
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00B9
+    ld   hl, $9960
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $481C
+    ld   hl, $9980
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    xor  a
+    ld   [_RAM_C78C_], a
+    ld   de, $C778
+    ld   hl, $99A0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ret
 
 ; Data from E42A to E42D (4 bytes)
 _DATA_E42A_:
 db $49, $47, $4F, $52
 
 savedata__maybe_some_sram_init__E42E:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	ld   hl, $A1F5
-	ld   de, _DATA_E42A_
-	ld   b, $04
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   hl, $A1F5
+    ld   de, _DATA_E42A_
+    ld   b, $04
 _LABEL_E43A_:
-	ld   a, [de]
-	inc  de
-	cp   [hl]
-	jr   nz, _LABEL_E444_
-	inc  hl
-	dec  b
-	jr   nz, _LABEL_E43A_
-	ret
+    ld   a, [de]
+    inc  de
+    cp   [hl]
+    jr   nz, _LABEL_E444_
+    inc  hl
+    dec  b
+    jr   nz, _LABEL_E43A_
+    ret
 
 _LABEL_E444_:
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; == KYBD_STATUS__NOT_FOUND
-	jr   z, .skip_copy_to_sram_if_keyboard_not_connected__E45C
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; == KYBD_STATUS__NOT_FOUND
+    jr   z, .skip_copy_to_sram_if_keyboard_not_connected__E45C
 
         ; Copy 4 bytes of data from _DATA_E42A_ to SRAM Bank 0 _SRAM_1F5_
-    	xor  a
-    	call mbc_sram_ON_set_srambank_to_A__0BB1
-    	ld   hl, _SRAM_1F5_
-    	ld   de, _DATA_E42A_
-    	ld   b, $04
+        xor  a
+        call mbc_sram_ON_set_srambank_to_A__0BB1
+        ld   hl, _SRAM_1F5_
+        ld   de, _DATA_E42A_
+        ld   b, $04
         .copy_to_sram_loop__E456:
-        	ld   a, [de]
-        	inc  de
-        	ldi  [hl], a
-        	dec  b
-        	jr   nz, .copy_to_sram_loop__E456
+            ld   a, [de]
+            inc  de
+            ldi  [hl], a
+            dec  b
+            jr   nz, .copy_to_sram_loop__E456
 
     .skip_copy_to_sram_if_keyboard_not_connected__E45C:
-	xor  a
-	call mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
 
-	xor  a
-	ld   [_SRAM_231_], a
-	ld   [_RAM_C10B_], a
-	ld   [_SRAM_221_], a
-	ld   [_SRAM_A04_], a
-	ld   [_RAM_C5CD_], a
+    xor  a
+    ld   [_SRAM_231_], a
+    ld   [_RAM_C10B_], a
+    ld   [_SRAM_221_], a
+    ld   [_SRAM_A04_], a
+    ld   [_RAM_C5CD_], a
 
-	inc  a ;  $01
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	dec  a ;  $00
-	ld   [_RAM_C10C_], a
-	ld   [_SRAM_1_], a
+    inc  a ;  $01
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    dec  a ;  $00
+    ld   [_RAM_C10C_], a
+    ld   [_SRAM_1_], a
 
     ; Maybe Initializing / zeroing the database init flag
-	ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	xor  a
-	ld   [_RAM_C10D_], a
-	ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
+    ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    ld   [_RAM_C10D_], a
+    ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
     ; a = 0 for SRAM Bank 0
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	inc  a ;  1
-	ld   [_SRAM_9EF_], a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    inc  a ;  1
+    ld   [_SRAM_9EF_], a
 
     ; Return if keyboard not connected
-	ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
-	or   a  ; == KYBD_STATUS__NOT_FOUND
-	ret  z
+    ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
+    or   a  ; == KYBD_STATUS__NOT_FOUND
+    ret  z
 
-	ld   a, $03
-	call mbc_sram_ON_set_srambank_to_A__0BB1
-	xor  a
-	ld   [_SRAM_602C_], a
-	ld   a, $47
-	ld   [_SRAM_602B_], a
+    ld   a, $03
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    ld   [_SRAM_602C_], a
+    ld   a, $47
+    ld   [_SRAM_602B_], a
     ; Skip over empty SRAM map choose location popup
     ; TODO: FIXME: This isn't enough, results in garbled screen output and a crash maybe
     ;       Probably SRAM usage needs to get relocated to WRAM for all this
     if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
-	   call _LABEL_8BC_
+       call _LABEL_8BC_
     ELSE
         nop
         nop
         nop
     ENDC
-	xor  a
-	jp   mbc_sram_ON_set_srambank_to_A__0BB1
+    xor  a
+    jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
 ; Data from E4A8 to E4CF (40 bytes)
 db $52, $46, $4D, $43, $45, $4E, $50, $51, $4E, $53, $41, $4C, $44, $56, $52, $45
@@ -20847,491 +20847,491 @@ db $4E, $54, $46, $45, $44, $53, $50, $51, $4E, $4C, $48, $42, $45, $50, $41, $5
 db $4E, $54, $46, $43, $52, $50, $45, $55
 
 _LABEL_E4D0_:
-	call _LABEL_1563_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
+    call _LABEL_1563_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_E4DB_:
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   WORKBOY_SCAN_KEY_NONE ; $FF
-	jr   z, _LABEL_E4DB_
-	or   a
-	jr   nz, _LABEL_E4F1_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   WORKBOY_SCAN_KEY_NONE ; $FF
+    jr   z, _LABEL_E4DB_
+    or   a
+    jr   nz, _LABEL_E4F1_
 _LABEL_E4EB_:
-	call _LABEL_E67B_
-	jp   _LABEL_200_
+    call _LABEL_E67B_
+    jp   _LABEL_200_
 
 _LABEL_E4F1_:
-	push af
-	ld   a, [_RAM_C232_]
-	add  a
-	add  a
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $64A8
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   nz, _LABEL_E514_
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	or   a
-	jr   z, _LABEL_E4DB_
-	call _LABEL_4C9_
-	call gfx__clear_shadow_oam__275B
-	call _LABEL_7B3_
-	jr   _LABEL_E4DB_
+    push af
+    ld   a, [_RAM_C232_]
+    add  a
+    add  a
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $64A8
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   nz, _LABEL_E514_
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    or   a
+    jr   z, _LABEL_E4DB_
+    call _LABEL_4C9_
+    call gfx__clear_shadow_oam__275B
+    call _LABEL_7B3_
+    jr   _LABEL_E4DB_
 
 _LABEL_E514_:
-	inc  hl
-	cp   [hl]
-	jp   nz, _LABEL_E59E_
-	ld   a, [_RAM_C10D_]
-	or   a
-	jr   z, _LABEL_E4DB_
-	call _LABEL_E67B_
-	call _LABEL_680_
-	xor  a
-	ld   [_RAM_C11B_], a
-	ld   [_RAM_C23B_], a
-	ld   [_RAM_C23A_], a
-	call _LABEL_C363_
+    inc  hl
+    cp   [hl]
+    jp   nz, _LABEL_E59E_
+    ld   a, [_RAM_C10D_]
+    or   a
+    jr   z, _LABEL_E4DB_
+    call _LABEL_E67B_
+    call _LABEL_680_
+    xor  a
+    ld   [_RAM_C11B_], a
+    ld   [_RAM_C23B_], a
+    ld   [_RAM_C23A_], a
+    call _LABEL_C363_
 _LABEL_E532_:
-	call _LABEL_C46E_
-	or   a
-	jr   nz, _LABEL_E55B_
-	ld   de, $0003
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_7B3_
-	ld   de, $00E0
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00E1
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
+    call _LABEL_C46E_
+    or   a
+    jr   nz, _LABEL_E55B_
+    ld   de, $0003
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_7B3_
+    ld   de, $00E0
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00E1
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_E550_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_E550_
-	call _LABEL_654_
-	jp   _LABEL_E4DB_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_E550_
+    call _LABEL_654_
+    jp   _LABEL_E4DB_
 
 _LABEL_E55B_:
-	ld   a, [_RAM_C23A_]
-	ld   [_RAM_C10D_], a
-	call _LABEL_6D0_
-	ld   de, $0003
-	ld   hl, $99E0
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_7B3_
-	ld   de, $0017
-	ld   hl, $9A00
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $2150
-	ld   hl, $9A20
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ld   a, [_RAM_C23A_]
+    ld   [_RAM_C10D_], a
+    call _LABEL_6D0_
+    ld   de, $0003
+    ld   hl, $99E0
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_7B3_
+    ld   de, $0017
+    ld   hl, $9A00
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $2150
+    ld   hl, $9A20
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_E57C_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_E57C_
-	or   a
-	jr   z, _LABEL_E598_
-	push af
-	ld   a, [_RAM_C232_]
-	add  a
-	ld   d, $00
-	ld   e, a
-	ld   hl, $1058
-	add  hl, de
-	pop  af
-	cp   [hl]
-	jr   z, _LABEL_E532_
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_E57C_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_E57C_
+    or   a
+    jr   z, _LABEL_E598_
+    push af
+    ld   a, [_RAM_C232_]
+    add  a
+    ld   d, $00
+    ld   e, a
+    ld   hl, $1058
+    add  hl, de
+    pop  af
+    cp   [hl]
+    jr   z, _LABEL_E532_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_E57C_
 _LABEL_E598_:
-	call _LABEL_667_
-	jp   _LABEL_E4DB_
+    call _LABEL_667_
+    jp   _LABEL_E4DB_
 
 _LABEL_E59E_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_E5DB_
-	ld   hl, _SRAM_4002_
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	or   a
-	jr   z, _LABEL_E5C2_
-	ld   b, a
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_E5DB_
+    ld   hl, _SRAM_4002_
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    or   a
+    jr   z, _LABEL_E5C2_
+    ld   b, a
 _LABEL_E5AC_:
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	dec  hl
-	add  hl, de
-	dec  b
-	jr   nz, _LABEL_E5AC_
-	ld   a, h
-	cp   $BE
-	jr   c, _LABEL_E5C2_
-	jp   nz, _LABEL_E4DB_
-	ld   a, l
-	cp   $E3
-	jp   nc, _LABEL_E4DB_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    dec  hl
+    add  hl, de
+    dec  b
+    jr   nz, _LABEL_E5AC_
+    ld   a, h
+    cp   $BE
+    jr   c, _LABEL_E5C2_
+    jp   nz, _LABEL_E4DB_
+    ld   a, l
+    cp   $E3
+    jp   nc, _LABEL_E4DB_
 _LABEL_E5C2_:
-	call _LABEL_E67B_
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	inc  a
-	jp   z, _LABEL_E4DB_
-	ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
-	ld   [_RAM_C10D_], a
-	call _LABEL_E661_
-	call _LABEL_D7FD_
-	jp   _LABEL_498_
+    call _LABEL_E67B_
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    inc  a
+    jp   z, _LABEL_E4DB_
+    ld   [maybe_database_init_flag__SRAM_A000_BANK_2_], a
+    ld   [_RAM_C10D_], a
+    call _LABEL_E661_
+    call _LABEL_D7FD_
+    jp   _LABEL_498_
 
 _LABEL_E5DB_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_E5FB_
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	or   a
-	jp   z, _LABEL_E4DB_
-	call _LABEL_132B_
-	push af
-	call _LABEL_667_
-	pop  af
-	or   a
-	jp   z, _LABEL_E4DB_
-	call _LABEL_E661_
-	call _LABEL_E67B_
-	jp   _LABEL_498_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_E5FB_
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    or   a
+    jp   z, _LABEL_E4DB_
+    call _LABEL_132B_
+    push af
+    call _LABEL_667_
+    pop  af
+    or   a
+    jp   z, _LABEL_E4DB_
+    call _LABEL_E661_
+    call _LABEL_E67B_
+    jp   _LABEL_498_
 
 _LABEL_E5FB_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_E60C_
-	ld   a, [_RAM_C10D_]
-	or   a
-	jp   z, _LABEL_E4DB_
-	call _LABEL_D7FD_
-	jp   _LABEL_498_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_E60C_
+    ld   a, [_RAM_C10D_]
+    or   a
+    jp   z, _LABEL_E4DB_
+    call _LABEL_D7FD_
+    jp   _LABEL_498_
 
 _LABEL_E60C_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_E62D_
-	ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
-	ld   c, a
-	ld   a, [_RAM_C10D_]
-	cp   c
-	jp   z, _LABEL_E4DB_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	add  a
-	ld   [_RAM_C282_], a
-	call _LABEL_E67B_
-	ld   a, [_RAM_C10D_]
-	inc  a
-	jr   _LABEL_E64D_
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_E62D_
+    ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
+    ld   c, a
+    ld   a, [_RAM_C10D_]
+    cp   c
+    jp   z, _LABEL_E4DB_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    add  a
+    ld   [_RAM_C282_], a
+    call _LABEL_E67B_
+    ld   a, [_RAM_C10D_]
+    inc  a
+    jr   _LABEL_E64D_
 
 _LABEL_E62D_:
-	inc  hl
-	cp   [hl]
-	jr   nz, _LABEL_E659_
-	ld   a, [_RAM_C10D_]
-	or   a
-	jp   z, _LABEL_E4DB_
-	cp   $01
-	jp   z, _LABEL_E4DB_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	add  a
-	ld   [_RAM_C282_], a
-	call _LABEL_E67B_
-	ld   a, [_RAM_C10D_]
-	dec  a
+    inc  hl
+    cp   [hl]
+    jr   nz, _LABEL_E659_
+    ld   a, [_RAM_C10D_]
+    or   a
+    jp   z, _LABEL_E4DB_
+    cp   $01
+    jp   z, _LABEL_E4DB_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    add  a
+    ld   [_RAM_C282_], a
+    call _LABEL_E67B_
+    ld   a, [_RAM_C10D_]
+    dec  a
 _LABEL_E64D_:
-	ld   [_RAM_C10D_], a
-	call _LABEL_680_
-	call _LABEL_6D0_
-	jp   _LABEL_E4DB_
+    ld   [_RAM_C10D_], a
+    call _LABEL_680_
+    call _LABEL_6D0_
+    jp   _LABEL_E4DB_
 
 _LABEL_E659_:
-	inc  hl
-	cp   [hl]
-	jp   z, _LABEL_E4EB_
-	jp   _LABEL_E4DB_
+    inc  hl
+    cp   [hl]
+    jp   z, _LABEL_E4EB_
+    jp   _LABEL_E4DB_
 
 _LABEL_E661_:
-	ld   hl, _RAM_C700_
-	ld   bc, $0118
+    ld   hl, _RAM_C700_
+    ld   bc, $0118
 _LABEL_E667_:
-	ld   [hl], $20
-	inc  hl
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_E667_
-	ld   a, $08
-	ld   [_RAM_C281_], a
-	add  a
-	ld   [_RAM_C282_], a
-	jp   _LABEL_6D0_
+    ld   [hl], $20
+    inc  hl
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_E667_
+    ld   a, $08
+    ld   [_RAM_C281_], a
+    add  a
+    ld   [_RAM_C282_], a
+    jp   _LABEL_6D0_
 
 _LABEL_E67B_:
-	ld   a, [_SRAM_2000_]
-	or   a
-	ret  z
-	ld   a, [_RAM_C5F3_]
-	or   a
-	ret  z
-	ld   hl, _RAM_C700_
-	ld   de, _RAM_C700_
-	ld   a, $0E
+    ld   a, [_SRAM_2000_]
+    or   a
+    ret  z
+    ld   a, [_RAM_C5F3_]
+    or   a
+    ret  z
+    ld   hl, _RAM_C700_
+    ld   de, _RAM_C700_
+    ld   a, $0E
 _LABEL_E68D_:
-	push af
-	ld   b, $14
+    push af
+    ld   b, $14
 _LABEL_E690_:
-	ldi  a, [hl]
-	cp   $20
-	jr   z, _LABEL_E69C_
+    ldi  a, [hl]
+    cp   $20
+    jr   z, _LABEL_E69C_
 _LABEL_E695_:
-	ld   [de], a
-	inc  de
-	dec  b
-	jr   nz, _LABEL_E690_
-	jr   _LABEL_E6B2_
+    ld   [de], a
+    inc  de
+    dec  b
+    jr   nz, _LABEL_E690_
+    jr   _LABEL_E6B2_
 
 _LABEL_E69C_:
-	ld   c, $80
+    ld   c, $80
 _LABEL_E69E_:
-	inc  c
-	dec  b
-	jr   z, _LABEL_E6AE_
-	ldi  a, [hl]
-	cp   $20
-	jr   z, _LABEL_E69E_
-	push af
-	ld   a, c
-	ld   [de], a
-	inc  de
-	pop  af
-	jr   _LABEL_E695_
+    inc  c
+    dec  b
+    jr   z, _LABEL_E6AE_
+    ldi  a, [hl]
+    cp   $20
+    jr   z, _LABEL_E69E_
+    push af
+    ld   a, c
+    ld   [de], a
+    inc  de
+    pop  af
+    jr   _LABEL_E695_
 
 _LABEL_E6AE_:
-	ld   a, $0D
-	ld   [de], a
-	inc  de
+    ld   a, $0D
+    ld   [de], a
+    inc  de
 _LABEL_E6B2_:
-	pop  af
-	dec  a
-	jr   nz, _LABEL_E68D_
-	ld   a, e
-	sub  $00
-	ld   l, a
-	ld   a, d
-	sbc  $C7
-	ld   h, a
-	inc  hl
-	inc  hl
-	ld   a, h
-	or   a
-	jr   nz, _LABEL_E715_
-	ld   a, l
-	cp   $10
-	jr   nz, _LABEL_E715_
-	ld   a, [_SRAM_2000_]
-	cp   $01
-	jr   nz, _LABEL_E6D8_
-	dec  a
-	ld   [_SRAM_2000_], a
-	ld   [_RAM_C10D_], a
-	ret
+    pop  af
+    dec  a
+    jr   nz, _LABEL_E68D_
+    ld   a, e
+    sub  $00
+    ld   l, a
+    ld   a, d
+    sbc  $C7
+    ld   h, a
+    inc  hl
+    inc  hl
+    ld   a, h
+    or   a
+    jr   nz, _LABEL_E715_
+    ld   a, l
+    cp   $10
+    jr   nz, _LABEL_E715_
+    ld   a, [_SRAM_2000_]
+    cp   $01
+    jr   nz, _LABEL_E6D8_
+    dec  a
+    ld   [_SRAM_2000_], a
+    ld   [_RAM_C10D_], a
+    ret
 
 _LABEL_E6D8_:
-	ld   c, a
-	ld   a, [_RAM_C10D_]
-	cp   c
-	jr   nz, _LABEL_E6E8_
-	dec  a
-	ld   [_RAM_C10D_], a
-	ld   hl, _SRAM_2000_
-	dec  [hl]
-	ret
+    ld   c, a
+    ld   a, [_RAM_C10D_]
+    cp   c
+    jr   nz, _LABEL_E6E8_
+    dec  a
+    ld   [_RAM_C10D_], a
+    ld   hl, _SRAM_2000_
+    dec  [hl]
+    ret
 
 _LABEL_E6E8_:
-	ld   hl, _SRAM_2002_
-	ld   a, [_RAM_C10D_]
-	ld   b, a
+    ld   hl, _SRAM_2002_
+    ld   a, [_RAM_C10D_]
+    ld   b, a
 _LABEL_E6EF_:
-	dec  b
-	jr   z, _LABEL_E6F9_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	dec  hl
-	add  hl, de
-	jr   _LABEL_E6EF_
+    dec  b
+    jr   z, _LABEL_E6F9_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    dec  hl
+    add  hl, de
+    jr   _LABEL_E6EF_
 
 _LABEL_E6F9_:
-	push hl
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	dec  hl
-	add  hl, de
-	pop  de
-	ld   a, $FF
-	sub  l
-	ld   c, a
-	ld   a, $BF
-	sbc  a, h
-	ld   b, a
+    push hl
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    dec  hl
+    add  hl, de
+    pop  de
+    ld   a, $FF
+    sub  l
+    ld   c, a
+    ld   a, $BF
+    sbc  a, h
+    ld   b, a
 _LABEL_E708_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_E708_
-	ld   hl, _SRAM_2000_
-	dec  [hl]
-	ret
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_E708_
+    ld   hl, _SRAM_2000_
+    dec  [hl]
+    ret
 
 _LABEL_E715_:
-	push hl
-	ld   a, l
-	ld   [_RAM_C235_], a
-	ld   a, [_RAM_C10D_]
-	call _LABEL_7B3_
-	ld   hl, _SRAM_2002_
-	ld   a, [_RAM_C10D_]
-	ld   b, a
+    push hl
+    ld   a, l
+    ld   [_RAM_C235_], a
+    ld   a, [_RAM_C10D_]
+    call _LABEL_7B3_
+    ld   hl, _SRAM_2002_
+    ld   a, [_RAM_C10D_]
+    ld   b, a
 _LABEL_E727_:
-	dec  b
-	jr   z, _LABEL_E731_
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	dec  hl
-	add  hl, de
-	jr   _LABEL_E727_
+    dec  b
+    jr   z, _LABEL_E731_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    dec  hl
+    add  hl, de
+    jr   _LABEL_E727_
 
 _LABEL_E731_:
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	dec  hl
-	ld   a, [_RAM_C10D_]
-	ld   c, a
-	ld   a, [_SRAM_2000_]
-	cp   c
-	jr   nz, _LABEL_E742_
-	pop  bc
-	jr   _LABEL_E772_
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    dec  hl
+    ld   a, [_RAM_C10D_]
+    ld   c, a
+    ld   a, [_SRAM_2000_]
+    cp   c
+    jr   nz, _LABEL_E742_
+    pop  bc
+    jr   _LABEL_E772_
 
 _LABEL_E742_:
-	pop  bc
-	ld   a, b
-	cp   d
-	jr   z, _LABEL_E74B_
-	jr   c, _LABEL_E751_
-	jr   _LABEL_E784_
+    pop  bc
+    ld   a, b
+    cp   d
+    jr   z, _LABEL_E74B_
+    jr   c, _LABEL_E751_
+    jr   _LABEL_E784_
 
 _LABEL_E74B_:
-	ld   a, c
-	cp   e
-	jr   z, _LABEL_E772_
-	jr   nc, _LABEL_E784_
+    ld   a, c
+    cp   e
+    jr   z, _LABEL_E772_
+    jr   nc, _LABEL_E784_
 _LABEL_E751_:
-	push hl
-	push bc
-	ld   a, e
-	sub  c
-	ld   e, a
-	ld   a, d
-	sbc  a, b
-	ld   d, a
-	add  hl, bc
-	push hl
-	add  hl, de
-	ld   e, l
-	ld   d, h
-	pop  hl
-	ld   bc, $BFFF
-	ld   a, c
-	sub  e
-	ld   c, a
-	ld   a, b
-	sbc  a, d
-	ld   b, a
+    push hl
+    push bc
+    ld   a, e
+    sub  c
+    ld   e, a
+    ld   a, d
+    sbc  a, b
+    ld   d, a
+    add  hl, bc
+    push hl
+    add  hl, de
+    ld   e, l
+    ld   d, h
+    pop  hl
+    ld   bc, $BFFF
+    ld   a, c
+    sub  e
+    ld   c, a
+    ld   a, b
+    sbc  a, d
+    ld   b, a
 _LABEL_E768_:
-	ld   a, [de]
-	ldi  [hl], a
-	inc  de
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_E768_
-	pop  bc
-	pop  hl
+    ld   a, [de]
+    ldi  [hl], a
+    inc  de
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_E768_
+    pop  bc
+    pop  hl
 _LABEL_E772_:
-	ld   [hl], c
-	inc  hl
-	ld   [hl], b
-	inc  hl
-	dec  bc
-	dec  bc
-	ld   de, _RAM_C700_
+    ld   [hl], c
+    inc  hl
+    ld   [hl], b
+    inc  hl
+    dec  bc
+    dec  bc
+    ld   de, _RAM_C700_
 _LABEL_E77B_:
-	ld   a, [de]
-	inc  de
-	ldi  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_E77B_
-	ret
+    ld   a, [de]
+    inc  de
+    ldi  [hl], a
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_E77B_
+    ret
 
 _LABEL_E784_:
-	push bc
-	push hl
-	ld   a, c
-	sub  e
-	ld   c, a
-	ld   a, b
-	sbc  a, d
-	ld   b, a
-	ld   a, $FF
-	sub  c
-	ld   e, a
-	ld   a, $BF
-	sbc  a, b
-	ld   d, a
-	pop  hl
-	push hl
-	ld   a, e
-	sub  l
-	ld   c, a
-	ld   a, d
-	sbc  a, h
-	ld   b, a
-	ld   hl, _SRAM_3FFF_
+    push bc
+    push hl
+    ld   a, c
+    sub  e
+    ld   c, a
+    ld   a, b
+    sbc  a, d
+    ld   b, a
+    ld   a, $FF
+    sub  c
+    ld   e, a
+    ld   a, $BF
+    sbc  a, b
+    ld   d, a
+    pop  hl
+    push hl
+    ld   a, e
+    sub  l
+    ld   c, a
+    ld   a, d
+    sbc  a, h
+    ld   b, a
+    ld   hl, _SRAM_3FFF_
 _LABEL_E79F_:
-	ld   a, [de]
-	dec  de
-	ldd  [hl], a
-	dec  bc
-	ld   a, b
-	or   c
-	jr   nz, _LABEL_E79F_
-	pop  hl
-	pop  bc
-	jr   _LABEL_E772_
+    ld   a, [de]
+    dec  de
+    ldd  [hl], a
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, _LABEL_E79F_
+    pop  hl
+    pop  bc
+    jr   _LABEL_E772_
 
 ; Data from E7AB to E7AB (1 bytes)
 db $C9
@@ -21344,172 +21344,172 @@ db $66, $07, $9E, $07, $66, $07, $A7, $07, $44, $07, $B0, $07, $56, $07, $B0, $0
 db $66, $07, $B0, $07, $75, $07, $B0, $07, $75, $07, $94, $07, $75, $07, $A7, $07
 
 _LABEL_E7EC_:
-	call _LABEL_15E1_
+    call _LABEL_15E1_
 _LABEL_E7EF_:
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	xor  a
-	ld   [_RAM_C23E_], a
-	ld   a, $F2
-	ldh  [rOBP0], a
-	call gfx__turn_off_screen_2827
-	call _LABEL_B99_
-	ld   de, _DATA_F40C_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00BA
-	call _LABEL_1D2D_
-	ld   bc, $0009
-	ld   a, $14
-	call _LABEL_BC3_
-	ld   a, $14
-	ld   bc, $0F09
-	ld   de, _DATA_2150_
-	call _LABEL_BC3_
-	ld   hl, _RAM_C11B_
-	ld   b, $12
-	ld   a, $20
+    di
+    ld   a, $04
+    ldh  [rSTAT], a
+    ld   a, $01
+    ldh  [rIE], a
+    ei
+    xor  a
+    ld   [_RAM_C23E_], a
+    ld   a, $F2
+    ldh  [rOBP0], a
+    call gfx__turn_off_screen_2827
+    call _LABEL_B99_
+    ld   de, _DATA_F40C_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00BA
+    call _LABEL_1D2D_
+    ld   bc, $0009
+    ld   a, $14
+    call _LABEL_BC3_
+    ld   a, $14
+    ld   bc, $0F09
+    ld   de, _DATA_2150_
+    call _LABEL_BC3_
+    ld   hl, _RAM_C11B_
+    ld   b, $12
+    ld   a, $20
 _LABEL_E830_:
-	ldi  [hl], a
-	dec  b
-	jr   nz, _LABEL_E830_
-	ld   [hl], b
-	ld   a, $15
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	call _LABEL_E843_
-	call _LABEL_E9FC_
-	jp   app_phone__launch__0BA2
+    ldi  [hl], a
+    dec  b
+    jr   nz, _LABEL_E830_
+    ld   [hl], b
+    ld   a, $15
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_E843_
+    call _LABEL_E9FC_
+    jp   app_phone__launch__0BA2
 
 _LABEL_E843_:
-	xor  a
-	ld   [_RAM_C130_], a
-	ld   [_RAM_C239_], a
-	ld   a, [_RAM_C281_]
-	ld   [_RAM_C237_], a
-	ld   a, [_RAM_C282_]
-	ld   [_RAM_C238_], a
-	rst  $18	; Call VSYNC__RST_18
-	ld   [_RAM_C281_], a
-	ld   a, $90
-	ld   [_RAM_C282_], a
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
+    xor  a
+    ld   [_RAM_C130_], a
+    ld   [_RAM_C239_], a
+    ld   a, [_RAM_C281_]
+    ld   [_RAM_C237_], a
+    ld   a, [_RAM_C282_]
+    ld   [_RAM_C238_], a
+    rst  $18    ; Call VSYNC__RST_18
+    ld   [_RAM_C281_], a
+    ld   a, $90
+    ld   [_RAM_C282_], a
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_E867_:
-	rst  $18	; Call VSYNC__RST_18
-	call _LABEL_2769_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_E867_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jp   z, _LABEL_E92D_
-	cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-	jr   nz, _LABEL_E887_
-	call set_keycode_lut_ptr__altmap_ON__002B
-	ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_E867_
+    rst  $18    ; Call VSYNC__RST_18
+    call _LABEL_2769_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_E867_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jp   z, _LABEL_E92D_
+    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+    jr   nz, _LABEL_E887_
+    call set_keycode_lut_ptr__altmap_ON__002B
+    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_E867_
 
 _LABEL_E887_:
-	cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-	jr   nz, _LABEL_E895_
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
-	ld   [keyboard_cur_mode__RAM_C280], a
-	jr   _LABEL_E867_
+    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+    jr   nz, _LABEL_E895_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   [keyboard_cur_mode__RAM_C280], a
+    jr   _LABEL_E867_
 
 _LABEL_E895_:
-	cp   $80
-	jr   nz, _LABEL_E8AC_
-	ld   a, [_RAM_C281_]
-	cp   $10
-	jr   z, _LABEL_E867_
-	sub  $08
-	ld   [_RAM_C281_], a
-	ld   a, $20
-	call _LABEL_76A_
-	jr   _LABEL_E867_
+    cp   $80
+    jr   nz, _LABEL_E8AC_
+    ld   a, [_RAM_C281_]
+    cp   $10
+    jr   z, _LABEL_E867_
+    sub  $08
+    ld   [_RAM_C281_], a
+    ld   a, $20
+    call _LABEL_76A_
+    jr   _LABEL_E867_
 
 _LABEL_E8AC_:
-	cp   $C7
-	jr   nz, _LABEL_E8D5_
-	ld   a, [_RAM_C281_]
-	cp   $98
-	jr   z, _LABEL_E867_
-	ld   c, a
-	ld   a, $A0
-	sub  c
-	call _LABEL_21D7_
-	ld   hl, _RAM_C12D_
-	ld   de, _RAM_C12C_
-	ld   b, a
+    cp   $C7
+    jr   nz, _LABEL_E8D5_
+    ld   a, [_RAM_C281_]
+    cp   $98
+    jr   z, _LABEL_E867_
+    ld   c, a
+    ld   a, $A0
+    sub  c
+    call _LABEL_21D7_
+    ld   hl, _RAM_C12D_
+    ld   de, _RAM_C12C_
+    ld   b, a
 _LABEL_E8C5_:
-	ld   a, [de]
-	dec  de
-	ldd  [hl], a
-	dec  b
-	jr   nz, _LABEL_E8C5_
-	ld   [hl], $20
-	ld   a, $15
-	ld   [vblank__dispatch_select__RAM_C27C], a
-	rst  $18	; Call VSYNC__RST_18
-	jr   _LABEL_E867_
+    ld   a, [de]
+    dec  de
+    ldd  [hl], a
+    dec  b
+    jr   nz, _LABEL_E8C5_
+    ld   [hl], $20
+    ld   a, $15
+    ld   [vblank__dispatch_select__RAM_C27C], a
+    rst  $18    ; Call VSYNC__RST_18
+    jr   _LABEL_E867_
 
 _LABEL_E8D5_:
-	cp   $10
-	jr   nz, _LABEL_E8EE_
-	ld   c, $F8
+    cp   $10
+    jr   nz, _LABEL_E8EE_
+    ld   c, $F8
 _LABEL_E8DB_:
-	ld   a, [_RAM_C281_]
-	add  c
-	cp   $08
-	jr   z, _LABEL_E867_
-	cp   $A0
-	jp   z, _LABEL_E867_
-	ld   [_RAM_C281_], a
-	jp   _LABEL_E867_
+    ld   a, [_RAM_C281_]
+    add  c
+    cp   $08
+    jr   z, _LABEL_E867_
+    cp   $A0
+    jp   z, _LABEL_E867_
+    ld   [_RAM_C281_], a
+    jp   _LABEL_E867_
 
 _LABEL_E8EE_:
-	cp   $11
-	jr   nz, _LABEL_E8F6_
-	ld   c, $08
-	jr   _LABEL_E8DB_
+    cp   $11
+    jr   nz, _LABEL_E8F6_
+    ld   c, $08
+    jr   _LABEL_E8DB_
 
 _LABEL_E8F6_:
-	cp   $23
-	jr   z, _LABEL_E915_
-	cp   $20
-	jr   z, _LABEL_E915_
-	cp   $2A
-	jr   z, _LABEL_E915_
-	cp   $30
-	jp   c, _LABEL_E867_
-	cp   $3A
-	jr   c, _LABEL_E915_
-	cp   $41
-	jp   c, _LABEL_E867_
-	cp   $45
-	jp   nc, _LABEL_E867_
+    cp   $23
+    jr   z, _LABEL_E915_
+    cp   $20
+    jr   z, _LABEL_E915_
+    cp   $2A
+    jr   z, _LABEL_E915_
+    cp   $30
+    jp   c, _LABEL_E867_
+    cp   $3A
+    jr   c, _LABEL_E915_
+    cp   $41
+    jp   c, _LABEL_E867_
+    cp   $45
+    jp   nc, _LABEL_E867_
 _LABEL_E915_:
-	ld   c, a
-	ld   a, [_RAM_C281_]
-	cp   $98
-	jp   z, _LABEL_E867_
-	ld   a, c
-	call _LABEL_76A_
-	ld   a, [_RAM_C281_]
-	add  $08
-	ld   [_RAM_C281_], a
-	jp   _LABEL_E867_
+    ld   c, a
+    ld   a, [_RAM_C281_]
+    cp   $98
+    jp   z, _LABEL_E867_
+    ld   a, c
+    call _LABEL_76A_
+    ld   a, [_RAM_C281_]
+    add  $08
+    ld   [_RAM_C281_], a
+    jp   _LABEL_E867_
 
 _LABEL_E92D_:
-	jp   gfx__clear_shadow_oam__275B
+    jp   gfx__clear_shadow_oam__275B
 
 ; Data from E930 to E959 (42 bytes)
 db $02, $02, $FC, $00, $FD, $00, $FE, $00, $FF, $00, $50, $68, $38, $38, $50, $38
@@ -21517,196 +21517,196 @@ db $68, $38, $38, $48, $50, $48, $68, $48, $38, $58, $50, $58, $68, $58, $00, $0
 db $00, $00, $00, $00, $00, $00, $38, $68, $68, $68
 
 _LABEL_E95A_:
-	xor  a
-	ld   [_RAM_C23E_], a
-	ldh  a, [rBGP]
-	ldh  [rOBP0], a
-	call set_keycode_lut_ptr__altmap_ON__002B
-	xor  a
-	ld   [_RAM_C110_], a
-	di
-	ld   a, $04
-	ldh  [rSTAT], a
-	ld   a, $01
-	ldh  [rIE], a
-	ei
-	call gfx__turn_off_screen_2827
-	call _LABEL_B99_
-	ld   de, _DATA_F40C_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00BC
-	call _LABEL_1D2D_
-	ld   bc, $0009
-	call _LABEL_BC3_
+    xor  a
+    ld   [_RAM_C23E_], a
+    ldh  a, [rBGP]
+    ldh  [rOBP0], a
+    call set_keycode_lut_ptr__altmap_ON__002B
+    xor  a
+    ld   [_RAM_C110_], a
+    di
+    ld   a, $04
+    ldh  [rSTAT], a
+    ld   a, $01
+    ldh  [rIE], a
+    ei
+    call gfx__turn_off_screen_2827
+    call _LABEL_B99_
+    ld   de, _DATA_F40C_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00BC
+    call _LABEL_1D2D_
+    ld   bc, $0009
+    call _LABEL_BC3_
 _LABEL_E98E_:
-	call serial_io__poll_keyboard__3278
-	cp   WORKBOY_SCAN_KEY_NONE  ; $FF
-	jr   z, _LABEL_E98E_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $23
-	jr   nz, _LABEL_E9A1_
-	ld   a, $0F
-	jr   _LABEL_E9B3_
+    call serial_io__poll_keyboard__3278
+    cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+    jr   z, _LABEL_E98E_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $23
+    jr   nz, _LABEL_E9A1_
+    ld   a, $0F
+    jr   _LABEL_E9B3_
 
 _LABEL_E9A1_:
-	cp   $2A
-	jr   nz, _LABEL_E9A9_
-	ld   a, $0E
-	jr   _LABEL_E9B3_
+    cp   $2A
+    jr   nz, _LABEL_E9A9_
+    ld   a, $0E
+    jr   _LABEL_E9B3_
 
 _LABEL_E9A9_:
-	cp   $30
-	jr   c, _LABEL_E98E_
-	cp   $3A
-	jr   nc, _LABEL_E98E_
-	sub  $30
+    cp   $30
+    jr   c, _LABEL_E98E_
+    cp   $3A
+    jr   nc, _LABEL_E98E_
+    sub  $30
 _LABEL_E9B3_:
-	add  a
-	push af
-	ld   hl, $693A
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   c, [hl]
-	inc  hl
-	ld   b, [hl]
-	ld   e, $21
-	call _LABEL_1504_
-	pop  af
-	add  a
-	ld   hl, $67AC
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	inc  hl
-	push de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	inc  hl
-	ld   a, $FF
-	ld   [_RAM_C3D6_], a
-	ld   [_RAM_C3D7_], a
-	ld   bc, $0511
-	call _LABEL_33FC_
-	pop  de
-	ld   a, $FF
-	ld   bc, $0611
-	call _LABEL_33FC_
-	ld   b, $0A
+    add  a
+    push af
+    ld   hl, $693A
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   c, [hl]
+    inc  hl
+    ld   b, [hl]
+    ld   e, $21
+    call _LABEL_1504_
+    pop  af
+    add  a
+    ld   hl, $67AC
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    inc  hl
+    push de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    inc  hl
+    ld   a, $FF
+    ld   [_RAM_C3D6_], a
+    ld   [_RAM_C3D7_], a
+    ld   bc, $0511
+    call _LABEL_33FC_
+    pop  de
+    ld   a, $FF
+    ld   bc, $0611
+    call _LABEL_33FC_
+    ld   b, $0A
 _LABEL_E9F3_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  b
-	jr   nz, _LABEL_E9F3_
-	call gfx__clear_shadow_oam__275B
-	jr   _LABEL_E98E_
+    rst  $18    ; Call VSYNC__RST_18
+    dec  b
+    jr   nz, _LABEL_E9F3_
+    call gfx__clear_shadow_oam__275B
+    jr   _LABEL_E98E_
 
 _LABEL_E9FC_:
-	ld   hl, _RAM_C11B_
+    ld   hl, _RAM_C11B_
 _LABEL_E9FF_:
-	ldi  a, [hl]
-	cp   $20
-	jr   z, _LABEL_E9FF_
-	or   a
-	ret  z
-	ld   de, $00BC
-	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	call _LABEL_EA1F_
-	ld   de, $00BE
-	ld   hl, (_TILEMAP0 + $21)
-	rst  $20	; GFX_COPY_STRING__RST_20
+    ldi  a, [hl]
+    cp   $20
+    jr   z, _LABEL_E9FF_
+    or   a
+    ret  z
+    ld   de, $00BC
+    ld   hl, (_TILEMAP0 + $21)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    call _LABEL_EA1F_
+    ld   de, $00BE
+    ld   hl, (_TILEMAP0 + $21)
+    rst  $20    ; GFX_COPY_STRING__RST_20
 _LABEL_EA17_:
-	call serial_io__poll_keyboard__3278
-	cp   $FF
-	jr   z, _LABEL_EA17_
-	ret
+    call serial_io__poll_keyboard__3278
+    cp   $FF
+    jr   z, _LABEL_EA17_
+    ret
 
 _LABEL_EA1F_:
-	ld   hl, _RAM_C11B_
+    ld   hl, _RAM_C11B_
 _LABEL_EA22_:
-	ldi  a, [hl]
-	cp   $20
-	jr   z, _LABEL_EA22_
-	cp   $2D
-	jr   z, _LABEL_EA22_
-	or   a
-	jr   z, _LABEL_EA8B_
-	cp   $23
-	jr   nz, _LABEL_EA36_
-	ld   a, $0F
-	jr   _LABEL_EA56_
+    ldi  a, [hl]
+    cp   $20
+    jr   z, _LABEL_EA22_
+    cp   $2D
+    jr   z, _LABEL_EA22_
+    or   a
+    jr   z, _LABEL_EA8B_
+    cp   $23
+    jr   nz, _LABEL_EA36_
+    ld   a, $0F
+    jr   _LABEL_EA56_
 
 _LABEL_EA36_:
-	cp   $2A
-	jr   nz, _LABEL_EA3E_
-	ld   a, $0E
-	jr   _LABEL_EA56_
+    cp   $2A
+    jr   nz, _LABEL_EA3E_
+    ld   a, $0E
+    jr   _LABEL_EA56_
 
 _LABEL_EA3E_:
-	cp   $30
-	jr   c, _LABEL_EA22_
-	cp   $3A
-	jr   c, _LABEL_EA50_
-	cp   $41
-	jr   c, _LABEL_EA22_
-	cp   $45
-	jr   nc, _LABEL_EA22_
-	jr   _LABEL_EA54_
+    cp   $30
+    jr   c, _LABEL_EA22_
+    cp   $3A
+    jr   c, _LABEL_EA50_
+    cp   $41
+    jr   c, _LABEL_EA22_
+    cp   $45
+    jr   nc, _LABEL_EA22_
+    jr   _LABEL_EA54_
 
 _LABEL_EA50_:
-	sub  $30
-	jr   _LABEL_EA56_
+    sub  $30
+    jr   _LABEL_EA56_
 
 _LABEL_EA54_:
-	sub  $37
+    sub  $37
 _LABEL_EA56_:
-	add  a
-	add  a
-	push hl
-	ld   hl, _DATA_E7AC_
-	add  l
-	ld   l, a
-	ld   a, h
-	adc  $00
-	ld   h, a
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	inc  hl
-	push de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	inc  hl
-	ld   a, $FF
-	ld   [_RAM_C3D6_], a
-	ld   [_RAM_C3D7_], a
-	ld   bc, $0511
-	call _LABEL_33FC_
-	pop  de
-	ld   a, $FF
-	ld   bc, $0611
-	call _LABEL_33FC_
-	ld   b, $0F
+    add  a
+    add  a
+    push hl
+    ld   hl, _DATA_E7AC_
+    add  l
+    ld   l, a
+    ld   a, h
+    adc  $00
+    ld   h, a
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    inc  hl
+    push de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    inc  hl
+    ld   a, $FF
+    ld   [_RAM_C3D6_], a
+    ld   [_RAM_C3D7_], a
+    ld   bc, $0511
+    call _LABEL_33FC_
+    pop  de
+    ld   a, $FF
+    ld   bc, $0611
+    call _LABEL_33FC_
+    ld   b, $0F
 _LABEL_EA84_:
-	rst  $18	; Call VSYNC__RST_18
-	dec  b
-	jr   nz, _LABEL_EA84_
-	pop  hl
-	jr   _LABEL_EA22_
+    rst  $18    ; Call VSYNC__RST_18
+    dec  b
+    jr   nz, _LABEL_EA84_
+    pop  hl
+    jr   _LABEL_EA22_
 
 _LABEL_EA8B_:
-	ret
+    ret
 
 ; 1st entry of Pointer Table from 147A (indexed by time__minutes__decimal__RAM_C3A2)
 ; Data from EA8C to EAAD (34 bytes)
@@ -22043,270 +22043,270 @@ ds 18, $63
 db $64
 
 _LABEL_F574_:
-	ld   h, $00
-	ld   l, e
-	add  hl, hl
-	ld   de, _DATA_1478_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   h, $C0
-	ld   a, [_RAM_C107_]
-	ld   l, a
-	ld   a, [de]
-	inc  de
-	ld   [_RAM_C23D_], a
-	dec  a
-	add  a
-	add  a
-	add  a
-	add  c
-	ld   c, a
-	ld   a, [de]
-	inc  de
+    ld   h, $00
+    ld   l, e
+    add  hl, hl
+    ld   de, _DATA_1478_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   h, $C0
+    ld   a, [_RAM_C107_]
+    ld   l, a
+    ld   a, [de]
+    inc  de
+    ld   [_RAM_C23D_], a
+    dec  a
+    add  a
+    add  a
+    add  a
+    add  c
+    ld   c, a
+    ld   a, [de]
+    inc  de
 _LABEL_F592_:
-	push af
-	push bc
-	ld   a, [_RAM_C23D_]
+    push af
+    push bc
+    ld   a, [_RAM_C23D_]
 _LABEL_F597_:
-	push af
-	ld   a, b
-	cp   $A0
-	jr   c, _LABEL_F5A1_
-	inc  de
-	inc  de
-	jr   _LABEL_F5C0_
+    push af
+    ld   a, b
+    cp   $A0
+    jr   c, _LABEL_F5A1_
+    inc  de
+    inc  de
+    jr   _LABEL_F5C0_
 
 _LABEL_F5A1_:
-	ld   [hl], b
-	inc  hl
-	ld   [hl], c
-	inc  hl
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_F5AF_
-	inc  de
-	inc  de
-	dec  hl
-	dec  hl
-	jr   _LABEL_F5C0_
+    ld   [hl], b
+    inc  hl
+    ld   [hl], c
+    inc  hl
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_F5AF_
+    inc  de
+    inc  de
+    dec  hl
+    dec  hl
+    jr   _LABEL_F5C0_
 
 _LABEL_F5AF_:
-	inc  de
-	ldi  [hl], a
-	ld   a, [de]
-	and  $C0
-	rrca
-	push de
-	ld   e, a
-	ld   a, [_RAM_C23E_]
-	or   e
-	pop  de
-	xor  $20
-	inc  de
-	ldi  [hl], a
+    inc  de
+    ldi  [hl], a
+    ld   a, [de]
+    and  $C0
+    rrca
+    push de
+    ld   e, a
+    ld   a, [_RAM_C23E_]
+    or   e
+    pop  de
+    xor  $20
+    inc  de
+    ldi  [hl], a
 _LABEL_F5C0_:
-	ld   a, c
-	sub  $08
-	ld   c, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F597_
-	pop  bc
-	ld   a, b
-	add  $08
-	ld   b, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F592_
-	ld   a, l
-	ld   [_RAM_C107_], a
-	ret
+    ld   a, c
+    sub  $08
+    ld   c, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F597_
+    pop  bc
+    ld   a, b
+    add  $08
+    ld   b, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F592_
+    ld   a, l
+    ld   [_RAM_C107_], a
+    ret
 
 _LABEL_F5D6_:
-	ld   a, b
-	add  $18
-	ld   b, a
-	ld   h, $00
-	ld   l, e
-	add  hl, hl
-	ld   de, $1478
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   h, $C0
-	ld   a, [_RAM_C107_]
-	ld   l, a
-	ld   a, [de]
-	inc  de
-	ld   [_RAM_C23D_], a
-	ld   a, [de]
-	inc  de
+    ld   a, b
+    add  $18
+    ld   b, a
+    ld   h, $00
+    ld   l, e
+    add  hl, hl
+    ld   de, $1478
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   h, $C0
+    ld   a, [_RAM_C107_]
+    ld   l, a
+    ld   a, [de]
+    inc  de
+    ld   [_RAM_C23D_], a
+    ld   a, [de]
+    inc  de
 _LABEL_F5F2_:
-	push af
-	push bc
-	ld   a, [_RAM_C23D_]
+    push af
+    push bc
+    ld   a, [_RAM_C23D_]
 _LABEL_F5F7_:
-	push af
-	ld   a, b
-	cp   $A0
-	jr   c, _LABEL_F601_
-	inc  de
-	inc  de
-	jr   _LABEL_F620_
+    push af
+    ld   a, b
+    cp   $A0
+    jr   c, _LABEL_F601_
+    inc  de
+    inc  de
+    jr   _LABEL_F620_
 
 _LABEL_F601_:
-	ld   [hl], b
-	inc  hl
-	ld   [hl], c
-	inc  hl
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_F60F_
-	inc  de
-	inc  de
-	dec  hl
-	dec  hl
-	jr   _LABEL_F620_
+    ld   [hl], b
+    inc  hl
+    ld   [hl], c
+    inc  hl
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_F60F_
+    inc  de
+    inc  de
+    dec  hl
+    dec  hl
+    jr   _LABEL_F620_
 
 _LABEL_F60F_:
-	inc  de
-	ldi  [hl], a
-	ld   a, [de]
-	inc  de
-	and  $C0
-	rrca
-	xor  $40
-	push de
-	ld   e, a
-	ld   a, [_RAM_C23E_]
-	or   e
-	pop  de
-	ldi  [hl], a
+    inc  de
+    ldi  [hl], a
+    ld   a, [de]
+    inc  de
+    and  $C0
+    rrca
+    xor  $40
+    push de
+    ld   e, a
+    ld   a, [_RAM_C23E_]
+    or   e
+    pop  de
+    ldi  [hl], a
 _LABEL_F620_:
-	ld   a, c
-	add  $08
-	ld   c, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F5F7_
-	pop  bc
-	ld   a, b
-	sub  $08
-	ld   b, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F5F2_
-	ld   a, l
-	ld   [_RAM_C107_], a
-	ret
+    ld   a, c
+    add  $08
+    ld   c, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F5F7_
+    pop  bc
+    ld   a, b
+    sub  $08
+    ld   b, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F5F2_
+    ld   a, l
+    ld   [_RAM_C107_], a
+    ret
 
 _LABEL_F636_:
-	ld   a, b
-	add  $18
-	ld   b, a
-	ld   h, $00
-	ld   l, e
-	add  hl, hl
-	ld   de, _DATA_1478_
-	add  hl, de
-	ld   e, [hl]
-	inc  hl
-	ld   d, [hl]
-	ld   h, $C0
-	ld   a, [_RAM_C107_]
-	ld   l, a
-	ld   a, [de]
-	inc  de
-	ld   [_RAM_C23D_], a
-	dec  a
-	add  a
-	add  a
-	add  a
-	add  c
-	ld   c, a
-	ld   a, [de]
-	inc  de
+    ld   a, b
+    add  $18
+    ld   b, a
+    ld   h, $00
+    ld   l, e
+    add  hl, hl
+    ld   de, _DATA_1478_
+    add  hl, de
+    ld   e, [hl]
+    inc  hl
+    ld   d, [hl]
+    ld   h, $C0
+    ld   a, [_RAM_C107_]
+    ld   l, a
+    ld   a, [de]
+    inc  de
+    ld   [_RAM_C23D_], a
+    dec  a
+    add  a
+    add  a
+    add  a
+    add  c
+    ld   c, a
+    ld   a, [de]
+    inc  de
 _LABEL_F658_:
-	push af
-	push bc
-	ld   a, [_RAM_C23D_]
+    push af
+    push bc
+    ld   a, [_RAM_C23D_]
 _LABEL_F65D_:
-	push af
-	ld   a, b
-	cp   $A0
-	jr   c, _LABEL_F667_
-	inc  de
-	inc  de
-	jr   _LABEL_F688_
+    push af
+    ld   a, b
+    cp   $A0
+    jr   c, _LABEL_F667_
+    inc  de
+    inc  de
+    jr   _LABEL_F688_
 
 _LABEL_F667_:
-	ld   [hl], b
-	inc  hl
-	ld   [hl], c
-	inc  hl
-	ld   a, [de]
-	or   a
-	jr   nz, _LABEL_F675_
-	inc  de
-	inc  de
-	dec  hl
-	dec  hl
-	jr   _LABEL_F688_
+    ld   [hl], b
+    inc  hl
+    ld   [hl], c
+    inc  hl
+    ld   a, [de]
+    or   a
+    jr   nz, _LABEL_F675_
+    inc  de
+    inc  de
+    dec  hl
+    dec  hl
+    jr   _LABEL_F688_
 
 _LABEL_F675_:
-	inc  de
-	ldi  [hl], a
-	ld   a, [de]
-	and  $C0
-	rrca
-	xor  $40
-	push de
-	ld   e, a
-	ld   a, [_RAM_C23E_]
-	or   e
-	pop  de
-	xor  $20
-	inc  de
-	ldi  [hl], a
+    inc  de
+    ldi  [hl], a
+    ld   a, [de]
+    and  $C0
+    rrca
+    xor  $40
+    push de
+    ld   e, a
+    ld   a, [_RAM_C23E_]
+    or   e
+    pop  de
+    xor  $20
+    inc  de
+    ldi  [hl], a
 _LABEL_F688_:
-	ld   a, c
-	sub  $08
-	ld   c, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F65D_
-	pop  bc
-	ld   a, b
-	sub  $08
-	ld   b, a
-	pop  af
-	dec  a
-	jr   nz, _LABEL_F658_
-	ld   a, l
-	ld   [_RAM_C107_], a
-	ret
+    ld   a, c
+    sub  $08
+    ld   c, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F65D_
+    pop  bc
+    ld   a, b
+    sub  $08
+    ld   b, a
+    pop  af
+    dec  a
+    jr   nz, _LABEL_F658_
+    ld   a, l
+    ld   [_RAM_C107_], a
+    ret
 
 _LABEL_F69E_:
-	call _LABEL_914_
-	ld   a, $14
-	ld   [vblank__dispatch_select__RAM_C27C], a
+    call _LABEL_914_
+    ld   a, $14
+    ld   [vblank__dispatch_select__RAM_C27C], a
 _LABEL_F6A6_:
-	call _LABEL_914_
-	rst  $18	; Call VSYNC__RST_18
-	call gfx__clear_shadow_oam__275B
-	call _LABEL_F6F7_
-	ld   a, [_RAM_C3B0_]
-	or   a
-	jp   nz, _LABEL_200_
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	or   a
-	jp   z, _LABEL_200_
-	cp   $FF
-	jr   z, _LABEL_F6A6_
-	jp   _LABEL_1E6A_
+    call _LABEL_914_
+    rst  $18    ; Call VSYNC__RST_18
+    call gfx__clear_shadow_oam__275B
+    call _LABEL_F6F7_
+    ld   a, [_RAM_C3B0_]
+    or   a
+    jp   nz, _LABEL_200_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    or   a
+    jp   z, _LABEL_200_
+    cp   $FF
+    jr   z, _LABEL_F6A6_
+    jp   _LABEL_1E6A_
 
 ; Data from F6C3 to F6F6 (52 bytes)
 db $FA, $A4, $C3, $D6, $05, $30, $02, $C6, $3C, $EA, $A4, $C3, $FA, $9C, $C3, $3D
@@ -22315,190 +22315,190 @@ db $3C, $EA, $9C, $C3, $CD, $93, $6F, $18, $BA, $3D, $EA, $9B, $C3, $3E, $39, $E
 db $9C, $C3, $18, $AF
 
 _LABEL_F6F7_:
-	xor  a
-	ld   [_RAM_C23E_], a
-	ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
-	call _LABEL_30B8_
-	ld   a, [time__minutes__decimal__RAM_C3A2]
-	call _LABEL_F712_
-	ld   a, $10
-	ld   [_RAM_C23E_], a
-	ld   a, [time__seconds__decimal__RAM_C3A1]
-	jp   _LABEL_F712_
+    xor  a
+    ld   [_RAM_C23E_], a
+    ld   a, [time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4]
+    call _LABEL_30B8_
+    ld   a, [time__minutes__decimal__RAM_C3A2]
+    call _LABEL_F712_
+    ld   a, $10
+    ld   [_RAM_C23E_], a
+    ld   a, [time__seconds__decimal__RAM_C3A1]
+    jp   _LABEL_F712_
 
 _LABEL_F712_:
-	ld   c, $58
-	ld   b, $40
-	inc  a
-	cp   $11
-	jr   c, _LABEL_F72F_
-	cp   $1F
-	jr   c, _LABEL_F733_
-	cp   $2F
-	jr   c, _LABEL_F73F_
-	ld   e, a
-	ld   a, $3E
-	sub  e
-	ld   e, a
-	ld   a, c
-	sub  $1E
-	ld   c, a
-	jp   _LABEL_F574_
+    ld   c, $58
+    ld   b, $40
+    inc  a
+    cp   $11
+    jr   c, _LABEL_F72F_
+    cp   $1F
+    jr   c, _LABEL_F733_
+    cp   $2F
+    jr   c, _LABEL_F73F_
+    ld   e, a
+    ld   a, $3E
+    sub  e
+    ld   e, a
+    ld   a, c
+    sub  $1E
+    ld   c, a
+    jp   _LABEL_F574_
 
 _LABEL_F72F_:
-	ld   e, a
-	jp   _LABEL_1504_
+    ld   e, a
+    jp   _LABEL_1504_
 
 _LABEL_F733_:
-	ld   e, a
-	ld   a, $20
-	sub  e
-	ld   e, a
-	ld   a, b
-	add  $10
-	ld   b, a
-	jp   _LABEL_F5D6_
+    ld   e, a
+    ld   a, $20
+    sub  e
+    ld   e, a
+    ld   a, b
+    add  $10
+    ld   b, a
+    jp   _LABEL_F5D6_
 
 _LABEL_F73F_:
-	sub  $1E
-	ld   e, a
-	ld   a, c
-	sub  $1E
-	ld   c, a
-	ld   a, b
-	add  $10
-	ld   b, a
-	jp   _LABEL_F636_
+    sub  $1E
+    ld   e, a
+    ld   a, c
+    sub  $1E
+    ld   c, a
+    ld   a, b
+    add  $10
+    ld   b, a
+    jp   _LABEL_F636_
 
 _LABEL_F74D_:
-	ld   a, $C8
-	ld   [_RAM_C399_], a
-	call gfx__turn_off_screen_2827
-	ld   de, _DATA_1E9B_
-	call gfx__copy_tilemap_screen_from_DE__3969
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00E1
-	call _LABEL_1D2D_
-	ld   bc, $0109
-	call _LABEL_BC3_
-	ld   de, $00E2
-	call _LABEL_1D2D_
-	ld   bc, $0609
-	call _LABEL_BC3_
-	ld   de, $00E3
-	call _LABEL_1D2D_
-	ld   bc, $0A09
-	call _LABEL_BC3_
-	ld   hl, _DATA_1D85_
-	call _LABEL_2003_
-	call sys_run_submenu_result_in_A__206D
-	dec  a
-	ld   [_RAM_C5F4_], a
-	ret
+    ld   a, $C8
+    ld   [_RAM_C399_], a
+    call gfx__turn_off_screen_2827
+    ld   de, _DATA_1E9B_
+    call gfx__copy_tilemap_screen_from_DE__3969
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00E1
+    call _LABEL_1D2D_
+    ld   bc, $0109
+    call _LABEL_BC3_
+    ld   de, $00E2
+    call _LABEL_1D2D_
+    ld   bc, $0609
+    call _LABEL_BC3_
+    ld   de, $00E3
+    call _LABEL_1D2D_
+    ld   bc, $0A09
+    call _LABEL_BC3_
+    ld   hl, _DATA_1D85_
+    call _LABEL_2003_
+    call sys_run_submenu_result_in_A__206D
+    dec  a
+    ld   [_RAM_C5F4_], a
+    ret
 
 _LABEL_F790_:
-	call set_keycode_lut_ptr__altmap_OFF__026C
-	call gfx__turn_on_screen_bg_obj__2540
-	ld   de, $00BF
-	ld   a, $09
-	ld   hl, (_TILEMAP0 + $26)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00C0
-	ld   hl, (_TILEMAP0 + $86)
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00C1
-	ld   hl, $98E6
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00C2
-	ld   hl, $9946
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   de, $00C3
-	ld   hl, $99A6
-	rst  $20	; GFX_COPY_STRING__RST_20
-	ld   bc, $09E0
-	ld   e, $06
-	call _LABEL_1CF6_
+    call set_keycode_lut_ptr__altmap_OFF__026C
+    call gfx__turn_on_screen_bg_obj__2540
+    ld   de, $00BF
+    ld   a, $09
+    ld   hl, (_TILEMAP0 + $26)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00C0
+    ld   hl, (_TILEMAP0 + $86)
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00C1
+    ld   hl, $98E6
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00C2
+    ld   hl, $9946
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   de, $00C3
+    ld   hl, $99A6
+    rst  $20    ; GFX_COPY_STRING__RST_20
+    ld   bc, $09E0
+    ld   e, $06
+    call _LABEL_1CF6_
 _LABEL_F7C3_:
-	rst  $18	; Call VSYNC__RST_18
-	ld   a, [_RAM_C240_]
-	or   a
-	jr   z, _LABEL_F7DB_
-	dec  a
-	ld   [_RAM_C240_], a
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   nz, _LABEL_F7FE_
-	xor  a
-	ld   [_RAM_C240_], a
-	jr   _LABEL_F7FE_
+    rst  $18    ; Call VSYNC__RST_18
+    ld   a, [_RAM_C240_]
+    or   a
+    jr   z, _LABEL_F7DB_
+    dec  a
+    ld   [_RAM_C240_], a
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   nz, _LABEL_F7FE_
+    xor  a
+    ld   [_RAM_C240_], a
+    jr   _LABEL_F7FE_
 
 _LABEL_F7DB_:
-	ld   a, [_RAM_C3B0_]
-	and  $C4
-	jr   z, _LABEL_F7FE_
-	ld   e, a
-	ld   a, $19
-	ld   [_RAM_C240_], a
-	ld   a, e
-	bit  6, a
-	jr   nz, _LABEL_F814_
-	bit  7, a
-	jr   nz, _LABEL_F825_
-	bit  2, a
-	jr   z, _LABEL_F7FE_
+    ld   a, [_RAM_C3B0_]
+    and  $C4
+    jr   z, _LABEL_F7FE_
+    ld   e, a
+    ld   a, $19
+    ld   [_RAM_C240_], a
+    ld   a, e
+    bit  6, a
+    jr   nz, _LABEL_F814_
+    bit  7, a
+    jr   nz, _LABEL_F825_
+    bit  2, a
+    jr   z, _LABEL_F7FE_
 _LABEL_F7F5_:
-	ld   a, [_RAM_C3B0_]
-	bit  2, a
-	jr   nz, _LABEL_F7F5_
-	jr   _LABEL_F836_
+    ld   a, [_RAM_C3B0_]
+    bit  2, a
+    jr   nz, _LABEL_F7F5_
+    jr   _LABEL_F836_
 
 _LABEL_F7FE_:
-	rst  $08	; SERIAL_POLL_KEYBOARD__RST_8
-	cp   $FF
-	jr   z, _LABEL_F7C3_
-	or   a
-	jp   z, _LABEL_200_
-	cp   $0D
-	jr   z, _LABEL_F836_
-	cp   $12
-	jr   z, _LABEL_F825_
-	cp   $0F
-	jp   nz, _LABEL_F7C3_
+    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+    cp   $FF
+    jr   z, _LABEL_F7C3_
+    or   a
+    jp   z, _LABEL_200_
+    cp   $0D
+    jr   z, _LABEL_F836_
+    cp   $12
+    jr   z, _LABEL_F825_
+    cp   $0F
+    jp   nz, _LABEL_F7C3_
 _LABEL_F814_:
-	ld   a, [_RAM_C399_]
-	cp   $06
-	jr   nz, _LABEL_F81D_
-	ld   a, $7E
+    ld   a, [_RAM_C399_]
+    cp   $06
+    jr   nz, _LABEL_F81D_
+    ld   a, $7E
 _LABEL_F81D_:
-	sub  $18
-	ld   [_RAM_C399_], a
-	jp   _LABEL_F7C3_
+    sub  $18
+    ld   [_RAM_C399_], a
+    jp   _LABEL_F7C3_
 
 _LABEL_F825_:
-	ld   a, [_RAM_C399_]
-	cp   $66
-	jr   nz, _LABEL_F82E_
-	ld   a, $EE
+    ld   a, [_RAM_C399_]
+    cp   $66
+    jr   nz, _LABEL_F82E_
+    ld   a, $EE
 _LABEL_F82E_:
-	add  $18
-	ld   [_RAM_C399_], a
-	jp   _LABEL_F7C3_
+    add  $18
+    ld   [_RAM_C399_], a
+    jp   _LABEL_F7C3_
 
 _LABEL_F836_:
-	ld   a, [_RAM_C399_]
-	sub  $06
-	ld   b, $00
+    ld   a, [_RAM_C399_]
+    sub  $06
+    ld   b, $00
 _LABEL_F83D_:
-	or   a
-	jr   z, _LABEL_F845_
-	inc  b
-	sub  $18
-	jr   _LABEL_F83D_
+    or   a
+    jr   z, _LABEL_F845_
+    inc  b
+    sub  $18
+    jr   _LABEL_F83D_
 
 _LABEL_F845_:
-	ld   a, b
-	ld   [_RAM_C5F5_], a
-	ret
+    ld   a, b
+    ld   [_RAM_C5F5_], a
+    ret
 
 ; Data from F84A to FFFF (1974 bytes)
 db $00, $50, $4F, $53, $54, $20, $4F, $46, $46, $49, $43, $45, $00, $50, $4F, $53
@@ -24742,223 +24742,223 @@ db $24, $38, $4C, $60, $74, $88, $9C, $B0, $C5, $D1, $E1, $F2, $01, $06, $10, $2
 db $38, $4C, $5F
 
 _LABEL_17CAD_:
-	ld   bc, $0012
-	add  hl, bc
-	scf
-	ldi  a, [hl]
-	adc  a
-	add  a
-	jp   _LABEL_17D47_
+    ld   bc, $0012
+    add  hl, bc
+    scf
+    ldi  a, [hl]
+    adc  a
+    add  a
+    jp   _LABEL_17D47_
 
 _LABEL_17CB8_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17CF5_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17CF5_
 
 _LABEL_17CBD_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17CFA_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17CFA_
 
 _LABEL_17CC2_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17CFF_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17CFF_
 
 _LABEL_17CC7_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17D0E_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17D0E_
 
 _LABEL_17CCC_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17CD6_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17CD6_
 
 _LABEL_17CD1_:
-	ld   c, $04
+    ld   c, $04
 _LABEL_17CD3_:
-	add  a
-	jr   z, _LABEL_17CCC_
+    add  a
+    jr   z, _LABEL_17CCC_
 _LABEL_17CD6_:
-	rl   b
-	dec  c
-	jr   nz, _LABEL_17CD3_
-	push af
-	ld   a, $03
-	add  b
-	add  a
-	ld   c, a
+    rl   b
+    dec  c
+    jr   nz, _LABEL_17CD3_
+    push af
+    ld   a, $03
+    add  b
+    add  a
+    ld   c, a
 _LABEL_17CE1_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  c
-	jr   nz, _LABEL_17CE1_
-	pop  af
-	jp   _LABEL_17D47_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  c
+    jr   nz, _LABEL_17CE1_
+    pop  af
+    jp   _LABEL_17D47_
 
 _LABEL_17CEE_:
-	ldi  a, [hl]
-	adc  a
-	jr   c, _LABEL_17D5C_
+    ldi  a, [hl]
+    adc  a
+    jr   c, _LABEL_17D5C_
 _LABEL_17CF2_:
-	add  a
-	jr   z, _LABEL_17CB8_
+    add  a
+    jr   z, _LABEL_17CB8_
 _LABEL_17CF5_:
-	rl   c
-	add  a
-	jr   z, _LABEL_17CBD_
+    rl   c
+    add  a
+    jr   z, _LABEL_17CBD_
 _LABEL_17CFA_:
-	jr   nc, _LABEL_17D0B_
-	add  a
-	jr   z, _LABEL_17CC2_
+    jr   nc, _LABEL_17D0B_
+    add  a
+    jr   z, _LABEL_17CC2_
 _LABEL_17CFF_:
-	dec  c
-	push hl
-	ld   h, a
-	ld   a, c
-	adc  a
-	ld   c, a
-	cp   $09
-	ld   a, h
-	pop  hl
-	jr   z, _LABEL_17CD1_
+    dec  c
+    push hl
+    ld   h, a
+    ld   a, c
+    adc  a
+    ld   c, a
+    cp   $09
+    ld   a, h
+    pop  hl
+    jr   z, _LABEL_17CD1_
 _LABEL_17D0B_:
-	add  a
-	jr   z, _LABEL_17CC7_
+    add  a
+    jr   z, _LABEL_17CC7_
 _LABEL_17D0E_:
-	jr   nc, _LABEL_17D2A_
-	add  a
-	jr   nz, _LABEL_17D15_
-	ldi  a, [hl]
-	adc  a
+    jr   nc, _LABEL_17D2A_
+    add  a
+    jr   nz, _LABEL_17D15_
+    ldi  a, [hl]
+    adc  a
 _LABEL_17D15_:
-	rl   b
-	add  a
-	jr   nz, _LABEL_17D1C_
-	ldi  a, [hl]
-	adc  a
+    rl   b
+    add  a
+    jr   nz, _LABEL_17D1C_
+    ldi  a, [hl]
+    adc  a
 _LABEL_17D1C_:
-	jr   c, _LABEL_17D76_
-	inc  b
-	dec  b
-	jr   nz, _LABEL_17D2A_
-	inc  b
+    jr   c, _LABEL_17D76_
+    inc  b
+    dec  b
+    jr   nz, _LABEL_17D2A_
+    inc  b
 _LABEL_17D23_:
-	add  a
-	jr   nz, _LABEL_17D28_
-	ldi  a, [hl]
-	adc  a
+    add  a
+    jr   nz, _LABEL_17D28_
+    ldi  a, [hl]
+    adc  a
 _LABEL_17D28_:
-	rl   b
+    rl   b
 _LABEL_17D2A_:
-	push af
-	ld   a, e
-	sub  [hl]
-	push hl
-	ld   l, a
-	ld   a, d
-	sbc  a, b
-	ld   h, a
-	dec  hl
+    push af
+    ld   a, e
+    sub  [hl]
+    push hl
+    ld   l, a
+    ld   a, d
+    sbc  a, b
+    ld   h, a
+    dec  hl
 _LABEL_17D33_:
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	dec  c
-	jr   nz, _LABEL_17D33_
-	pop  hl
-	inc  hl
-	pop  af
-	jr   _LABEL_17D47_
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    dec  c
+    jr   nz, _LABEL_17D33_
+    pop  hl
+    inc  hl
+    pop  af
+    jr   _LABEL_17D47_
 
 _LABEL_17D3E_:
-	ldi  a, [hl]
-	adc  a
-	jr   c, _LABEL_17D54_
+    ldi  a, [hl]
+    adc  a
+    jr   c, _LABEL_17D54_
 _LABEL_17D42_:
-	push af
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	pop  af
+    push af
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    pop  af
 _LABEL_17D47_:
-	add  a
-	jr   c, _LABEL_17D52_
-	push af
-	ldi  a, [hl]
-	ld   [de], a
-	inc  de
-	pop  af
-	add  a
-	jr   nc, _LABEL_17D42_
+    add  a
+    jr   c, _LABEL_17D52_
+    push af
+    ldi  a, [hl]
+    ld   [de], a
+    inc  de
+    pop  af
+    add  a
+    jr   nc, _LABEL_17D42_
 _LABEL_17D52_:
-	jr   z, _LABEL_17D3E_
+    jr   z, _LABEL_17D3E_
 _LABEL_17D54_:
-	ld   bc, $0002
-	add  a
-	jr   z, _LABEL_17CEE_
-	jr   nc, _LABEL_17CF2_
+    ld   bc, $0002
+    add  a
+    jr   z, _LABEL_17CEE_
+    jr   nc, _LABEL_17CF2_
 _LABEL_17D5C_:
-	add  a
-	jr   z, _LABEL_17D89_
+    add  a
+    jr   z, _LABEL_17D89_
 _LABEL_17D5F_:
-	jr   nc, _LABEL_17D2A_
-	inc  c
-	add  a
-	jr   z, _LABEL_17D8E_
+    jr   nc, _LABEL_17D2A_
+    inc  c
+    add  a
+    jr   z, _LABEL_17D8E_
 _LABEL_17D65_:
-	jr   nc, _LABEL_17D0B_
-	ld   c, [hl]
-	inc  hl
-	inc  c
-	dec  c
-	jr   z, _LABEL_17D93_
-	push af
-	ld   a, c
-	add  $08
-	ld   c, a
-	pop  af
-	jp   _LABEL_17D0B_
+    jr   nc, _LABEL_17D0B_
+    ld   c, [hl]
+    inc  hl
+    inc  c
+    dec  c
+    jr   z, _LABEL_17D93_
+    push af
+    ld   a, c
+    add  $08
+    ld   c, a
+    pop  af
+    jp   _LABEL_17D0B_
 
 _LABEL_17D76_:
-	add  a
-	jr   nz, _LABEL_17D7B_
-	ldi  a, [hl]
-	adc  a
+    add  a
+    jr   nz, _LABEL_17D7B_
+    ldi  a, [hl]
+    adc  a
 _LABEL_17D7B_:
-	rl   b
-	set  2, b
-	add  a
-	jr   nz, _LABEL_17D84_
-	ldi  a, [hl]
-	adc  a
+    rl   b
+    set  2, b
+    add  a
+    jr   nz, _LABEL_17D84_
+    ldi  a, [hl]
+    adc  a
 _LABEL_17D84_:
-	jr   c, _LABEL_17D2A_
-	jp   _LABEL_17D23_
+    jr   c, _LABEL_17D2A_
+    jp   _LABEL_17D23_
 
 _LABEL_17D89_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17D5F_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17D5F_
 
 _LABEL_17D8E_:
-	ldi  a, [hl]
-	adc  a
-	jp   _LABEL_17D65_
+    ldi  a, [hl]
+    adc  a
+    jp   _LABEL_17D65_
 
 _LABEL_17D93_:
-	add  a
-	jr   nz, _LABEL_17D98_
-	ldi  a, [hl]
-	adc  a
+    add  a
+    jr   nz, _LABEL_17D98_
+    ldi  a, [hl]
+    adc  a
 _LABEL_17D98_:
-	jr   c, _LABEL_17D47_
-	ret
+    jr   c, _LABEL_17D47_
+    ret
 
 ; Data from 17D9B to 17FFF (613 bytes)
 db $D0, $E5, $F5, $0A, $1F, $34, $42, $4B, $5C, $65, $75, $86, $93, $9F, $A8, $BC
