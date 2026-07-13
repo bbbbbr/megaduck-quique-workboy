@@ -3,6 +3,23 @@
 ; and MegaDuck laptop IO commands
 
 
+; Regs: Preserves all
+duck_laptop_vars_init::
+    push af
+    ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
+    ldh  [duck_keyboard_safe_poll_interval_count_hram], a
+
+    ; Reset keyboard vars
+    xor  a
+    ld   [duck_key_flags_prev], a
+    ld   [duck_workboy_key_queued], a
+    ld   [duck_workboy_shift_mock_state], a
+    ld   [duck_workboy_caps_lock_enabled], a
+
+    pop  af
+    ret
+
+
 
 ; Performs MegaDuck laptop IO init
 ;
@@ -52,8 +69,7 @@ duck_laptop_hardware_init::
 
     ; Return Success (and save in status var)
     .duck_init_ok
-    ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
-    ldh  [duck_keyboard_safe_poll_interval_count_hram], a
+    call duck_laptop_vars_init
     ld   c, KYBD_STATUS__OK ; Modified for Workboy ROM ; DUCK_IO_OK
 
     ; Restore saved interrupt enables and turn them on
@@ -237,12 +253,40 @@ duck_rtc_write__translate_from_workboy_siobuffer::
     ret
 
 
+; Key processing flow
+;
+; Workboy ROM
+; -> serial_io__poll_keyboard__3278
+;    -> duck_keyboard_read_wrapper_bank_0
+;       -> duck_keyboard_poll_and_translate
+;          - Workboy Shift key mocking state updates
+;          - Safe IO timing gate
+;          -> duck_io_keyboard_poll
+;             - Polls Mega Duck hardware for Duck Scan Key presses and modifiers
+;          -> duck_io_keyboard_recode_duck_to_workboy
+;             - Use Duck Caps Lock key to emulate Workboy NUM / CAPS keys (Shift Pressed / Released)
+;             - Apply Duck Shift Key to Scan Keys
+;             - Translate to Workboy Scan Key via Recode Table
+;          - Workboy Shift key mocking initial check
+;          - Return Workboy Scan Key 
+
+
+
+; Called via helper: duck_keyboard_read_wrapper_bank_0
+;
 ; Request Keyboard data and handle the response
 ;
 ; Returns: translated Workboy keycode data in A
 ;
 ; Regs: Does not preserve F
 duck_keyboard_poll_and_translate::
+
+    ; The shift mocking processing is exempted from the 2 frame
+    ; Mega Duck safe polling wait requirement.
+    ; If there is a key to emit A will be non-zero and contain it
+    call duck_keyboard_shift_mock_update
+    or   a
+    ret  nz
 
     ; Have to wait 2 frames between polling to prevent
     ; duck laptop io controller from freezing up
@@ -254,6 +298,9 @@ duck_keyboard_poll_and_translate::
     ld   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_RESET
     ldh  [duck_keyboard_safe_poll_interval_count_hram], a
 
+    ; Cache previous keyboard flags for testing Caps lock state changes, etc
+    ld   a, [duck_key_flags]
+    ld   [duck_key_flags_prev], a
     call duck_io_keyboard_poll
 
     cp   a, DUCK_IO_OK
@@ -265,13 +312,18 @@ duck_keyboard_poll_and_translate::
         jr   nz, .key_read_failure
 
         ; Scan Code and Flags
-        ld  a,  [duck_io_rx_buf + DUCK_IO_KBD_FLAGS]
-        ld  [duck_key_flags], a
+        ld   a,  [duck_io_rx_buf + DUCK_IO_KBD_FLAGS]
+        ld   [duck_key_flags], a
 
-        ld  a,  [duck_io_rx_buf + DUCK_IO_KBD_KEYCODE]
-        ld  [duck_key_scancode], a
+        ld   a,  [duck_io_rx_buf + DUCK_IO_KBD_KEYCODE]
+        ld   [duck_key_scancode], a
 
         call duck_io_keyboard_recode_duck_to_workboy
+        cp   a, WORKBOY_SCAN_KEY_NONE
+        ret  z
+        .debug_has_key
+
+        call duck_keyboard_shift_mock_initial_check
         ret
 
     .key_read_hardware_not_ready_to_poll
@@ -293,18 +345,105 @@ duck_keyboard_poll_and_translate::
     ret
 
 
+; Handle emulated NUM (SHIFT) button pressing/releasing
+; which wraps keys such as "1" with the SHIFT that would
+; be required to activate them on the real Workboy keyboard.
+; - But without having to press SHIFT + Q.
+; - Although "1" can still be sent by pressing the
+;   equivalent of SHIFT + Q.
+; 
+; Note!
+; This process is skipped IF the Workboy "shift" key was "Pressed"
+; via Caps Lock on the Mega Duck being engaged.
+;
+DEF DUCK_WORKBOY_SHIFT_WRAP_SEND_SHIFT_DOWN  EQU 3 ; This state never gets used since it's sent immediately
+DEF DUCK_WORKBOY_SHIFT_WRAP_SEND_QUEUED_KEY  EQU 2
+DEF DUCK_WORKBOY_SHIFT_WRAP_SEND_SHIFT_UP    EQU 1
+DEF DUCK_WORKBOY_SHIFT_WRAP_RESET            EQU 0
+
+DEF DUCK_WORKBOY_CAPS_LOCK_NOT_ENABLED       EQU 0
+DEF DUCK_WORKBOY_CAPS_LOCK_ENABLED           EQU 1
+DEF DUCK_WORKBOY_CAPS_LOCK_ENABLED_BIT       EQU 0
+
+; Preserves everything except AF
+;
+; Returns workboy scan key value in A
+; - A will be unchanged (^1) if Shift Mocking is not needed. 1: Shift mocking bit will be stripped
+; - A will have WORKBOY_SCAN_KEY_SHIFT_DOWN is needed (and will queue up follow up keys)
+duck_keyboard_shift_mock_initial_check::
+    ; Check if Caps lock is enabled, if so then skip the shift mocking
+    push hl
+    ld   hl, duck_workboy_caps_lock_enabled
+    bit  DUCK_WORKBOY_CAPS_LOCK_ENABLED_BIT, [hl]
+    pop  hl                        
+    jr   nz, .caps_lock_on_skip_shift_mocking
+
+        ; Check for and handle shift key emulation wrapping if needed
+        bit  WORKBOY_IO_MOCK_SHIFT_BIT, a
+        jr   z, .shift_mocking_check_done
+            ; Strip the flag and save the keycode for sending on next poll.
+            ; Then set up the state machine for handling the remaining
+            ; shift mocking tasks
+            res  WORKBOY_IO_MOCK_SHIFT_BIT, a
+            ld   [duck_workboy_key_queued], a            
+            ld   a, DUCK_WORKBOY_SHIFT_WRAP_SEND_QUEUED_KEY
+            ld   [duck_workboy_shift_mock_state], a
+            ; This is the key that will be returned for use
+            ld   a, WORKBOY_SCAN_KEY_SHIFT_DOWN
+    
+        .shift_mocking_check_done
+    
+    .caps_lock_on_skip_shift_mocking
+
+    ; Make sure the shift mock flag is not present and return keycode
+    res  WORKBOY_IO_MOCK_SHIFT_BIT, a
+    ret
+
+
+; Preserves everything except AF
+;
+; Returns workboy scan key value in A
+; - If there is no key to emit, returns: WORKBOY_SCAN_KEY_EMPTY_MAYBE
+; - Otherwise returns key to send, which should be returned to app for processing
+duck_keyboard_shift_mock_update::
+    ld   a, [duck_workboy_shift_mock_state]
+    or   a
+    jr   z, .shift_mock_handling_done ; Aka: DUCK_WORKBOY_SHIFT_WRAP_RESET
+
+    cp   a, DUCK_WORKBOY_SHIFT_WRAP_SEND_QUEUED_KEY
+    jr   nz, .send_shift_released_key_and_state_to_reset
+
+        ; DUCK_WORKBOY_SHIFT_WRAP_SEND_QUEUED_KEY
+        .send_queued_key_and_increment_state
+        dec  a
+        ld   [duck_workboy_shift_mock_state], a
+        ; This is the key that will be returned for use
+        ld   a, [duck_workboy_key_queued]
+        ret
+
+        ; DUCK_WORKBOY_SHIFT_WRAP_SEND_SHIFT_UP
+        .send_shift_released_key_and_state_to_reset
+        ld   a, DUCK_WORKBOY_SHIFT_WRAP_RESET
+        ld   [duck_workboy_shift_mock_state], a
+        ; This is the key that will be returned for use
+        ld   a, WORKBOY_SCAN_KEY_SHIFT_UP
+        ret
+
+    ; Done with shift mock handling and no key to send,
+    ; so return WORKBOY_SCAN_KEY_EMPTY_MAYBE ($00)
+    .shift_mock_handling_done    
+    ld   a, WORKBOY_SCAN_KEY_EMPTY_MAYBE
+    ret
+
+
 ; TODO: SUPPORT GERMAN MODEL VIA SHORT TRANSLATE FUNCTION
 ;       if (megaduck_model == MEGADUCK_LAPTOP_GERMAN)
 ;
-; TODO: ; Could megaduck code directly manipulate the shift/altmap recode table var?
-;   call set_keycode_lut_ptr__altmap_OFF__026C
-;   call set_keycode_lut_ptr__altmap_ON__002B
-;
-; TODO: // Handle caps/shift/etc for A-Z
 ; TODO: key repeat handling
 ;
-;
 ; Returns: translated Workboy keycode data in A
+;
+; TODO: Handle key repeat from Duck. Simplest might be masking for no repeat
 ;
 ; Regs: Does not preserve F
 duck_io_keyboard_recode_duck_to_workboy:
@@ -315,19 +454,49 @@ duck_io_keyboard_recode_duck_to_workboy:
     ld   a, [duck_key_scancode]
     ld   c, a
 
-    ; Check Shift and Caps Lock
+    ; Caps lock is reserved for emulating the Workboy Shift key
+    ; and is not used for normal caps lock purposes.
+    ; Check whether it's state (pressed or not) has changed since the last poll
     ld   a, [duck_key_flags]
-    and  a, (DUCK_IO_KEY_FLAG_CAPSLOCK | DUCK_IO_KEY_FLAG_SHIFT)
-    cp   a, (DUCK_IO_KEY_FLAG_CAPSLOCK | DUCK_IO_KEY_FLAG_SHIFT)
-    jr   nz, .shift_check_done
+    ld   b, a
+    ld   a, [duck_key_flags_prev]
+    xor  b
+    bit  DUCK_IO_KEY_FLAG_CAPSLOCK_BIT, a ; A has xored prev and current flags
+    jr   z, .capslock_state_check_done
 
-        ; If only shift OR caps lock is enabled, use keycode translation
-        ; to activate shift alternate keys (-= 0x80u).
-        ; Otherwise they negate each other
-        .only_shift_or_capslock
-        ld   a, c
-        sub  a, DUCK_IO_KEY_BASE
-        ld   c, a
+        .capslock_state_changed
+        bit  DUCK_IO_KEY_FLAG_CAPSLOCK_BIT, b  ; B has current key state flags
+        jr   z, .capslock_change_to_released
+
+            .capslock_change_to_pressed
+            ld   a, DUCK_WORKBOY_CAPS_LOCK_ENABLED
+            ld   [duck_workboy_caps_lock_enabled], a  ; For tracking interaction with Mock Shifting
+            ld   a, WORKBOY_SCAN_KEY_SHIFT_DOWN
+            jr   .key_in_a_processing_done_ready_for_return
+
+            .capslock_change_to_released
+            ld   a, DUCK_WORKBOY_CAPS_LOCK_NOT_ENABLED
+            ld   [duck_workboy_caps_lock_enabled], a  ; For tracking interaction with Mock Shifting
+            ld   a, WORKBOY_SCAN_KEY_SHIFT_UP
+            jr   .key_in_a_processing_done_ready_for_return
+    .capslock_state_check_done
+
+
+    ; Skip Shift adjustment is no key is pressed (C >= 0x80)
+    bit  DUCK_IO_KEY_BASE_BIT, c
+    jr   z, .shift_check_done
+
+        ; Check Shift (used for accessing Shift-alternate keys on Duck keyboard)
+        ld   a, [duck_key_flags]
+        and  a, DUCK_IO_KEY_FLAG_SHIFT
+        jr   z, .shift_check_done
+
+            ; If shift is enabled, use keycode translation
+            ; to activate shift alternate keys (-= 0x80u).
+            .shift_active
+            ld   a, c
+            sub  a, DUCK_IO_KEY_BASE
+            ld   c, a
 
     .shift_check_done
 
@@ -340,6 +509,7 @@ duck_io_keyboard_recode_duck_to_workboy:
     ; Load resulting workboy key
     ld   a, [hl]
 
+    .key_in_a_processing_done_ready_for_return
     pop  bc
     pop  hl
     ret

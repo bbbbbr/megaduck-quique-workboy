@@ -10,6 +10,10 @@
 SECTION "Duck Laptop Keyboard WRAM", WRAMX[$D130]
 duck_key_scancode:: db
 duck_key_flags:: db
+duck_key_flags_prev:: db
+duck_workboy_key_queued: db
+duck_workboy_shift_mock_state: db
+duck_workboy_caps_lock_enabled: db
 
 
 ; SECTION "Duck Laptop Keyboard", ROM0

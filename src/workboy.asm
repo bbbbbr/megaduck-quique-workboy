@@ -70,6 +70,8 @@ ENDC
 ;
 
 include "inc/hardware.inc"
+include "inc/workboy_scancodes.inc"
+include "inc/workboy_sys_keys.inc"
 
 IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     include "duck/inc/megaduck_laptop_io.inc"
@@ -114,81 +116,7 @@ DEF GAMEPAD_B_A       EQU 0
 
 
 
-; TODO: Need to harmonize naming of these with: workboy_scancodes.inc
-
-DEF WORKBOY_SCAN_KEY_NONE   EQU  $FF
-DEF WORKBOY_SCAN_KEY_EMPTY_MAYBE  EQU  $00
-
-; These key values are from the translated from the raw keyboard scancode versions
-; into something ASCII-like, except for the special codes
-DEF WORKBOY_SYS_KEY_NUM_MODE      EQU  $0B
-DEF WORKBOY_SYS_KEY_CAPS_MODE     EQU  $0C
-DEF WORKBOY_SYS_KEY_RETURN        EQU  $0D ; Matches ms vkey
-
-
-DEF WORKBOY_SYS_KEY_ARROW_UP      EQU  $0F
-DEF WORKBOY_SYS_KEY_ARROW_LEFT    EQU  $10
-DEF WORKBOY_SYS_KEY_ARROW_RIGHT   EQU  $11
-DEF WORKBOY_SYS_KEY_ARROW_DOWN    EQU  $12
-
-; Some of the App keys map to a launcher sub-menu that chooses between multiple different apps
-DEF WORKBOY_SYS_KEY_CLOCK         EQU  1
-DEF WORKBOY_SYS_KEY_THERMOMETER   EQU  2
-DEF WORKBOY_SYS_KEY_FINANCE       EQU  3
-DEF WORKBOY_SYS_KEY_CALCULATOR    EQU  4
-DEF WORKBOY_SYS_KEY_SCHEDULER     EQU  5
-DEF WORKBOY_SYS_KEY_CONVERSION    EQU  6
-DEF WORKBOY_SYS_KEY_DATABASE      EQU  7
-DEF WORKBOY_SYS_KEY_WORLD         EQU  8
-DEF WORKBOY_SYS_KEY_PHONE         EQU  9
-DEF WORKBOY_SYS_KEY_APPS_AFTER    EQU (WORKBOY_SYS_KEY_PHONE + 1)
-
-
-DEF  APP_0_CLOCK          EQU $00
-DEF  APP_1_CALCULATOR     EQU $01
-DEF  APP_2_DATABASE       EQU $02
-DEF  APP_3_APPOINTMENTS   EQU $03
-DEF  APP_4_CALENDAR       EQU $04
-DEF  APP_5_WORLD          EQU $05
-DEF  APP_6_THERMOMETER    EQU $06
-DEF  APP_7_CONVERSION     EQU $07
-DEF  APP_8_CHECKBOOK      EQU $08
-DEF  APP_9_CURRENCY       EQU $09
-DEF  APP_A_SYSCONTROL     EQU $0A
-DEF  APP_B_PHONE          EQU $0B
-
-
-; At least one version of this is
-; stored in keyboard_cur_mode__RAM_C280
-DEF KEYBD_MODE_ALT_CAPS_MAYBE     EQU $01 ; Set when CAPS key pressed
-DEF KEYBD_MODE_ALT_NUM_MAYBE      EQU $02 ; Set when NUM key pressed
-DEF KEYBD_MODE_ALT_UNKNOWN_0x03   EQU $03 ; This gets set sometimes too, not yet checked conditions
-DEF KEYBD_MODE_ALT_UNKNOWN_0x04   EQU $04 ; This gets set sometimes too, not yet checked conditions
-
-
-
-
-; Commands sent to the Workboy peripheral over serial IO
-DEF WORKBOY_CMD_TODO_0       EQU 0   ; $00  ; TODO: Might be a poll for "Ready"
-DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; TODO: Maybe this is more general, "just read something?"
-DEF WORKBOY_CMD_R_TODO       EQU "R" ; $52  ; TODO: Sent at startup to check hardware and read RTC
-DEF WORKBOY_CMD_W_TODO       EQU "W" ; $57  ; TODO: Is this Write mode?
-
-DEF WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO     EQU "D"
-
-DEF MAIN_MENU__GAMEPAD_POLLTIME_RESET  EQU  20 ; $14
-
-
-DEF KYBD_STATUS__NOT_FOUND   EQU  0  ; Set if user presses a button during startup keyboard screen with no keyboard present
-DEF KYBD_STATUS__OK          EQU  1  ; Set when "R" CMD returns "D" reply
-DEF KYBD_STATUS__UNSET       EQU  2  ; Initial value on startup
-
-
-; Queue-able VBL Commands
-; See: vblank__dispatch_table__2557
-DEF VBL_CMD__DEFAULT__0x00 EQU $00
-DEF VBL_CMD__COPY_TEXT__0x0F EQU $0f
-
+include "inc/workboy_disasm_constants.inc"
 
 include "inc/workboy_wram.inc"
 include "inc/workboy_hram.inc"
@@ -1061,7 +989,7 @@ _LABEL_4C9_:
     ldi  [hl], a
     ldi  [hl], a
     ldi  [hl], a
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
     call set_keycode_lut_ptr__altmap_ON__002B
     ld   a, $09
@@ -4729,7 +4657,7 @@ _LABEL_1AD9_:
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
     jr   nz, _LABEL_1AF8_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_1AD9_
 
@@ -4737,7 +4665,7 @@ _LABEL_1AF8_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
     jr   nz, _LABEL_1B06_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_1AD9_
 
@@ -5630,10 +5558,10 @@ _LABEL_2241_:
     call _LABEL_1563_
 _LABEL_2244_:
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_224C_:
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
     cp   WORKBOY_SCAN_KEY_NONE ; $FF
@@ -8382,33 +8310,43 @@ _LABEL_30E7_:
 ; It seems to scan the table until it finds the matching key code
 ; and uses that location as the index into the ascii tables below
 ;
+; For example, $0A in the upper left
+; -> Is the scan code sent
+;    -> By pressing the "ESC" key in the upper left of the physical keyboard
+;      -> It's location at Row 0, Column 0
+;         -> Points to $00 and $00 in the same table location
+;            -> Of the two recode tables below.
+; Likewise:
+; -> Row 0, Column 10 is "DEL" key with scan code $0B in first table
+;    -> Maps to $80 in both recode tables
+;
 ; Data from 30F3 to 3191 (159 bytes)
 keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3:
-db $0A, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0B, $0C, ; 12 Keys: Row 1(top): Esc + functions + Del + Ins
-db $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B,      ; 11 Keys: Row 2     : Qwerty... + $
-db $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24, $25, $26,      ; 11 Keys: Row 3     : Asdf... + Rtn/Ret
-db $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F, $30, $36, $31, ; 12 Keys: Row 4     : Num + Zxcv... + Comma + Period + Up + /
-db $32, $33, $34, $35, $0D, $37, $38                           ;  7 Keys: Row 5     : Caps + Quote + Space + Apostrophe? + Left + Down + Right
+db $0A, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0B, $0C, ; 12 Keys: Row 0(top): Esc + functions + Del + Ins
+db $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B,      ; 11 Keys: Row 1     : Qwerty... + $
+db $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24, $25, $26,      ; 11 Keys: Row 2     : Asdf... + Rtn/Ret
+db $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F, $30, $36, $31, ; 12 Keys: Row 3     : Num + Zxcv... + Comma + Period + Up + /
+db $32, $33, $34, $35, $0D, $37, $38                           ;  7 Keys: Row 4     : Caps + Quote + Space + Apostrophe? + Left + Down + Right
 
 ; The keycode tables below seem to be Ascii-ish
 
 ; loaded by calling: set_keycode_lut_ptr__altmap_OFF__026C
 ; Size: 53 bytes -> Exact number of keys on keyboard
 keyboard_recode_to_ascii_ish__altmap_OFF_LUT__DATA_3128:  ; TODO, verify address
-db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80, $C7, ; 12 Keys: Row 1(top): Esc + functions + Del + Ins
-db $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $24,      ; 11 Keys: Row 2     : Qwerty... + $
-db $41, $53, $44, $46, $47, $48, $4A, $4B, $4C, $3B, $0D,      ; 11 Keys: Row 3     : Asdf... + Rtn/Ret
-db $0B, $5A, $58, $43, $56, $42, $4E, $4D, $2C, $2E, $0F, $2F, ; 12 Keys: Row 4     : Num + Zxcv... + Comma + Period + Up + /
-db $0C, $22, $20, $27, $10, $12, $11                           ;  7 Keys: Row 5     : Caps + Quote + Space + Apostrophe? + Left + Down + Right
+db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80, $C7, ; 12 Keys: Row 0(top): Esc + functions + Del + Ins
+db $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $24,      ; 11 Keys: Row 1     : Qwerty... + $
+db $41, $53, $44, $46, $47, $48, $4A, $4B, $4C, $3B, $0D,      ; 11 Keys: Row 2     : Asdf... + Rtn/Ret
+db $0B, $5A, $58, $43, $56, $42, $4E, $4D, $2C, $2E, $0F, $2F, ; 12 Keys: Row 3     : Num + Zxcv... + Comma + Period + Up + /
+db $0C, $22, $20, $27, $10, $12, $11                           ;  7 Keys: Row 4     : Caps + Quote + Space + Apostrophe? + Left + Down + Right
 
 ; loaded by calling set_keycode_lut_ptr__altmap_ON__002B
 ; Size: 53 bytes -> Exact number of keys on keyboard
 keyboard_recode_to_ascii_ish__altmap_ON_LUT__DATA_315D:  ; TODO, verify address
-db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80, $C7 ; 12 Keys: Row 1(top): Esc + functions + Del + Ins
-db $31, $32, $33, $72, $74, $79, $75, $21, $7E, $2A, $23,     ; 11 Keys: Row 2     : 123 + M+ + M-
-db $34, $35, $36, $2B, $2D, $68, $6A, $28, $29, $3A, $0D,     ; 11 Keys: Row 3     : 456 + "+" + "-" ... + Rtn/Ret
-db $0B, $37, $38, $39, $2E, $25, $3D, $7F, $3C, $3E, $0F, $3F ; 12 Keys: Row 4     : Num + 789 + . + ? + = ...  + Up + ?
-db $0C, $30, $20, $40, $10, $12, $11                          ;  7 Keys: Row 5     : Caps + 0 + Space + @? + Left + Down + Right
+db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $80, $C7 ; 12 Keys: Row 0(top): Esc + functions + Del + Ins
+db $31, $32, $33, $72, $74, $79, $75, $21, $7E, $2A, $23,     ; 11 Keys: Row 1     : 123 + M+ + M-
+db $34, $35, $36, $2B, $2D, $68, $6A, $28, $29, $3A, $0D,     ; 11 Keys: Row 2     : 456 + "+" + "-" ... + Rtn/Ret
+db $0B, $37, $38, $39, $2E, $25, $3D, $7F, $3C, $3E, $0F, $3F ; 12 Keys: Row 3     : Num + 789 + . + ? + = ...  + Up + ?
+db $0C, $30, $20, $40, $10, $12, $11                          ;  7 Keys: Row 4     : Caps + 0 + Space + @? + Left + Down + Right
 
 _LABEL_3192_:
     ld   a, [_RAM_C19B_]
@@ -8617,6 +8555,8 @@ serial_io__poll_keyboard__3278:
         ld   a, [keycode_to_ascii_lut_ptr_hi__C3AD]
         ld   h, a
         ld   b, $00
+        ; Recode from hardware scan code to System key (ascii-ish)
+        ;
         ; Adding the keycodes index in keyboard_hw_key_codes_recode_to_phys_key_location_LUT__DATA_30F3
         add  hl, bc
         ld   a, [hl]    ; A now stores the ascii value for the key
@@ -14095,7 +14035,7 @@ _LABEL_B1F7_:
     call _LABEL_24D5_
     call _LABEL_1563_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
     ld   hl, _TILEMAP0
     ld   de, $002C
@@ -14559,7 +14499,7 @@ _LABEL_B4F8_:
     ld   a, $48
     ld   [_RAM_C282_], a
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     xor  a
     ld   [_RAM_C130_], a
@@ -14576,7 +14516,7 @@ _LABEL_B513_:
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
     jr   nz, _LABEL_B52C_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_B513_
 
@@ -14600,7 +14540,7 @@ _LABEL_B54D_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
     jr   nz, _LABEL_B55B_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_B513_
 
@@ -16316,7 +16256,7 @@ _LABEL_C154_:
     ld   [_RAM_C281_], a
     ld   a, $98
     ld   [_RAM_C282_], a
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C18C_:
     rst  $18    ; Call VSYNC__RST_18
@@ -16634,7 +16574,7 @@ _LABEL_C391_:
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B   ; Test for NUM Key, if so turn alt keymap ON
     jr   nz, .key_next_test_caps_mode__C3B1
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_C391_
 
@@ -16642,7 +16582,7 @@ _LABEL_C391_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C   ; Test for CAPS Key, if so turn alt keymap OFF
     jr   nz, _LABEL_C3BF_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_C391_
 
@@ -16928,7 +16868,7 @@ _LABEL_C592_:
     jp   z, _LABEL_1E7F_
     rst  $18    ; Call VSYNC__RST_18
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C5AD_:
     ld   hl, $99E0
@@ -17054,7 +16994,7 @@ _LABEL_C7A2_:
 
 _LABEL_C7C2_:
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_C7CA_:
     ld   hl, $99A6
@@ -17382,7 +17322,7 @@ _LABEL_CA12_:
     ldi  [hl], a
     call _LABEL_1352_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
     ld   hl, $99E0
     ld   de, $002C
@@ -17424,7 +17364,7 @@ db $4E, $54, $46, $43, $52, $50, $45, $55
 
 _LABEL_CA9F_:
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     ld   a, [_RAM_C10C_]
     or   a
@@ -17594,7 +17534,7 @@ _LABEL_CBBE_:
     call _LABEL_CC76_
     push af
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     pop  af
     or   a
@@ -17750,7 +17690,7 @@ _LABEL_CCD9_:
     pop  af
     ld   [_RAM_C282_], a
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_CCEF_:
     rst  $18    ; Call VSYNC__RST_18
@@ -17767,7 +17707,7 @@ _LABEL_CCEF_:
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
     jr   nz, _LABEL_CD0F_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_CCEF_
 
@@ -17775,7 +17715,7 @@ _LABEL_CD0F_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
     jr   nz, _LABEL_CD1D_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_CCEF_
 
@@ -17993,7 +17933,7 @@ _LABEL_CE88_:
     jr   nz, _LABEL_CE88_
     call _LABEL_1563_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jp   _LABEL_CAC3_
 
@@ -18017,7 +17957,7 @@ _LABEL_CEAF_:
     cp   $0B
     jr   nz, _LABEL_CEC8_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_CEAF_
 
@@ -18041,7 +17981,7 @@ _LABEL_CEE9_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
     jr   nz, _LABEL_CEF7_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_CEAF_
 
@@ -18171,7 +18111,7 @@ _LABEL_CFB6_:
     ld   a, $78
     ld   [_RAM_C282_], a
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     xor  a
     ld   [_RAM_C130_], a
@@ -18518,7 +18458,7 @@ _LABEL_D1BB_:
     call _LABEL_BC3_
     ld   a, $30
     ld   [_RAM_C281_], a
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
     ld   a, $90
     ld   [_RAM_C282_], a
@@ -19302,7 +19242,7 @@ _LABEL_D7FD_:
     ld   [_RAM_C282_], a
     call _LABEL_1563_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     xor  a
     ld   [_RAM_C130_], a
@@ -19357,7 +19297,7 @@ _LABEL_D863_:
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
     jr   nz, _LABEL_D871_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_D820_
 
@@ -19381,7 +19321,7 @@ _LABEL_D892_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
     jr   nz, _LABEL_D8A1_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jp   _LABEL_D820_
 
@@ -19568,7 +19508,7 @@ _LABEL_DB80_:
     ld   a, [_RAM_C234_]
     dec  a
     jr   z, _LABEL_DB4C_
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     call _LABEL_1241_
     jr   _LABEL_DB4C_
@@ -19579,7 +19519,7 @@ _LABEL_DB98_:
     ld   a, [_RAM_C234_]
     or   a
     jr   z, _LABEL_DB4C_
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     call _LABEL_1210_
     jr   _LABEL_DB4C_
@@ -20479,7 +20419,7 @@ _LABEL_E1DA_:
     ld   [_RAM_C701_], a
 _LABEL_E1FD_:
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
     ld   a, [_RAM_C700_]
     ld   hl, _RAM_C261_
@@ -20531,7 +20471,7 @@ _LABEL_E25B_:
     call _LABEL_BC3_
     ld   a, $30
     ld   [_RAM_C281_], a
-    ld   a, KEYBD_MODE_ALT_UNKNOWN_0x03 ; $03
+    ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
     ld   [keyboard_cur_mode__RAM_C280], a
     ld   a, [_RAM_C5F2_]
     add  a
@@ -20891,11 +20831,11 @@ db $4E, $54, $46, $43, $52, $50, $45, $55
 _LABEL_E4D0_:
     call _LABEL_1563_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_E4DB_:
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
     cp   WORKBOY_SCAN_KEY_NONE ; $FF
@@ -21439,7 +21379,7 @@ _LABEL_E843_:
     ld   a, $90
     ld   [_RAM_C282_], a
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
 _LABEL_E867_:
     rst  $18    ; Call VSYNC__RST_18
@@ -21454,7 +21394,7 @@ _LABEL_E867_:
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
     jr   nz, _LABEL_E887_
     call set_keycode_lut_ptr__altmap_ON__002B
-    ld   a, KEYBD_MODE_ALT_NUM_MAYBE ; $02
+    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_E867_
 
@@ -21462,7 +21402,7 @@ _LABEL_E887_:
     cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
     jr   nz, _LABEL_E895_
     call set_keycode_lut_ptr__altmap_OFF__026C
-    ld   a, KEYBD_MODE_ALT_CAPS_MAYBE ; $01
+    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01 ; $01
     ld   [keyboard_cur_mode__RAM_C280], a
     jr   _LABEL_E867_
 
@@ -22700,8 +22640,6 @@ IF DEF(OVERWRITE_ITALIAN_UI_TRANSLATION)
     ; ds 3440, $0
 
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
-        include "inc/workboy_scancodes.inc"
-
         include "duck/megaduck_laptop_io.asm"
 
         include "duck/duck_to_workboy_keyboard_recode_table.asm"
