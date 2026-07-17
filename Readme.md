@@ -1,6 +1,17 @@
 
-# Workboy running on the Mega Duck Laptop
-A port / rom patch of the fabled Game Boy Workboy accessory to the MegaDuck Super Quique / Super Junior Computer clone console.
+## Duck Duck Workboy
+The fabled Workboy ROM patched to run on the Mega Duck Laptop.
+
+### Project 
+This is a partial disassembly and rom patch of the fabled Game Boy Workboy accessory to the MegaDuck Super Quique / Super Junior Computer clone console.
+
+Features/Changes:
+- RTC and Keyboard are patched and translated to use the Mega Duck laptop versions
+- Slightly modified Title Screen
+- Removed Italian language support to make room for Mega Duck code
+
+What doesn't work / glitches:
+- tbd
 
 ### Keyboard
 * Mega Duck -> Shift: Selects between Mega Duck regular keys vs alternates (printed on keyboard)
