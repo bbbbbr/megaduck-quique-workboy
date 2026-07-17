@@ -12,14 +12,14 @@ duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first::
     pop  af
 duck_mbc_switch_bank_A_and_cache_banknum::
     ldh   [duck_mbc_last_written_rom_bank], a
-    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ret
 
 
 duck_mbc_restore_saved_bank::
     ldh   a, [duck_mbc_saved_rom_bank]
     ldh   [duck_mbc_last_written_rom_bank], a
-    ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+    ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ret
 
 
@@ -30,7 +30,7 @@ duck_keyboard_read_wrapper_bank_0::
 
         ld   a, BANK(duck_keyboard_poll_and_translate)
         call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
-        ; ld   [rMBC1_ROMBANK], BANK(duck_io_keyboard_poll)
+        ; ld   [rMBC_ROMBANK], BANK(duck_io_keyboard_poll)
 
             call duck_keyboard_poll_and_translate
 

@@ -1,7 +1,13 @@
 
-all: duck gb
+all: allducks gb
 
-DIRDUCK=build_duck
+# TODO: This is a bit of a mess, could be cleaned up
+
+ifndef DUCK_MBC
+	DUCK_MBC=md2
+endif
+
+DIRDUCK=build_duck_$(DUCK_MBC)
 DIRGB=build_gb
 GFXDIR=gfx
 SRCDIR=src
@@ -15,9 +21,16 @@ TEST_SAV=$(REF_ROM_DIR)/$(TEST_SAVE_NAME)
 ROMNAME_BASE=workboy
 SRCNAME=workboy.asm
 
+# DUCK_ROMNAME=$(ROMNAME_BASE)_duck.$(DUCK_MBC)
+DUCK_ROMNAME=$(ROMNAME_BASE).$(DUCK_MBC)
+
 UPS_PATCHTOOL_PATH=tools/ups_patch
 
-MKDIRS = $(DIRDUCK) $(DIRGB) $(REF_ROM_DIR)
+MKDIRS = $(DIRGB) $(REF_ROM_DIR)
+ifdef DUCK_MBC
+	MKDIRS += $(DIRDUCK)
+endif
+
 
 
 ifeq ($(wildcard $(REFERENCE_ROM)),)
@@ -26,9 +39,9 @@ endif
 
 
 gb: $(DIRGB)/$(ROMNAME_BASE).gb
-duck: $(DIRDUCK)/$(ROMNAME_BASE).md2
+duck: $(DIRDUCK)/$(DUCK_ROMNAME)
 
-clean: cleanduck cleangb
+clean: clean-allducks cleangb
 
 
 # == Game Boy ==
@@ -51,18 +64,31 @@ gbgfx:
 
 # == Mega Duck ==
 
-duck: $(DIRDUCK)/$(ROMNAME_BASE).md2
+duck: $(DIRDUCK)/$(DUCK_ROMNAME)
 
-clean: cleanduck
+duckmbc5:
+	${MAKE} duck DUCK_MBC=mbc5 DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC5
+duckmd2:
+	${MAKE} duck DUCK_MBC=md2  DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC_MD2
+
+clean-duckmbc5:
+	${MAKE} cleanduck DUCK_MBC=mbc5 DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC5
+clean-duckmd2:
+	${MAKE} cleanduck DUCK_MBC=md2  DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC_MD2
+
+
+clean-allducks: clean-duckmbc5 clean-duckmd2
+
+allducks: duckmbc5 duckmd2
 
 cleanduck:
 	rm -f $(DIRDUCK)/*
 
-$(DIRDUCK)/$(ROMNAME_BASE).md2: duckgfx $(SRCDIR)/$(SRCNAME)
-	rgbasm -Wno-obsolete -DTARGET_MEGADUCK --preserve-ld --halt-without-nop -i $(INCPATH) -o $(DIRDUCK)/$(ROMNAME_BASE).o $(SRCDIR)/$(SRCNAME)
-	rgblink -n $(DIRDUCK)/$(ROMNAME_BASE).sym -m $(DIRDUCK)/$(ROMNAME_BASE).map -o $(DIRDUCK)/$(ROMNAME_BASE).md2 $(DIRDUCK)/$(ROMNAME_BASE).o
+$(DIRDUCK)/$(DUCK_ROMNAME): duckgfx $(SRCDIR)/$(SRCNAME)
+	rgbasm -Wno-obsolete -DTARGET_MEGADUCK -D$(DUCK_BUILD_FLAG) --preserve-ld --halt-without-nop -i $(INCPATH) -o $(DIRDUCK)/$(ROMNAME_BASE).o $(SRCDIR)/$(SRCNAME)
+	rgblink -n $(DIRDUCK)/$(ROMNAME_BASE).sym -m $(DIRDUCK)/$(ROMNAME_BASE).map -o $(DIRDUCK)/$(DUCK_ROMNAME) $(DIRDUCK)/$(ROMNAME_BASE).o
 	@if which md5sum &>/dev/null; then md5sum $@; else md5 $@; fi
-	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
+# 	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
 #   Overwrite save to ensure it has a working one with some data (sometimes gets reset)
 	cp -f $(TEST_SAV) $(DIRDUCK)/$(TEST_SAVE_NAME)
 
@@ -71,18 +97,19 @@ duckgfx:
 
 
 bindiffduck:
-	vbindiff $(REFERENCE_ROM) $(DIRDUCK)/$(ROMNAME_BASE).md2
+	vbindiff $(REFERENCE_ROM) $(DIRDUCK)/$(DUCK_ROMNAME)
 
 bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
 
-runduck: runduckmbc1
+runduck: runduckmbc5
 
-runduckmbc1:
-	superjunior_sameduck --force-mbc 0x03 build_duck/$(ROMNAME_BASE).md2
+# 0x1B 	MBC-5 	SRAM 	BATTERY 
+runduckmbc5:
+	superjunior_sameduck --force-mbc 0x1B build_duck_mbc5/$(DUCK_ROMNAME)mbc5
 
 runduckmd2:
-	superjunior_sameduck --duck-sram-cart build_duck/$(ROMNAME_BASE).md2
+	superjunior_sameduck --duck-sram-cart build_duck_md2/$(DUCK_ROMNAME)md2
 
 
 romusage:
@@ -91,7 +118,7 @@ romusage:
 # Needs stock inside gadgets firmware to work, can use flashgbx ui to swap it out if needed
 # Make sure 32K cart is specified
 flashduck:
-	-cd tools/gbxcart_duck; ./gbxcart_rw_megaduck_32kb_flasher ../../$(DIRDUCK)/$(ROMNAME_BASE).md2 &
+	-cd tools/gbxcart_duck; ./gbxcart_rw_megaduck_32kb_flasher ../../$(DIRDUCK)/$(DUCK_ROMNAME) &
 
 
 # rom-first-32k:

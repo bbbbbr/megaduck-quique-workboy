@@ -6,7 +6,7 @@
 *.o
 *.link
 *build_gb/*
-*build_duck/*
+*build_duck*
 *reference_rom/*
 Notes.md
 notes.md

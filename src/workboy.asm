@@ -14,23 +14,11 @@
 ; Temp workaround while MBC1 isn't supported in OG SameDuck (supported in forked Sameduck)
 IF DEF (TARGET_MEGADUCK)
 ;    TODO: for MD2 it may also need sram switching changes and sram enable write suppression
-;    def DEBUG_USE_DUCK_MBC_MD2 = 1
+;    def BUILD_USE_DUCK_MBC_MD2 = 1
 ;
-;    TODO: Maybe add option here for MBC5
+;    OR
+;    def BUILD_USE_DUCK_MBC5 = 1
 ENDC
-
-; Temp workaround for lack of duck MBC SRAM
-;
-; GB use of this can be enabled by commenting out the wrapping TARGET_MEGADUCK check
-IF DEF (TARGET_MEGADUCK)
-;    def DEBUG_USE_DUCK_MBC_NO_SRAM = 1
-ENDC
-
-; Alternative workaround for lack of duck MBC SRAM
-;
-; TODO: this will require relocating things such as the "database" storage
-;
-; ; TODO   def DEBUG_USE_WRAM_FOR_SRAM = 1
 
 
 ; Turn on to replace Workboy hardware interface code with
@@ -62,12 +50,6 @@ ENDC
 ; For Italian it works, but is mostly filled with empty space or a repeating misc tile.
 ; def OVERWRITE_ITALIAN_UI_TRANSLATION = 1
 
-; Notes:
-; When these two options are used together there is an as-yet unresolved SRAM
-; init issue that results in garbled screen output and probably a crash.
-; - BUILD_USE_DUCK_LAPTOP_HARDWARE
-; - DEBUG_USE_DUCK_MBC_NO_SRAM
-;
 
 include "inc/hardware.inc"
 include "inc/workboy_scancodes.inc"
@@ -79,28 +61,66 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
 ENDC
 
 
-DEF MBC_DUCK_SYSROM  EQU $E0
-DEF MBC_DUCK_MD1     EQU $E1
-DEF MBC_DUCK_MD2     EQU $E2
+DEF MBC_NUM_DUCK_SYSROM  EQU $E0
+DEF MBC_NUM_DUCK_MD1     EQU $E1
+DEF MBC_NUM_DUCK_MD2     EQU $E2
 
-; MBC Register defines
-DEF rMBC1_RAM_ENABLE     EQU $00FF
-; $0002 used once instead of $00FF for (?) SRAM enable
-; TODO: WARNING! Writing to $0002 will clash with Zwenergy Pico Pi Mega Duck Flash cart : Cart Select Register address
-DEF rMBC1_RAM_ENABLE_ALT EQU $0002
-DEF rMBC1_MODE_SEL       EQU $7FFF
+DEF MBC_NUM_MBC5         EQU $1B
+DEF MBC_NUM_MBC1         EQU $03
 
-DEF MBC1_RAM_ON         EQU $0A
-DEF MBC1_RAM_OFF        EQU $00
-DEF MBC1_MODE_RAMBANKED EQU $01
 
-; $4000 used once instead of $5FFF for SRAM bank switching
-DEF rRAMB_ALT           EQU $5FFF
 
-IF (DEF(DEBUG_USE_DUCK_MBC_MD2) && DEF(TARGET_MEGADUCK))
-    DEF rMBC1_ROMBANK    EQU $0001
+IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    ; === MBC MD2 ====
+    ; MBC Register defines
+    DEF rMBC_ROMBANK        EQU $0001
+
+    DEF rMBC_RAMBANK        EQU $4000
+    DEF rMBC_RAMBANK_ALT    EQU rMBC_RAMBANK  ; Don't use occasional alternate value like the original ROM
+
+    DEF rMBC_RAM_ENABLE     EQU $00FF
+    DEF rMBC_RAM_ENABLE_ALT EQU rMBC_RAM_ENABLE  ; Don't use occasional alternate value like the original ROM
+    ; $4000 used once instead of $5FFF for SRAM bank switching
+;   DEF rMBC_MODE_SEL       EQU $7FFF  ; Not used in MD2 mode
+
+    DEF MBC_RAM_ON         EQU $0A
+    DEF MBC_RAM_OFF        EQU $00
+;    DEF MBC1_MODE_RAMBANKED EQU $01  ; Not used in MBC5 mode
+
+ELIF DEF(BUILD_USE_DUCK_MBC5)
+    ; === MBC 5 ====
+    ; MBC Register defines
+    DEF rMBC_ROMBANK       EQU $2000
+
+    DEF rMBC_RAMBANK        EQU $4000
+    DEF rMBC_RAMBANK_ALT    EQU rMBC_RAMBANK  ; Don't use occasional alternate value like the original ROM
+
+    DEF rMBC_RAM_ENABLE     EQU $0000
+    DEF rMBC_RAM_ENABLE_ALT EQU rMBC_RAM_ENABLE  ; Don't use occasional alternate value like the original ROM
+;   DEF rMBC_MODE_SEL       EQU $7FFF  ; Not used in MBC5 mode
+
+    DEF MBC_RAM_ON         EQU $0A
+    DEF MBC_RAM_OFF        EQU $00
+;    DEF MBC1_MODE_RAMBANKED EQU $01  ; Not used in MBC5 mode
+
 ELSE
-    DEF rMBC1_ROMBANK    EQU $3FFF
+    ; === MBC 1 ====
+    ; MBC Register defines
+    DEF rMBC_ROMBANK        EQU $3FFF
+
+    DEF rMBC_RAMBANK        EQU $4000
+    DEF rMBC_RAM_ENABLE     EQU $00FF
+
+    ; $0002 used once instead of $00FF for (?) SRAM enable
+    ; TODO: WARNING! Writing to $0002 will clash with Zwenergy Pico Pi Mega Duck Flash cart : Cart Select Reg address. RAM Enable not required for Duck Cart SRAM 
+    DEF rMBC_RAM_ENABLE_ALT EQU $0002
+    DEF rMBC_MODE_SEL       EQU $7FFF
+    ; $4000 used twice instead of $5FFF for SRAM bank switching
+    DEF rMBC_RAMBANK_ALT      EQU $5FFF
+
+    DEF MBC_RAM_ON         EQU $0A
+    DEF MBC_RAM_OFF        EQU $00
+    DEF MBC1_MODE_RAMBANKED EQU $01
 ENDC
 
 DEF SERIAL_XFER_OFF EQU $00
@@ -123,6 +143,7 @@ include "inc/workboy_hram.inc"
 include "inc/workboy_sram.inc"
 
 SECTION "rom0", ROM0
+duck_entry_point__0000:
 _LABEL_0_:
     jp   startup_init__0150
 
@@ -294,23 +315,15 @@ GBcartridgeHeader__0104:
     db $00      ; CGB Flag: Game does not support CGB functions.
     db $00, $00 ; New Licensee Code
     db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
-    if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
-        IF DEF(DEBUG_USE_DUCK_MBC_MD2)
-            db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
-        ELSE
-            db $03      ; Cartridge Type: MBC1+RAM+BATTERY
-        ENDC
-        db $02      ; ROM Size: 128 KByte   8 banks
-        db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+        db MBC_NUM_DUCK_MD2 ; MegaDuck MD2 16K banks, (SRAM depends on cart or cart in SRAM SLOT)
+    ELIF DEF(BUILD_USE_DUCK_MBC5)
+        db MBC_NUM_MBC5 ; # 0x1B: MBC-5   SRAM    BATTERY 
     ELSE
-        IF DEF(DEBUG_USE_DUCK_MBC_MD2)
-            db MBC_DUCK_MD2 ; MegaDuck MD2 16K banks, NO SRAM
-        ELSE
-            db $01      ; Cartridge Type: MBC1 (no SRAM)
-        ENDC
-        db $02      ; ROM Size: 128 KByte   8 banks
-        db $00      ; No SRAM
+        db MBC_NUM_MBC1  ; Cartridge Type: MBC1+RAM+BATTERY
     ENDC
+    db $02      ; ROM Size: 128 KByte   8 banks
+    db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
     db $01      ; Destination Code: Non-Japanese
     db $48      ; Old Licensee Code
     db $00      ; Mask ROM Version number
@@ -457,7 +470,7 @@ startup_init__0150:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ; Needs SRAM support if it's going to run on the MegaDuck
     call savedata__maybe_some_sram_init__E42E
@@ -492,7 +505,7 @@ _LABEL_200_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     xor  a
     ld   [_RAM_C595_], a
@@ -858,7 +871,7 @@ _LABEL_3EF_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   hl, _TILEDATA9000
     ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
@@ -871,7 +884,7 @@ _LABEL_41B_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
@@ -892,7 +905,7 @@ gfx__copy_some_tile_patterns_todo__0424:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   hl, _TILEDATA9000
     ld   bc, gfx__tile_patterns_250_font_thermometer_etc__5000
@@ -904,7 +917,7 @@ _LABEL_450_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, $8420
@@ -918,7 +931,7 @@ _LABEL_463_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, $8420
@@ -939,7 +952,7 @@ _LABEL_481_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, $8420
@@ -969,7 +982,7 @@ _LABEL_498_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_E4D0_
 
@@ -1540,7 +1553,7 @@ _LABEL_839_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   bc, gfx__tile_patterns_256_font_clock_etc__4000
     ld   hl, _TILEDATA9000
@@ -1551,7 +1564,7 @@ _LABEL_839_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   de, _DATA_9E17_
     ld   hl, _TILEMAP0
@@ -1574,7 +1587,7 @@ _LABEL_882_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   app_calendar__start__bank3_4831
 
@@ -1594,30 +1607,41 @@ _LABEL_897_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_C154_
 
-_LABEL_8BC_:
-    call _LABEL_8E3_
+app_worldmap__setbank_and_call_worldmap_load__8E3:
+    call app_worldmap__load_gfx_and_run__8E3
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
 _LABEL_8C5_:
-    ld   a, [$0000]
-    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ; NOTE: MBC: This is weird. Why is it reading ROM byte 0x0000 ($0xC3) into A
+    ;            and then loading that into the MBC1 SRAM bank register?
+    ;            Maybe a typo in the original source or something?
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        REPT 6
+            nop
+        ENDR
+    ELSE
+        ld   a, [$0000]
+        call mbc_sram_ON_set_srambank_to_A__0BB1
+    ENDC
+
     ld   a, $03
     call mbc_sram_ON_set_srambank_to_A__0BB1
+
     ld   a, $05
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   hl, $4E5C
     ld   de, _SRAM_6100_
@@ -1625,7 +1649,7 @@ _LABEL_8C5_:
     ld   a, $03
     jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
-_LABEL_8E3_:
+app_worldmap__load_gfx_and_run__8E3:
     ld   a, $D2
     ldh  [rOBP0], a
     call gfx__turn_off_screen_2827
@@ -1640,9 +1664,9 @@ _LABEL_8E3_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
-    jp   _LABEL_C047_
+    jp   maybe_app__worldmap_select_locale__bank_3_C047
 
 ; Data from 906 to 913 (14 bytes)
 db $2A, $EA, $52, $C1, $2A, $EA, $54, $C1, $2A, $EA, $55, $C1, $18, $18
@@ -1772,8 +1796,8 @@ _LABEL_991_:
     ; --> calls 1. $60:$0e6c
     ; 2. $60:$09c3 (via _LABEL_914_)
     ; 3. $63:$40ff
-    ; 4. _LABEL_8BC_ ($00:$08bc)
-    ; 5. _LABEL_D714_+$05d ($03:$5771)
+    ; 4. app_worldmap__setbank_and_call_worldmap_load__8E3 ($00:$08bc)
+    ; 5. app_syscontrol__submenu__D714+$05d ($03:$5771)
     ; 6. _LABEL_200_+$067 ($00:$0267)
     .loop_serial_command_until_valid_reply_byte__09C3:
         call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
@@ -1893,14 +1917,14 @@ _LABEL_A69_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_AF93_
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
@@ -1959,14 +1983,14 @@ _LABEL_AC8_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_AF32_
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
@@ -1975,14 +1999,14 @@ _LABEL_AE3_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_AF32_
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
@@ -1994,7 +2018,7 @@ app_checkbook__launch__0AF1:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_DDD9_
 
@@ -2007,21 +2031,29 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
     ; Writing 1 to ROM bank select
     ; Select SRAM Bank switch mode and then
     ; write 0 to the SRAM Bank select
-    ld   a, MBC1_RAM_ON          ; $0A
-    ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+    ld   a, MBC_RAM_ON          ; $0A
+    ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
 
     ld   a, $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a      ; [$3FFF]
+        ld   [rMBC_ROMBANK], a      ; [$3FFF]
     ENDC
 
-    ld   a, MBC1_MODE_RAMBANKED  ; $01
-    ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+    ; RAM mode not needed for MD2 and MBC5
+    IF (DEF(BUILD_USE_DUCK_MBC_MD2) || DEF(BUILD_USE_DUCK_MBC5))
+        REPT 5
+            nop
+        ENDR
+    ELSE
+        ; Implied: MBC1
+        ld   a, MBC1_MODE_RAMBANKED  ; $01
+        ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+    ENDC
 
     xor  a
-    ld   [rRAMB_ALT], a          ; [$5FFF]
+    ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
     ret
 
 
@@ -2047,7 +2079,7 @@ _LABEL_B21_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_7D28_
 _LABEL_B2E_:
@@ -2056,7 +2088,7 @@ _LABEL_B2E_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     pop  af
     ret
@@ -2068,7 +2100,7 @@ _LABEL_B36_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_2A05_
     jr   _LABEL_B2E_
@@ -2082,7 +2114,7 @@ _LABEL_B45_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     xor  a ; Copy 256 tiles
     call gfx__copy_tile_patterns__1437
@@ -2090,7 +2122,7 @@ _LABEL_B45_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_2735_
     ld   de, _DATA_A524_
@@ -2104,7 +2136,7 @@ _LABEL_B6C_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_B160_
     jr   _LABEL_B2E_
@@ -2120,7 +2152,7 @@ _LABEL_B99_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
@@ -2133,7 +2165,7 @@ app_phone__launch__0BA2:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_E7EC_
 
@@ -2147,14 +2179,21 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
     ; write value in C to SRAM Bank select
     push bc
     ld   c, a
-    ld   a, MBC1_RAM_ON          ; $0A
-    ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+    ld   a, MBC_RAM_ON          ; $0A
+    ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
 
-    ld   a, MBC1_MODE_RAMBANKED  ; $01$01
-    ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+    ; RAM mode not needed for MD2 and MBC5
+    IF (DEF(BUILD_USE_DUCK_MBC_MD2) || DEF(BUILD_USE_DUCK_MBC5))
+        REPT 5
+            nop
+        ENDR
+    ELSE
+        ld   a, MBC1_MODE_RAMBANKED  ; $01
+        ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+    ENDC
 
     ld   a, c
-    ld   [rRAMB_ALT], a          ; [$5FFF]
+    ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
     pop  bc
     ret
 
@@ -2354,7 +2393,7 @@ _LABEL_CEE_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_CA9F_
 
@@ -2368,7 +2407,7 @@ _LABEL_D16_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   de, _RAM_C3E0_
     ld   hl, _RAM_C3F9_
@@ -2384,7 +2423,7 @@ _LABEL_D16_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ret
 
@@ -2400,9 +2439,9 @@ app_syscontrol__launch__0D49:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
-    jp   _LABEL_D714_
+    jp   app_syscontrol__submenu__D714
 
 _LABEL_D58_:
     xor  a
@@ -2631,7 +2670,7 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
             ; Now send the RTC data to the Megaduck laptop hardware
             ld   a, BANK(duck_io_set_rtc)
             call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
-            ; ld   [rMBC1_ROMBANK], BANK(duck_io_set_rtc)
+            ; ld   [rMBC_ROMBANK], BANK(duck_io_set_rtc)
 
                 call duck_rtc_write__translate_from_workboy_siobuffer
 
@@ -2860,7 +2899,7 @@ _LABEL_F77_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ldi  a, [hl]
     ld   h, [hl]
@@ -2886,14 +2925,7 @@ _LABEL_FA1_:
     pop  af
     dec  a
     jr   nz, _LABEL_F92_
-    ; The Duck MBC emulation doesn't support SRAM at the moment
-    ; so force the read to return "0" (expected result in normal ROM)
-    IF DEF(DEBUG_USE_DUCK_MBC_NO_SRAM) ; && DEF(TARGET_MEGADUCK))
-        nop
-        ld   a, 0
-    ELSE
-       ld   a, [_SRAM_1F9_]  ; Megaduck gets stuck here because it's MBC has no SRAM
-    ENDC
+    ld   a, [_SRAM_1F9_]  ; IMPORTANT! NOTE:Megaduck gets stuck here with MBCs or settings that have no SRAM
     ld   e, a
     add  a
     add  a
@@ -2906,7 +2938,7 @@ _LABEL_FA1_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   e, [hl]
     inc  hl
@@ -2932,7 +2964,7 @@ _LABEL_FA1_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   a, [_RAM_CF16_]
     ld   l, a
@@ -3145,7 +3177,7 @@ alt_menu__show_when_no_keyboard_found__10C3:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   a, [_RAM_C233_]
     or   a
@@ -3231,7 +3263,7 @@ _LABEL_1174_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_DB40_
     push af
@@ -3269,7 +3301,7 @@ _LABEL_11B2_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     dec  a
     ld   [_RAM_C10B_], a
@@ -3321,7 +3353,7 @@ _LABEL_1210_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, _TILEDATA9000
@@ -3332,7 +3364,7 @@ _LABEL_1210_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   de, _DATA_178FC_
     call gfx__copy_tilemap_screen_from_DE__3969
@@ -3340,7 +3372,7 @@ _LABEL_1210_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $0010
@@ -3356,7 +3388,7 @@ _LABEL_1241_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, _TILEDATA9000
@@ -3367,7 +3399,7 @@ _LABEL_1241_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   de, _DATA_17A64_
     call gfx__copy_tilemap_screen_from_DE__3969
@@ -3375,7 +3407,7 @@ _LABEL_1241_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $0010
@@ -3903,7 +3935,7 @@ app_conversion__launch__1598:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_D105_
 
@@ -3940,7 +3972,7 @@ _LABEL_15E1_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     pop  af
     cp   $01
@@ -3978,7 +4010,7 @@ _LABEL_160B_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call gfx__turn_off_screen_2827
     call _LABEL_2735_
@@ -4101,7 +4133,7 @@ _LABEL_16F5_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   e, [hl]
     inc  l
@@ -4116,7 +4148,7 @@ _LABEL_16F5_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_F790_
     call gfx__turn_off_screen_2827
@@ -4127,7 +4159,7 @@ _LABEL_16F5_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   a, $00
     ld   [gfx__src_addr_lo__RAM_C135_maybe], a
@@ -4604,7 +4636,7 @@ _LABEL_1A6A_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_F790_
     call _LABEL_F74D_
@@ -4730,7 +4762,7 @@ _LABEL_1B6F_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_1C3D_
     or   a
@@ -4781,7 +4813,7 @@ _LABEL_1BC9_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_19A9_
     ld   a, $00
@@ -4939,7 +4971,7 @@ _LABEL_1CC6_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   a, [_RAM_C24B_]
     dec  a
@@ -4959,7 +4991,7 @@ _LABEL_1CC6_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   a, [_RAM_C5F5_]
     or   a
@@ -5173,7 +5205,7 @@ _LABEL_1E6A_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_C4C3_
 
@@ -5371,12 +5403,16 @@ _LABEL_20F5_:
     jp   z, sys_run_submenu_result_in_A__206D
     or   a
     jp   z, _LABEL_200_
-    cp   $0D
+
+    cp   WORKBOY_SYS_KEY_RETURN  ; $0D
     jr   z, _LABEL_2145_
-    cp   $0F
+
+    cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
     jr   z, _LABEL_213A_
-    cp   $12
+
+    cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
     jp   nz, sys_run_submenu_result_in_A__206D
+
 _LABEL_210C_:
     ld   a, [_RAM_C256_]
     ld   c, a
@@ -5548,7 +5584,7 @@ _LABEL_2218_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_B75C_
     ld   bc, $FFE4
@@ -6517,7 +6553,7 @@ _LABEL_27DD_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ld   de, _DATA_130B_
     ld   b, $20
@@ -6599,7 +6635,7 @@ app_currency__launch__2845:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_D459_
 
@@ -6658,7 +6694,7 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     ;
     ; Probably don't really need to restore ROM bank here since
     ; it will get overwritten shortly after returning, but just in case.
-    ; ld   [rMBC1_ROMBANK], BANK(duck_laptop_hardware_init)
+    ; ld   [rMBC_ROMBANK], BANK(duck_laptop_hardware_init)
     ld   a, BANK(duck_laptop_hardware_init)
     call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
 
@@ -6681,7 +6717,7 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
 
         ; Read the  RTC data from the Megaduck
         ; Expected ROM bank is restored below
-        ; ld   [rMBC1_ROMBANK], BANK(duck_io_get_rtc)
+        ; ld   [rMBC_ROMBANK], BANK(duck_io_get_rtc)
         ld   a, BANK(duck_io_get_rtc)
         call duck_mbc_switch_bank_A_and_cache_banknum
 
@@ -6694,7 +6730,7 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
             .rtc_ok
 
         call duck_mbc_restore_saved_bank
-        ; ld   [rMBC1_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
+        ; ld   [rMBC_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
 
     jr   megaduck__resume__serial_io__startup_check_and_read_rtc__2883
     SECTION "megaduck__resume__serial_io__startup_check_and_read_rtc__2883", ROM0[$2883]
@@ -7061,8 +7097,8 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
     ldh  a, [rSB]
     push af
     ; TODO: ? Is this doing something non-Standard for MBC1 instead of turning of SRAM enable
-    ld   a, MBC1_RAM_OFF  ; $00
-    ld   [rMBC1_RAM_ENABLE_ALT], a  ; $0002
+    ld   a, MBC_RAM_OFF  ; $00
+    ld   [rMBC_RAM_ENABLE_ALT], a  ; $0002
     pop  af
     ; Loop until a non-0x00 and non-0xFF serial response
     cp   WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
@@ -7360,7 +7396,7 @@ _LABEL_2B5C_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_BE47_
 
@@ -7379,7 +7415,7 @@ _LABEL_2B7D_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     call _LABEL_ADDA_
     ld   a, [_RAM_C58C_]
@@ -7392,7 +7428,7 @@ _LABEL_2B7D_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_ACA0_
 
@@ -7974,14 +8010,21 @@ mbc_sram_ON_set_srambank_to_A__2E9B:
     ; Select SRAM Bank switch mode and then
     ; write value in C to SRAM Bank select
     ld   c, a
-    ld   a, MBC1_RAM_ON          ; $0A
-    ld   [rMBC1_RAM_ENABLE], a   ; [$00FF]
+    ld   a, MBC_RAM_ON          ; $0A
+    ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
 
-    ld   a, MBC1_MODE_RAMBANKED  ; $01
-    ld   [rMBC1_MODE_SEL], a     ; [$7FFF]
+    ; RAM mode not needed for MD2 and MBC5
+    IF (DEF(BUILD_USE_DUCK_MBC_MD2) || DEF(BUILD_USE_DUCK_MBC5))
+        REPT 5
+            nop
+        ENDR
+    ELSE
+        ld   a, MBC1_MODE_RAMBANKED  ; $01
+        ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+    ENDC
 
     ld   a, c
-    ld   [rRAMB], a              ; [$4000]
+    ld   [rMBC_RAMBANK], a              ; [$4000]
     ret
 
 
@@ -8003,7 +8046,7 @@ gfx__startup_title_screen_setup_and_draw__2F41:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, _TILEDATA9000
@@ -8017,7 +8060,7 @@ gfx__startup_title_screen_setup_and_draw__2F41:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     ; Copies rows of text from RAM to hardware tile map
     ; Source is RAM because it copies there in order to patch the displayed version text
@@ -8075,7 +8118,7 @@ app_clock__launch__2F8E:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
 
     ld   hl, _TILEDATA8000
@@ -8089,7 +8132,7 @@ app_clock__launch__2F8E:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_F69E_
 
@@ -8218,7 +8261,7 @@ _LABEL_3070_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_AED1_
 
@@ -8768,7 +8811,7 @@ app_calculator__launch__338A:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     jp   _LABEL_B9F0_
 
@@ -9464,7 +9507,7 @@ _LABEL_3918_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     pop  af
     push de
@@ -9492,7 +9535,7 @@ _LABEL_395D_:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
-        ld   [rMBC1_ROMBANK], a  ; [$3FFF]
+        ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
     pop  de
     call gfx__copy_tilemap_screen_from_DE__3969
@@ -16068,7 +16111,7 @@ db $04, $08, $64, $42, $06, $42, $4B, $70, $04, $25, $73, $77, $04, $12, $01, $4
 db $06, $0E, $6D, $7B, $04, $19, $4E, $50, $53, $56, $5A, $57, $53, $50, $43, $50
 db $41, $53, $55, $50, $53
 
-_LABEL_C047_:
+maybe_app__worldmap_select_locale__bank_3_C047:
     call set_keycode_lut_ptr__altmap_OFF__026C
 _LABEL_C04A_:
     ld   a, [_SRAM_602B_]
@@ -19126,7 +19169,7 @@ gfx__title_screen_copy_text_D6D6_:
     rst  $28    ; COPY_STRING_VRAM__RST_28
     jp   gfx__turn_on_screen_bg_obj__2540
 
-_LABEL_D714_:
+app_syscontrol__submenu__D714:
     call _LABEL_41B_
     ld   de, _DATA_1E9B_
     call gfx__copy_tilemap_screen_from_DE__3969
@@ -19160,7 +19203,7 @@ _LABEL_D714_:
     jr   z, _LABEL_D78B_
     cp   $03
     jr   z, _LABEL_D777_
-    call _LABEL_8BC_
+    call app_worldmap__setbank_and_call_worldmap_load__8E3
     jp   app_syscontrol__launch__0D49
 
 _LABEL_D777_:
@@ -20810,16 +20853,7 @@ _LABEL_E444_:
     ld   [_SRAM_602C_], a
     ld   a, $47
     ld   [_SRAM_602B_], a
-    ; Skip over empty SRAM map choose location popup
-    ; TODO: FIXME: This isn't enough, results in garbled screen output and a crash maybe
-    ;       Probably SRAM usage needs to get relocated to WRAM for all this
-    if (!DEF(DEBUG_USE_DUCK_MBC_NO_SRAM))
-       call _LABEL_8BC_
-    ELSE
-        nop
-        nop
-        nop
-    ENDC
+    call app_worldmap__setbank_and_call_worldmap_load__8E3
     xor  a
     jp   mbc_sram_ON_set_srambank_to_A__0BB1
 
