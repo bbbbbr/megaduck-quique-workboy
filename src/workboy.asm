@@ -448,6 +448,7 @@ startup_init__0150:
         ; and the RTC will still get set.
         call serial_io__startup_check_and_read_rtc__2854
     ENDC
+
     call mbc_sram_ON_rombank_1_srambank_0__0AFD
     ld   a, $FF
     ld   [_RAM_C3B2_], a
@@ -1666,7 +1667,7 @@ app_worldmap__load_gfx_and_run__8E3:
     call _LABEL_27DD_
     call _LABEL_481_
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     call _LABEL_B45_
     call gfx__turn_on_screen_bg_obj__2540
     call _LABEL_8C5_
@@ -3916,10 +3917,10 @@ _LABEL_154D_:
     ret
 
 _LABEL_1563_:
-    ld   a, [_RAM_C24F_]
+    ld   a, [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F]
     ld   c, a
     ld   a, [gfx__rBGP_cache__RAM_C27D]
-    ld   [_RAM_C24F_], a
+    ld   [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F], a
     ld   a, c
     ld   [gfx__rBGP_cache__RAM_C27D], a
     ret
@@ -4006,7 +4007,7 @@ _LABEL_160B_:
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     call _LABEL_27DD_
     ld   a, $F2
     ldh  [rOBP0], a
@@ -4111,29 +4112,29 @@ _LABEL_16BF_:
     cp   $0F
     jr   nz, _LABEL_1684_
 _LABEL_16D4_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $0E
     jr   nz, _LABEL_16DD_
     ld   a, $7E
 _LABEL_16DD_:
     sub  $08
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jr   _LABEL_1684_
 
 _LABEL_16E4_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $76
     jr   nz, _LABEL_16ED_
     ld   a, $06
 _LABEL_16ED_:
     add  $08
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   _LABEL_1684_
 
 _LABEL_16F5_:
     call gfx__turn_off_screen_2827
     call _LABEL_2735_
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     sub  $0E
     or   a
     rr   a
@@ -4190,7 +4191,7 @@ _LABEL_16F5_:
     ld   [gfx__src_addr_hi__RAM_C136_maybe], a
     xor  a
     ld   [gfx__shadow_y_scroll__RAM_C102], a
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     inc  a
     ld   [_RAM_C249_], a
     ld   [_RAM_C241_], a
@@ -4246,7 +4247,7 @@ _LABEL_1799_:
     ld   [_RAM_C246_], a
     call gfx__turn_on_screen_bg_obj__2540
 _LABEL_17A4_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     or   a
     jr   nz, _LABEL_17AE_
     ld   a, $07
@@ -4255,7 +4256,7 @@ _LABEL_17A4_:
 _LABEL_17AE_:
     ld   a, $09
 _LABEL_17B0_:
-    ld   [_RAM_C39A_], a
+    ld   [lcd_isr__LYC_next_line_to_trigger__RAM_C39A], a
     rst  $18    ; Call VSYNC__RST_18
     xor  a
     ld   [vblank__dispatch_select__RAM_C27C], a
@@ -4319,7 +4320,7 @@ _LABEL_180D_:
     ld   [_RAM_C247_], a
     ld   a, d
     ld   [_RAM_C248_], a
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     or   a
     jr   z, _LABEL_1840_
     sub  $08
@@ -4327,7 +4328,7 @@ _LABEL_180D_:
     jr   nz, _LABEL_1836_
     xor  a
 _LABEL_1836_:
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   hl, _RAM_C241_
     dec  [hl]
     jp   _LABEL_17A4_
@@ -4418,7 +4419,7 @@ _LABEL_18B4_:
     ld   [_RAM_C247_], a
     ld   a, d
     ld   [_RAM_C248_], a
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $86
     jr   z, _LABEL_18ED_
     add  $08
@@ -4427,7 +4428,7 @@ _LABEL_18B4_:
     dec  a
     dec  a
 _LABEL_18E3_:
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   hl, _RAM_C241_
     inc  [hl]
     jp   _LABEL_17A4_
@@ -4552,7 +4553,7 @@ _LABEL_19A9_:
     call gfx__turn_off_screen_2827
     call _LABEL_2735_
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   c, $05
     ld   de, _DATA_1A0E_
     ld   hl, _TILEMAP0
@@ -4667,7 +4668,7 @@ _LABEL_1A6A_:
     ldh  [rOBP0], a
     call gfx__turn_off_screen_2827
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   de, _DATA_1E9B_
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
@@ -4966,13 +4967,13 @@ _LABEL_1C8C_:
     ld   [_RAM_C24D_], a
     ld   a, [_RAM_C24E_]
     ld   l, a
-    ld   a, [_RAM_C24F_]
+    ld   a, [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F]
     ld   h, a
     dec  hl
     ld   a, l
     ld   [_RAM_C24E_], a
     ld   a, h
-    ld   [_RAM_C24F_], a
+    ld   [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F], a
     jr   _LABEL_1C3D_
 
 _LABEL_1CB4_:
@@ -5027,11 +5028,11 @@ _LABEL_1CC6_:
 
 _LABEL_1CF6_:
     ld   a, e
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   a, b
-    ld   [_RAM_C39A_], a
+    ld   [lcd_isr__LYC_next_line_to_trigger__RAM_C39A], a
     ld   a, c
-    ld   [_RAM_C24F_], a
+    ld   [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F], a
     di
     ld   a, $44
     ldh  [rSTAT], a
@@ -6244,7 +6245,7 @@ vblank__handler__25CC:
     vblank__cmd_default__25F7:
         ld   a, [gfx__rBGP_cache__RAM_C27D]
         ldh  [rBGP], a
-        ld   a, [_RAM_C399_]
+        ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
         ldh  [rLYC], a
         call input_read_gamepad_buttons__ROM_24F4
         ; MAYBE: Increment frame counter
@@ -8094,31 +8095,33 @@ stat_interrupt__handler__2F64:
     push bc
     ldh  a, [rLYC]
     ld   c, a
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   c
-    jr   z, _LABEL_2F7B_
+    jr   z, .lyc_line_trigger_matches_2F7B
+
     ld   a, [gfx__rBGP_cache__RAM_C27D]
     ld   b, $07
-_LABEL_2F74_:
-    dec  b
-    jr   nz, _LABEL_2F74_
+    .delay_loop__2F74
+        dec  b
+        jr   nz, .delay_loop__2F74
     ldh  [rBGP], a
-    jr   _LABEL_2F8B_
+    jr   .stat_interrupt__handler_done_2F8B
 
-_LABEL_2F7B_:
-    ld   a, [_RAM_C39A_]
-    add  c
-    ldh  [rLYC], a
-    ld   b, $05
-_LABEL_2F83_:
-    dec  b
-    jr   nz, _LABEL_2F83_
-    ld   a, [_RAM_C24F_]
-    ldh  [rBGP], a
-_LABEL_2F8B_:
-    pop  bc
-    pop  af
-    reti
+    .lyc_line_trigger_matches_2F7B
+        ld   a, [lcd_isr__LYC_next_line_to_trigger__RAM_C39A]
+        add  c
+        ldh  [rLYC], a
+        ld   b, $05
+        .delay_loop__2F83
+            dec  b
+            jr   nz, .delay_loop__2F83
+        ld   a, [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F]
+        ldh  [rBGP], a
+
+    .stat_interrupt__handler_done_2F8B
+        pop  bc
+        pop  af
+        reti
 
 ; 1st entry of Jump Table from 3A2 (indexed by main_menu__icon_cur_column__C111)
 app_clock__launch__2F8E:
@@ -16905,27 +16908,27 @@ _LABEL_C55C_:
     cp   $0F
     jr   nz, _LABEL_C521_
 _LABEL_C571_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $06
     jr   nz, _LABEL_C57A_
     ld   a, $66
 _LABEL_C57A_:
     sub  $18
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jr   _LABEL_C521_
 
 _LABEL_C581_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $4E
     jr   nz, _LABEL_C58A_
     ld   a, $EE
 _LABEL_C58A_:
     add  $18
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   _LABEL_C521_
 
 _LABEL_C592_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $06
     jp   z, app_clock__launch__2F8E
     cp   $36
@@ -18481,27 +18484,27 @@ _LABEL_D185_:
     cp   $0F
     jr   nz, _LABEL_D14A_
 _LABEL_D19A_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $16
     jr   nz, _LABEL_D1A3_
     ld   a, $76
 _LABEL_D1A3_:
     sub  $08
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jr   _LABEL_D14A_
 
 _LABEL_D1AA_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $6E
     jr   nz, _LABEL_D1B3_
     ld   a, $0E
 _LABEL_D1B3_:
     add  $08
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   _LABEL_D14A_
 
 _LABEL_D1BB_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     sub  $16
     or   a
     rr   a
@@ -18710,7 +18713,7 @@ _LABEL_D321_:
     xor  a
     ld   [vblank__dispatch_select__RAM_C27C], a
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   app_conversion__launch__1598
 
 _LABEL_D337_:
@@ -18738,7 +18741,7 @@ _LABEL_D346_:
     jp   _LABEL_D56A_
 
 _LABEL_D358_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     ld   [_RAM_C5CC_], a
     ld   de, $009D
     ld   hl, (_TILEMAP0 + $24)
@@ -18748,12 +18751,12 @@ _LABEL_D358_:
     sub  $1E
     call util__rr_downshift_A_by_4__2909
     ld   [_RAM_C5CA_], a
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     sub  $1E
     call util__rr_downshift_A_by_4__2909
     ld   [_RAM_C5CB_], a
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   gfx__turn_off_screen_2827
 
 _LABEL_D386_:
@@ -19072,13 +19075,13 @@ _LABEL_D5BA_:
     cp   $0F
     jr   nz, _LABEL_D57F_
 _LABEL_D5CF_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $1E
     jr   nz, _LABEL_D5D8_
     ld   a, $8E
 _LABEL_D5D8_:
     sub  $10
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   e, a
     ld   a, [_RAM_C5CC_]
     cp   e
@@ -19086,13 +19089,13 @@ _LABEL_D5D8_:
     jr   _LABEL_D57F_
 
 _LABEL_D5E6_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $7E
     jr   nz, _LABEL_D5EF_
     ld   a, $0E
 _LABEL_D5EF_:
     add  $10
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   e, a
     ld   a, [_RAM_C5CC_]
     cp   e
@@ -19234,7 +19237,7 @@ _LABEL_D777_:
     call _LABEL_F790_
     ld   [_SRAM_1F9_], a
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     call _LABEL_F68_
     jp   app_syscontrol__launch__0D49
 
@@ -22411,7 +22414,7 @@ _LABEL_F73F_:
 
 _LABEL_F74D_:
     ld   a, $C8
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     call gfx__turn_off_screen_2827
     ld   de, _DATA_1E9B_
     call gfx__copy_tilemap_screen_from_DE__3969
@@ -22504,27 +22507,27 @@ _LABEL_F7FE_:
     cp   $0F
     jp   nz, _LABEL_F7C3_
 _LABEL_F814_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $06
     jr   nz, _LABEL_F81D_
     ld   a, $7E
 _LABEL_F81D_:
     sub  $18
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   _LABEL_F7C3_
 
 _LABEL_F825_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     cp   $66
     jr   nz, _LABEL_F82E_
     ld   a, $EE
 _LABEL_F82E_:
     add  $18
-    ld   [_RAM_C399_], a
+    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     jp   _LABEL_F7C3_
 
 _LABEL_F836_:
-    ld   a, [_RAM_C399_]
+    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
     sub  $06
     ld   b, $00
 _LABEL_F83D_:

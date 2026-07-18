@@ -75,7 +75,7 @@ SECTION "Duck Laptop header area free space", ROM0[$0104]
         push af
         ldh  a, [rIE]
         ldh  [duck_cached_rIE], a
-        xor  a
+        res  IEF_B_VBLANK, a
         ; Save a little space with this
         jr duck_io_rIE_common_tail_return
             ; ldh  [rIE], a

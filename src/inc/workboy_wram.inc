@@ -118,7 +118,7 @@ _RAM_C24B_: db
 _RAM_C24C_: db
 _RAM_C24D_: db
 _RAM_C24E_: db
-_RAM_C24F_: db
+gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F: db
 _RAM_C250_: db
 _RAM_C251_: db
 _RAM_C252_: db
@@ -221,8 +221,8 @@ _RAM_C35B_: db
 
 SECTION "wram_c398", WRAM0[$C398]
 _RAM_C398_: db
-_RAM_C399_: db
-_RAM_C39A_: db
+lcd_isr__lyc_line_trigger__RAM_C399: db
+lcd_isr__LYC_next_line_to_trigger__RAM_C39A: db
 time__hours__high_digit_ascii__RAM_C39B: db
 time__hours__low_digit_ascii__RAM_C39C: db
 time__minutes__high_digit_ascii__RAM_C39D: db
