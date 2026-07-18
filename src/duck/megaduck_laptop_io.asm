@@ -27,56 +27,69 @@ duck_mbc_last_written_rom_bank:: db
 duck_mbc_saved_rom_bank:: db
 duck_cached_rIE:: db
 
+; 0104 -> 0146: Nintendo header logo area -> before Cartridge Type
+; Megaduck doesn't need/use GB header, so there's a little  additional free space here
+SECTION "Duck Laptop header area free space", ROM0[$0104]
 
-; Expects BUILD_USE_DUCK_LAPTOP_HARDWARE to be defined in order
-; to free up data that is normally located at the serial link ISR vector at 0x0058
-SECTION "Duck Laptop SIO ISR", ROM0[$0058]
-; 
-; ISR_VECTOR(VECTOR_SERIAL, duck_io_sio_isr)
-; Serial link handler for receiving data send by the MegaDuck laptop peripheral
-duck_io_sio_isr::
-    push af
-    ; Save received data and update status flag
-    ldh  a, [rSB]
-    ld   [duck_io_rx_byte], a
-    ld   a, DUCK_IO_OK
-    ld   [duck_io_rx_byte_done], a
+    ; Serial link handler for receiving data send by the MegaDuck laptop peripheral
+    duck_io_sio_isr::
+        push af
+        ; Save received data and update status flag
+        ldh  a, [rSB]
+        ld   [duck_io_rx_byte], a
+        ld   a, DUCK_IO_OK
+        ld   [duck_io_rx_byte_done], a
 
-    ; Turn Serial ISR back off
-    ; set_interrupts(IE_REG & ~SIO_IFLAG);
-    ldh  a, [rIE]
-    res  IEF_B_SERIAL, a
-    ldh  [rIE], a
+        ; Turn Serial ISR back off
+        ; set_interrupts(IE_REG & ~SIO_IFLAG);
+        ldh  a, [rIE]
+        res  IEF_B_SERIAL, a
+        ldh  [rIE], a
 
-    pop af
-    reti
+        pop af
+        reti
 
-; These are squeezed into some empty space after the sio isr
 
-; Helpers for turning off other interrupts while performing
-; banked megaduck io calls. The ROM's vblank handler sometimes
-; assumes NO bank switching happens AT ALL while some apps
-; are running (such as calendar), and so blindly makes banked
-; calls during vblank WITHOUT the required bank switch
-duck_io_save_and_clear_rIE::
-    push af
+    duck_keyboard_safe_poll_update__vbl_handler:
+        push af
+        ldh  a, [duck_keyboard_safe_poll_interval_count_hram]
+        ; If ready to read then leave alone and skip decrement
+        cp   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_OK
+        jr   z, .done
+            ; otherwise decrement
+            dec   a
+            ldh  [duck_keyboard_safe_poll_interval_count_hram], a
+        .done
+        pop af
+        ; ret
+        ; Instead of returning, reduce overhead by jumping next to the actual handler
+        jp   vblank__handler__25CC
 
-    ldh  a, [rIE]
-    ldh  [duck_cached_rIE], a
-    xor  a
-    ldh  [rIE], a
 
-    pop  af
-    ret
+    ; Helpers for turning off other interrupts while performing
+    ; banked megaduck io calls. The ROM's vblank handler sometimes
+    ; assumes NO bank switching happens AT ALL while some apps
+    ; are running (such as calendar), and so blindly makes banked
+    ; calls during vblank WITHOUT the required bank switch
+    duck_io_save_and_clear_rIE::
+        push af
+        ldh  a, [rIE]
+        ldh  [duck_cached_rIE], a
+        xor  a
+        ; Save a little space with this
+        jr duck_io_rIE_common_tail_return
+            ; ldh  [rIE], a
+            ; pop  af
+            ; ret
 
-duck_io_restore_rIE::
-    push af
-
-    ldh  a, [duck_cached_rIE]
-    ldh  [rIE], a
-
-    pop  af
-    ret
+    duck_io_restore_rIE::
+        push af
+        ldh  a, [duck_cached_rIE]
+        ; Fall through to common tail return
+        duck_io_rIE_common_tail_return::
+            ldh  [rIE], a
+            pop  af
+            ret
 
 ; SECTION "Duck Laptop IO", ROM0
 ;

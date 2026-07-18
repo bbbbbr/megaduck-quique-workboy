@@ -215,34 +215,54 @@ db $26, $0E, $00, $12, $26
 INT_STAT__RST_48_:  ; STAT interrupt
     jp   stat_interrupt__handler__2F64
 
+    ; Some kind of address LUT
+    ; At least read by code at label _LABEL_1504_ 
+    ;
+    ; And indexed by table at $14DC
+    ;
+    ; Some entries appear to be 10 bytes each
+    ; (some later entries are larger)
+    ;
+    ; Data from 4B to 83 (57 bytes)
+    ; $004A
+    db $26, $0E, $00, $12, $26, $ED, $4D, $12
+    db $26, $0E, $00, $12, $26,
 
+; $0058
 IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     ; MegaDuck laptop needs this space for it's serial link ISR at 0x58
     ; See: "SECTION "Duck Laptop SIO ISR", ROM0[$0058]" in megaduck_laptop_io.asm
-else
-    ; Likely some kind of LUT or jump table, haven't seen it referenced yet. Unsure if needed
+    ; We're stomp on few bytes of the unknown LUT here, but for now at least we're
+    ; going to recklessly hope for the best.
     ;
-    ; Data from 4B to 83 (57 bytes)
-    db $26, $0E, $00, $12,
-    db $26, $ED, $4D, $12,
-    db $26, $0E, $00, $12,
-    db $26, $ED, $4D, $12,
-    db $26, $0E, $00, $12,
-    db $26, $ED, $4D, $02,
-
-    db $02, $01, $00, $01,
-    db $40, $01, $80, $01,
-    db $C0, $02, $02, $02,
-    db $00, $02, $40, $02,
-    db $80, $02, $C0, $02,
-    db $02, $03, $00, $03,
-    db $40, $03, $80, $03,
-    db $C0, $02, $02, $04, $00
+    ; TODO: Might be possible to rewrite the duck IO functions
+    ; to not use the Serial/SIO ISR and poll instead, to avoid
+    ; mangling these 3 bytes
+    ;    
+    ; Jump to the relocated isr
+    SECTION "Duck Laptop SIO ISR", ROM0[$0058]
+        jp duck_io_sio_isr
+ELSE
+    ; ... LUT continued
+    ; $0058
+    db $ED, $4D, $12,
 ENDC
+    ; $0061
+    ; ... LUT continued
+    db $26, $0E, $00, $12, $26
+    db $ED, $4D
+    ; $0062
+    db $02, $02, $01, $00, $01, $40, $01, $80, $01, $C0,
+    ; $006C
+    db $02, $02, $02, $00, $02, $40, $02, $80, $02, $C0,
+    ; $0076
+    db $02, $02, $03, $00, $03, $40, $03, $80, $03, $C0,
 
 
-SECTION "reset_vectors__unknown_lut_0084", ROM0[$0084]
-; Unsure of purpose, however...
+SECTION "reset_vectors__unknown_lut_0084", ROM0[$0080]
+; $0080
+db $02, $02, $04, $00
+; Continued LUT from above
 ; First byte is used as initial byte for RTC Send command
 ;
 ; Data from 84 to 9B (24 bytes)
@@ -279,56 +299,46 @@ gb_entry_point__0100:
 GBcartridgeHeader__0104:
 
     GBcartridgeHeader_logo__0104:
-    ; 0104 -> 0133: Nintendo logo area
+    ; 0104 -> 0146: Nintendo header logo area -> before Cartridge Type
     ;
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
-    ; Megaduck doesn't need/use GB header, so it's a little  additional free space here
-
-    duck_keyboard_safe_poll_update__vbl_handler:
-        push af
-        ldh  a, [duck_keyboard_safe_poll_interval_count_hram]
-        ; If ready to read then leave alone and skip decrement
-        cp   a, DUCK_IO_KEYBD_SAFE_POLL_COUNT_OK
-        jr   z, .done
-            ; otherwise decrement
-            dec   a
-            ldh  [duck_keyboard_safe_poll_interval_count_hram], a
-        .done
-        pop af
-        ; ret
-        ; Instead of returning, reduce overhead by jumping next to the actual handler
-        jp   vblank__handler__25CC
-
-
+        ; Megaduck doesn't need/use GB header, so there's a little  additional free space here
+        ;
+        ; See megaduck_laptop_io.s
+        ; and SECTION "Duck Laptop header logo area free space", ROM0[$0104]
     ELSE
         ; Nintendo Logo
         db $CE, $ED, $66, $66, $CC, $0D, $00, $0B, $03, $73, $00, $83, $00, $0C, $00, $0D
         db $00, $08, $11, $1F, $88, $89, $00, $0E, $DC, $CC, $6E, $E6, $DD, $DD, $D9, $99
         db $BB, $BB, $67, $63, $6E, $0E, $EC, $CC, $DD, $DC, $99, $9F, $BB, $B9, $33, $3E
+
+        ; 0134: Title area, etc
+        SECTION "GBcartridgeHeader_title__0134", ROM0[$0134]
+        GBcartridgeHeader_title__0134:
+        db "WORKBOY", $00, $00, $00, $00 ; Title
+        db $00, $00, $00, $00 ; Manufacturer Code / End of Title
+        db $00      ; CGB Flag: Game does not support CGB functions.
+        db $00, $00 ; New Licensee Code
+        db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
     ENDC
 
-    ; 0134: Title area, etc
-    SECTION "GBcartridgeHeader_title__0134", ROM0[$0134]
-    GBcartridgeHeader_title__0134:
-    db "WORKBOY", $00, $00, $00, $00 ; Title
-    db $00, $00, $00, $00 ; Manufacturer Code / End of Title
-    db $00      ; CGB Flag: Game does not support CGB functions.
-    db $00, $00 ; New Licensee Code
-    db $00      ; SGB Flag: No SGB functions (Normal Gameboy or CGB only game)
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
-        db MBC_NUM_DUCK_MD2 ; MegaDuck MD2 16K banks, (SRAM depends on cart or cart in SRAM SLOT)
-    ELIF DEF(BUILD_USE_DUCK_MBC5)
-        db MBC_NUM_MBC5 ; # 0x1B: MBC-5   SRAM    BATTERY 
-    ELSE
-        db MBC_NUM_MBC1  ; Cartridge Type: MBC1+RAM+BATTERY
-    ENDC
-    db $02      ; ROM Size: 128 KByte   8 banks
-    db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
-    db $01      ; Destination Code: Non-Japanese
-    db $48      ; Old Licensee Code
-    db $00      ; Mask ROM Version number
-    db $69      ; Header Checksum: OK
-    dw $DC17    ; Global Checksum: OK
+    ; 0147: Title area, etc
+    SECTION "GBcartridgeHeader_cart_type__0147", ROM0[$0147]
+
+        IF DEF(BUILD_USE_DUCK_MBC_MD2)
+            db MBC_NUM_DUCK_MD2 ; MegaDuck MD2 16K banks, (SRAM depends on cart or cart in SRAM SLOT)
+        ELIF DEF(BUILD_USE_DUCK_MBC5)
+            db MBC_NUM_MBC5 ; # 0x1B: MBC-5   SRAM    BATTERY 
+        ELSE
+            db MBC_NUM_MBC1  ; Cartridge Type: MBC1+RAM+BATTERY
+        ENDC
+        db $02      ; ROM Size: 128 KByte   8 banks
+        db $03      ; RAM Size: 32 KBytes (4 banks of 8KBytes each)
+        db $01      ; Destination Code: Non-Japanese
+        db $48      ; Old Licensee Code
+        db $00      ; Mask ROM Version number
+        db $69      ; Header Checksum: OK
+        dw $DC17    ; Global Checksum: OK
 
 startup_init__0150:
     di
@@ -3801,12 +3811,23 @@ dw _DATA_EA8C_, _DATA_EAAE_, _DATA_EAD0_, _DATA_EAF2_, _DATA_EB14_, _DATA_EB36_,
 dw _DATA_EB9C_, _DATA_EBBE_, _DATA_EBE0_, _DATA_EC02_, _DATA_EC24_, _DATA_EC46_, _DATA_EC68_, _DATA_EC8A_
 
 ; Data from 149A to 14EF (86 bytes)
-db $AC, $6C, $CE, $6C, $F0, $6C, $12, $6D, $34, $6D, $56, $6D, $78, $6D, $9A, $6D
+db $AC, $6C,
+db $CE, $6C, $F0, $6C, $12, $6D, $34, $6D, $56, $6D, $78, $6D, $9A, $6D
 db $BC, $6D, $DE, $6D, $00, $6E, $22, $6E, $44, $6E, $66, $6E, $88, $6E, $AA, $6E
 db $30, $69, $A8, $00, $AB, $2E, $B5, $2E, $BF, $2E, $C9, $2E, $D3, $2E, $DD, $2E
 db $E7, $2E, $F1, $2E, $FB, $2E, $05, $2F, $0F, $2F, $19, $2F, $23, $2F, $2D, $2F
-db $37, $2F, $62, $00, $6C, $00, $76, $00, $80, $00, $8A, $00, $94, $00, $9E, $00
-db $B2, $00, $CC, $00, $E6, $00
+db $37, $2F
+; $14DC: Pointer to data tables in ROM in serial and other interrupt area (L, H)
+db $62, $00 
+db $6C, $00
+db $76, $00
+db $80, $00
+db $8A, $00
+db $94, $00
+db $9E, $00
+db $B2, $00
+db $CC, $00
+db $E6, $00
 
 ; 1st entry of Pointer Table from 1478 (indexed by _RAM_C251_)
 ; Data from 14F0 to 1503 (20 bytes)
@@ -3815,11 +3836,13 @@ db $03, $03, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $0
 db $01, $00, $01, $00
 
 _LABEL_1504_:
+    ; Value in E used to index into pointer table _DATA_1478_
     ld   h, $00
     ld   l, e
     add  hl, hl
     ld   de, _DATA_1478_
     add  hl, de
+    ; Load value from indexed pointer
     ld   e, [hl]
     inc  hl
     ld   d, [hl]
@@ -6477,7 +6500,7 @@ gfx__clear_shadow_oam__275B:
         ld   [_RAM_C107_], a
     ret
 
-
+; Called at least by start of World Map Select Region setup
 _LABEL_2769_:
     call gfx__clear_shadow_oam__275B
     ld   a, [keyboard_cur_mode__RAM_C280]
