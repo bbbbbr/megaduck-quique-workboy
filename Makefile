@@ -96,8 +96,13 @@ duckgfx:
 #	rgbgfx $(GFXDIR)/megaduck_logo_9x_8x8.png -o src/megaduck_logo_9_tiles.2bpp -c "#FFFFFF,#A0A0A0,#4E4E4E,#000000;"
 
 
-bindiffduck:
-	vbindiff $(REFERENCE_ROM) $(DIRDUCK)/$(DUCK_ROMNAME)
+bindiffduck: bindiffduck-mbc5
+
+bindiffduck-mbc5:
+	vbindiff $(REFERENCE_ROM) build_duck_mbc5/$(DUCK_ROMNAME)mbc5
+
+bindiffduck-md2:
+	vbindiff $(REFERENCE_ROM) build_duck_md2/$(DUCK_ROMNAME)md2
 
 bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
