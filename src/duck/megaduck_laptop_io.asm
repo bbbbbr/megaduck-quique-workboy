@@ -26,6 +26,7 @@ duck_keyboard_safe_poll_interval_count_hram:: db
 duck_mbc_last_written_rom_bank:: db
 duck_mbc_saved_rom_bank:: db
 duck_cached_rIE:: db
+duck_detected_model:: db
 
 ; 0104 -> 0146: Nintendo header logo area -> before Cartridge Type
 ; Megaduck doesn't need/use GB header, so there's a little  additional free space here

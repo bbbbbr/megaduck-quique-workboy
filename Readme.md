@@ -11,7 +11,8 @@ Features/Changes:
 - Removed Italian language support to make room for Mega Duck code
 
 What doesn't work / glitches:
-- tbd
+- Clock time elapses too slowly. (1)
+- Visual glitches in screen highlighting/inverting. (2)
 
 ### Keyboard
 * Mega Duck -> Shift: Selects between Mega Duck regular keys vs alternates (printed on keyboard)
@@ -28,3 +29,9 @@ What doesn't work / glitches:
 Prereq: rgbds 0.6.0 (in the system path)
 
 `make duck` to build the Mega Duck patched ROM
+
+### Notes
+
+1. Clock time is ticked in the VBlank interrupt handler. That handler is prone to switching the ROM bank without saving and restoring the bank to what it was before the interrupt. Since ROM 0 has little free space the Mega Duck keyboard and RTC IO code has been placed in banked ROM. Which means if the VBlank handler triggers when some other (banked) code is polling the keyboard (and thus switched the ROM bank for Mega Duck IO), then when the VBlank handler exits the ROM bank may be wrong, resulting in a crash. The workaround is to disable the VBlank handler when polling Mega Duck IO, and the side effect of that is the clock time in VBlank may have skipped ticks.
+
+2. The workboy ROM uses screen inverting to highlight some elements on screen. The STAT LYC interrupt is used for handling some of this, as well as a reset per frame in the VBLank handler. Similar to (1) the blocking of the VBlank handler while executing some banked Mega Duck code interferes with this and causes some flickering.

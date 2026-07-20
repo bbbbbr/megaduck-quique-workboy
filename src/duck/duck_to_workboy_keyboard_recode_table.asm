@@ -1,10 +1,60 @@
+megaduck_keyboard_german_to_spanish_keycode_remap_table::
+; Spanish Key                                         -> What is is on German Keyboard
+db DUCK_IO_KEY_Y,                                        DUCK_IO_KEY_Z
+db DUCK_IO_KEY_Y - DUCK_IO_KEY_BASE,                     DUCK_IO_KEY_Z - DUCK_IO_KEY_BASE  ; Shift version
+db DUCK_IO_KEY_Z,                                        DUCK_IO_KEY_Y
+db DUCK_IO_KEY_Z - DUCK_IO_KEY_BASE,                     DUCK_IO_KEY_Y - DUCK_IO_KEY_BASE  ; Shift version
+db DUCK_IO_KEY_EXCLAMATION_FLIPPED,                      DUCK_IO_KEY_SINGLE_QUOTE 
+db DUCK_IO_KEY_EXCLAMATION_FLIPPED - DUCK_IO_KEY_BASE,   DUCK_IO_KEY_SINGLE_QUOTE   ; Shift version
+megaduck_keyboard_german_to_spanish_keycode_remap_table_end:
+
+; Converts Mega Duck German key scan codes to Spanish equivalents
+; Only converting ones that are useful
+;
+; Expects: key scancode in C
+;
+; Returns key scancode in C (unmodified if no match, modified if translation match found)
+;
+; Preserves all registers except C
+megaduck_keyboard_german_to_spanish_keycode_remap::
+    push af
+    push hl
+
+    ; C has incoming scan code
+    ld   a, c
+
+    ; Load size and table
+    ld   c,  (megaduck_keyboard_german_to_spanish_keycode_remap_table_end - megaduck_keyboard_german_to_spanish_keycode_remap_table) / 2
+    ld   hl, megaduck_keyboard_german_to_spanish_keycode_remap_table
+
+    .check_key_loop
+    cp   a, [hl]
+    jr   nz, .no_match
+        .match_return_translated_key
+        inc  hl
+        ld   a, [hl]
+        jr   .done_return
+    .no_match
+    inc  hl
+    inc  hl
+    dec  c
+    jr   nz, .check_key_loop
+
+    .done_return
+    ; Caller expects resulting scan code in C
+    ld   c, a
+    pop  hl
+    pop  af
+    ret
+
+
 ; Recode table for MegaDuck Laptop Keyboard -> Workboy Keyboard
 ;
 ; This is the SPANISH recode table
 ;
 ; Byte index: MegaDuck Key Scan Code
 ; Value     : Workboy  Key Scan Code
-megaduck_to_workboy_keyboard_keycode_recode_table:
+megaduck_to_workboy_keyboard_keycode_recode_table_spanish::
     ; // == Start of shift adjusted scan code range (0x00 through 0x7F) ==
     ; //
     ; //
@@ -35,7 +85,7 @@ megaduck_to_workboy_keyboard_keycode_recode_table:
     db WORKBOY_SCAN_KEY_G                                  ; 'G',        // 0x97
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0x98
     db WORKBOY_SCAN_KEY_NONE                               ; '&',        // 0x99 Shift alt: &
-    db WORKBOY_SCAN_KEY_Y                                  ; 'Y',        // 0x9A
+    db WORKBOY_SCAN_KEY_Y                                  ; 'Y',        // 0x9A  // German version : 'Z'
     db WORKBOY_SCAN_KEY_H                                  ; 'H',        // 0x9B
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0x9C
     db WORKBOY_SCAN_KEY_SLASH                              ; '/',        // 0x9D Shift alt: /
@@ -105,7 +155,7 @@ megaduck_to_workboy_keyboard_keycode_recode_table:
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xD9
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xDA
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xDB
-    db WORKBOY_SCAN_KEY_NONE                               ; '_',        // 0xDC  ; Shift alt: _ | German version: @
+    db WORKBOY_SCAN_KEY_AT                                 ; '_',        // 0xDC  ; Shift alt: _ | German version: @
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xDD
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xDE
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xDF
@@ -172,7 +222,7 @@ megaduck_to_workboy_keyboard_keycode_recode_table:
     db WORKBOY_SCAN_KEY_G                                  ; 'g',        // 0x97 DUCK_KEY_CODE_G
     db WORKBOY_SCAN_KEY_RECORD                             ; NO_KEY,     // 0x98 DUCK_KEY_CODE_F7
     db WORKBOY_SCAN_KEY_6 | WORKBOY_IO_MOCK_SHIFT          ; '6',        // 0x99 DUCK_KEY_CODE_6
-    db WORKBOY_SCAN_KEY_Y                                  ; 'y',        // 0x9A DUCK_KEY_CODE_Y
+    db WORKBOY_SCAN_KEY_Y                                  ; 'y',        // 0x9A DUCK_KEY_CODE_Y  // German version : 'z'
     db WORKBOY_SCAN_KEY_H                                  ; 'h',        // 0x9B DUCK_KEY_CODE_H
     db WORKBOY_SCAN_KEY_WORLD                              ; NO_KEY,     // 0x9C DUCK_KEY_CODE_F8
     db WORKBOY_SCAN_KEY_7 | WORKBOY_IO_MOCK_SHIFT          ; '7',        // 0x9D DUCK_KEY_CODE_7
@@ -192,14 +242,14 @@ megaduck_to_workboy_keyboard_keycode_recode_table:
     db WORKBOY_SCAN_KEY_P                                  ; 'p',        // 0xAA DUCK_KEY_CODE_P
     db WORKBOY_SCAN_KEY_NONE                               ; 'ñ',        // 0xAB DUCK_KEY_CODE_N_TILDE
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xAC DUCK_KEY_CODE_F12
-    db WORKBOY_SCAN_KEY_DOUBLE_QUOTE                       ; '\'',       // 0xAD DUCK_KEY_CODE_SINGLE_QUOTE
+    db WORKBOY_SCAN_KEY_QUOTE                              ; '\'',       // 0xAD DUCK_KEY_CODE_SINGLE_QUOTE
     db WORKBOY_SCAN_KEY_NONE                               ; '`',        // 0xAE DUCK_KEY_CODE_BACKTICK
     db WORKBOY_SCAN_KEY_NONE                               ; 'ü',        // 0xAF DUCK_KEY_CODE_U_UMLAUT
 
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xB0
-    db WORKBOY_SCAN_KEY_NONE                               ; '¡',        // 0xB1 DUCK_KEY_CODE_EXCLAMATION_FLIPPED
-    db WORKBOY_SCAN_KEY_NONE                               ; ']',        // 0xB2 DUCK_KEY_CODE_RIGHT_SQ_BRACKET
-    db WORKBOY_SCAN_KEY_NONE                               ; 'º',     // 0xB3 DUCK_KEY_CODE_O_OVER_LINE Masculine Ordinal
+    db WORKBOY_SCAN_KEY_NONE                               ; '¡',        // 0xB1 DUCK_KEY_CODE_EXCLAMATION_FLIPPED  // German version : 'Backtick'
+    db WORKBOY_SCAN_KEY_NONE                               ; ']',        // 0xB2 DUCK_KEY_CODE_RIGHT_SQ_BRACKET     // German version : 'Middle Dot'
+    db WORKBOY_SCAN_KEY_HASH | WORKBOY_IO_MOCK_SHIFT       ; 'º',     // 0xB3 DUCK_KEY_CODE_O_OVER_LINE Masculine Ordinal  // German version :#:
     db WORKBOY_SCAN_KEY_NONE                               ; NO_KEY,     // 0xB4
     db WORKBOY_SCAN_KEY_BACKSPACE                          ; KEY_BACKSPACE, // 0xB5 DUCK_KEY_CODE_BACKSPACE
     db WORKBOY_SCAN_KEY_ENTER                              ; KEY_ENTER,     // 0xB6 DUCK_KEY_CODE_ENTER

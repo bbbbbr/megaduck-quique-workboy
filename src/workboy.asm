@@ -58,6 +58,8 @@ include "inc/workboy_sys_keys.inc"
 IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     include "duck/inc/megaduck_laptop_io.inc"
     include "duck/inc/megaduck_laptop_keycodes.inc"
+
+    include "duck/megaduck_laptop_detect_model.asm"
 ENDC
 
 
@@ -145,7 +147,11 @@ include "inc/workboy_sram.inc"
 SECTION "rom0", ROM0
 duck_entry_point__0000:
 _LABEL_0_:
-    jp   startup_init__0150
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        jp   duck_check_model_on_startup_wrapper_bank_0
+    ELSE
+        jp   startup_init__0150
+    ENDC
 
 ; Data from 3 to 6 (4 bytes)
 _DATA_0003_:
@@ -460,9 +466,20 @@ startup_init__0150:
     ; Seems related to some quirks of their MBC cart
     ; perhaps needing repeated writes to "take"
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
-        REPT 21
-            nop
-        ENDR
+        ; 0x01CC -> 0x1E0 (range inclusive)
+
+        ; 0x01CC
+        jr startup__skip_unusual_mbc_init_resume_01AC
+
+        ; 0x01CE
+        ; This space is used for megaduck laptop model detection
+        ; See:
+        ; - Section: "Duck Laptop Detect Model ROM0"
+        ; - duck_check_model_on_startup_wrapper_bank_0
+
+        ; REPT 21
+        ;     nop
+        ; ENDR
     ELSE
         halt
         call mbc_sram_ON_rombank_1_srambank_0__0AFD
@@ -476,6 +493,8 @@ startup_init__0150:
         call mbc_sram_ON_rombank_1_srambank_0__0AFD
         halt
     ENDC
+    SECTION "startup__skip_unusual_mbc_init_resume_01AC", ROM0[$01E1]
+    startup__skip_unusual_mbc_init_resume_01AC:
 
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -6252,8 +6271,8 @@ vblank__handler__25CC:
         ld   hl, vblank__frame_counter_maybe__RAM_C100
         inc  [hl]
 
-        call _LABEL_2FE6_
-        call _LABEL_357E_
+        call time_date__increment_time__2FE6  ; WARNING: It conditionally calls a bank switch
+        call maybe_alarm_sound_related__357E
         ld   a, [_RAM_C3AA_]
         or   a
         jr   z, _LABEL_2659_
@@ -8166,7 +8185,9 @@ app_clock__launch__2F8E:
 db $FA, $03, $C1, $B7, $20, $FA, $CF, $FE, $FF, $C2, $00, $02, $FA, $03, $C1, $B7
 db $28, $F4, $FA, $03, $C1, $B7, $20, $FA, $C3, $00, $02
 
-_LABEL_2FE6_:
+
+; WARNING: It conditionally calls a bank switch
+time_date__increment_time__2FE6:
     ld   a, [_RAM_C3A6_]
     dec  a
     ld   [_RAM_C3A6_], a
@@ -8186,7 +8207,7 @@ _LABEL_2FF7_:
     ld   a, [time__seconds__decimal__RAM_C3A1]
     inc  a
     cp   60  ; $3C
-    jr   nz, .seconds_no_60_rollover__303B
+    jr   nz, .seconds_no_rollover__303B
         ; Seconds == 60
         ld   a, $01
         ld   [_RAM_C3A9_], a  ; TODO: Flag seconds rollover something...
@@ -8224,7 +8245,7 @@ _LABEL_2FF7_:
         .not_zero_skip_some_rollover_todo__303A_:
         xor  a
 
-    .seconds_no_60_rollover__303B:
+    .seconds_no_rollover__303B:
     ld   [time__seconds__decimal__RAM_C3A1], a
     ret
 
@@ -9108,7 +9129,7 @@ _LABEL_3556_:
     ld   [_RAM_C3D0_], a
     ret
 
-_LABEL_357E_:
+maybe_alarm_sound_related__357E:
     ld   a, [_RAM_C3B2_]
     inc  a
     jp   z, _LABEL_3626_

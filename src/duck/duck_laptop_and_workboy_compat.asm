@@ -499,10 +499,17 @@ duck_io_keyboard_recode_duck_to_workboy:
             ld   c, a
 
     .shift_check_done
-
     ; C has megaduck scancode as of here
+
+    ; Remap for german keyboard if that model was detected
+    ldh  a, [duck_detected_model]
+    cp   a, MEGADUCK_LAPTOP_GERMAN
+    jr   nz, .german_keyboard_remapping_done
+        call megaduck_keyboard_german_to_spanish_keycode_remap
+    .german_keyboard_remapping_done
+
     ; Index into the recode table based on the megaduck key scan code
-    ld   hl, megaduck_to_workboy_keyboard_keycode_recode_table
+    ld   hl, megaduck_to_workboy_keyboard_keycode_recode_table_spanish
     ld   b, 0
     add  hl, bc
 
@@ -513,43 +520,3 @@ duck_io_keyboard_recode_duck_to_workboy:
     pop  bc
     pop  hl
     ret
-
-
-; TODO: 
-; Returns: translated Workboy keycode data in A
-; duck_io_keyboard_remap_german_to_spanish:
-;
-; char duck_io_scancode_to_ascii(const uint8_t key_code, const uint8_t megaduck_model) {
-;     char ascii_char = scancode_to_ascii_LUT_spanish[key_code];
-;     // Handle alternate German keyboard layout
-;     if (megaduck_model == MEGADUCK_LAPTOP_GERMAN)
-;         switch (ascii_char) {
-;             // Row 1
-;             // case '·':  ascii_char = '§'; break;  // TODO: handling for these
-;             case '\'': ascii_char = 'ß'; break;
-;             // case '¿':  ascii_char = '`'; break;  // TODO: handling for these
-;             // case '¡':  ascii_char = '\''; break; // TODO: handling for these
-;             case '÷':  ascii_char = ':'; break;
-;             // Row 2
-;             case '[':  // maps to same char below
-;             case '`':  ascii_char = 'Ü'; break;
-;             case ']':  ascii_char = '·'; break;
-;             case 'y':  ascii_char = 'z'; break;
-;             case 'Y':  ascii_char = 'Z'; break;
-;             // Row 3
-;             // case 'ñ':  ascii_char = 'ö'; break; // TODO: handling for these
-;             // case 'Ñ':  ascii_char = 'Ö'; break; // TODO: handling for these
-;             // case 'ü':  ascii_char = 'ä'; break; // TODO: handling for these
-;             // case 'Ü':  ascii_char = 'Ä'; break; // TODO: handling for these
-;             // case 'ª':  ascii_char = '^'; break; // TODO: handling for these
-;             // case 'º':  ascii_char = '#'; break; // TODO: handling for these
-;             // Row 4
-;             case 'z':  ascii_char = 'y'; break;
-;             case 'Z':  ascii_char = 'Y'; break;
-;             case '-':  ascii_char = '@'; break;
-;         }
-
-;     return ascii_char;
-; }
-
-

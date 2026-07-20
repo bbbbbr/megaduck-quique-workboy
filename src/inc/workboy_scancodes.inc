@@ -15,7 +15,7 @@
 
 
 ; Commented out means not yet assigned in
-; megaduck_to_workboy_keyboard_keycode_recode_table
+; megaduck_to_workboy_keyboard_keycode_recode_table_spanish
 
 
 DEF WORKBOY_SCAN_KEY_EMPTY_MAYBE       EQU $00
