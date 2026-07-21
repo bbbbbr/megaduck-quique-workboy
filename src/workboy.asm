@@ -77,17 +77,18 @@ IF DEF(BUILD_USE_DUCK_MBC_MD2)
     ; MBC Register defines
     DEF rMBC_ROMBANK        EQU $0001
 
-    DEF rMBC_RAMBANK        EQU $4000
+    DEF rMBC_RAMBANK        EQU $1000
     DEF rMBC_RAMBANK_ALT    EQU rMBC_RAMBANK  ; Don't use occasional alternate value like the original ROM
 
-    DEF rMBC_RAM_ENABLE     EQU $00FF
-    DEF rMBC_RAM_ENABLE_ALT EQU rMBC_RAM_ENABLE  ; Don't use occasional alternate value like the original ROM
+;    DEF rMBC_RAM_ENABLE     EQU $00FF            ; Not needed in MD2 SRAM separate cart mode
+;    DEF rMBC_RAM_ENABLE_ALT EQU rMBC_RAM_ENABLE  ; Don't use occasional alternate value like the original ROM
     ; $4000 used once instead of $5FFF for SRAM bank switching
 ;   DEF rMBC_MODE_SEL       EQU $7FFF  ; Not used in MD2 mode
 
-    DEF MBC_RAM_ON         EQU $0A
-    DEF MBC_RAM_OFF        EQU $00
-;    DEF MBC1_MODE_RAMBANKED EQU $01  ; Not used in MBC5 mode
+    DEF MBC_RAM_REG_BANK_MASK  EQU $F0
+;    DEF MBC_RAM_ON         EQU $0A   ; Not needed in MD2 SRAM separate cart mode
+;    DEF MBC_RAM_OFF        EQU $00   ; Not needed in MD2 SRAM separate cart mode
+;    DEF MBC1_MODE_RAMBANKED EQU $01  ; Not used in MD2 mode
 
 ELIF DEF(BUILD_USE_DUCK_MBC5)
     ; === MBC 5 ====
@@ -114,7 +115,6 @@ ELSE
     DEF rMBC_RAM_ENABLE     EQU $00FF
 
     ; $0002 used once instead of $00FF for (?) SRAM enable
-    ; TODO: WARNING! Writing to $0002 will clash with Zwenergy Pico Pi Mega Duck Flash cart : Cart Select Reg address. RAM Enable not required for Duck Cart SRAM 
     DEF rMBC_RAM_ENABLE_ALT EQU $0002
     DEF rMBC_MODE_SEL       EQU $7FFF
     ; $4000 used twice instead of $5FFF for SRAM bank switching
@@ -2061,8 +2061,16 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
     ; Writing 1 to ROM bank select
     ; Select SRAM Bank switch mode and then
     ; write 0 to the SRAM Bank select
-    ld   a, MBC_RAM_ON          ; $0A
-    ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
+
+    ; RAM Enable/Disable not available for MD2 (always connected)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+        REPT 5
+            nop
+        ENDR        
+    ELSE    
+        ld   a, MBC_RAM_ON          ; $0A
+        ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
+    ENDC
 
     ld   a, $01
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -2079,11 +2087,11 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
     ELSE
         ; Implied: MBC1
         ld   a, MBC1_MODE_RAMBANKED  ; $01
-        ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+        ld   [rMBC_MODE_SEL], a      ; [$7FFF]
     ENDC
 
-    xor  a
-    ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
+    xor  a                           ; OK for MD2 Cart SRAM upper nibble register since it's all zeros
+    ld   [rMBC_RAMBANK_ALT], a       ; [$5FFF]
     ret
 
 
@@ -2209,21 +2217,40 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
     ; write value in C to SRAM Bank select
     push bc
     ld   c, a
-    ld   a, MBC_RAM_ON          ; $0A
-    ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
 
-    ; RAM mode not needed for MD2 and MBC5
-    IF (DEF(BUILD_USE_DUCK_MBC_MD2) || DEF(BUILD_USE_DUCK_MBC5))
+    ; RAM Enable/Disable not available for MD2 (always connected)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
         REPT 5
             nop
-        ENDR
+        ENDR        
     ELSE
-        ld   a, MBC1_MODE_RAMBANKED  ; $01
-        ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+        ld   a, MBC_RAM_ON          ; $0A
+        ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
     ENDC
 
-    ld   a, c
-    ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
+    ; RAM mode not needed for MD2 and MBC5
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+        ; 9 bytes of space
+        ; MD2 SRAM bank is set by writing upper nibble
+        swap c
+        ld   a, MBC_RAM_REG_BANK_MASK
+        and  c
+        ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
+        nop
+    ELSE
+        IF DEF(BUILD_USE_DUCK_MBC5)
+            REPT 5
+                nop
+            ENDR
+        ELSE
+            ld   a, MBC1_MODE_RAMBANKED  ; $01
+            ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+        ENDC
+
+        ld   a, c
+        ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
+    ENDC
+
     pop  bc
     ret
 
@@ -7139,9 +7166,18 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
     call delay_2_94msec__334A
     ldh  a, [rSB]
     push af
-    ; TODO: ? Is this doing something non-Standard for MBC1 instead of turning of SRAM enable
-    ld   a, MBC_RAM_OFF  ; $00
-    ld   [rMBC_RAM_ENABLE_ALT], a  ; $0002
+
+    ; Is this doing something non-Standard for MBC1 instead of turning of SRAM enable
+
+    ; RAM Enable/Disable not available for MD2 (always connected)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+        REPT 5
+            nop
+        ENDR        
+    ELSE
+        ld   a, MBC_RAM_OFF  ; $00
+        ld   [rMBC_RAM_ENABLE_ALT], a  ; $0002
+    ENDC
     pop  af
     ; Loop until a non-0x00 and non-0xFF serial response
     cp   WORKBOY_SCAN_KEY_EMPTY_MAYBE  ; $00
@@ -8053,21 +8089,40 @@ mbc_sram_ON_set_srambank_to_A__2E9B:
     ; Select SRAM Bank switch mode and then
     ; write value in C to SRAM Bank select
     ld   c, a
-    ld   a, MBC_RAM_ON          ; $0A
-    ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
 
-    ; RAM mode not needed for MD2 and MBC5
-    IF (DEF(BUILD_USE_DUCK_MBC_MD2) || DEF(BUILD_USE_DUCK_MBC5))
+    ; RAM Enable/Disable not available for MD2 (always connected)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
         REPT 5
             nop
-        ENDR
+        ENDR        
     ELSE
-        ld   a, MBC1_MODE_RAMBANKED  ; $01
-        ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+        ld   a, MBC_RAM_ON          ; $0A
+        ld   [rMBC_RAM_ENABLE], a   ; [$00FF]
     ENDC
 
-    ld   a, c
-    ld   [rMBC_RAMBANK], a              ; [$4000]
+    ; RAM mode not needed for MD2 and MBC5
+    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+        ; 9 bytes of space
+        ; MD2 SRAM bank is set by writing upper nibble
+        swap c
+        ld   a, MBC_RAM_REG_BANK_MASK
+        and  c
+        ld   [rMBC_RAMBANK_ALT], a          ; [$5FFF]
+        nop
+    ELSE
+        IF DEF(BUILD_USE_DUCK_MBC5)
+            REPT 5
+                nop
+            ENDR
+        ELSE
+            ld   a, MBC1_MODE_RAMBANKED  ; $01
+            ld   [rMBC_MODE_SEL], a     ; [$7FFF]
+        ENDC
+
+        ld   a, c
+        ld   [rMBC_RAMBANK], a              ; [$4000]
+    ENDC
+
     ret
 
 

@@ -104,6 +104,9 @@ bindiffduck-mbc5:
 bindiffduck-md2:
 	vbindiff $(REFERENCE_ROM) build_duck_md2/$(DUCK_ROMNAME)md2
 
+bindiffducks:
+	vbindiff build_duck_mbc5/$(DUCK_ROMNAME)mbc5 build_duck_md2/$(DUCK_ROMNAME)md2
+
 bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
 
