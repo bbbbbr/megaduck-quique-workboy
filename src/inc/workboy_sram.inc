@@ -10,18 +10,18 @@ SECTION "sram_a02a", SRAM[$A02A]
 _SRAM_2A_: db
 
 SECTION "sram_a1f5", SRAM[$A1F5]
-_SRAM_1F5_: db
+save_data__check_sequence_addr__SRAM_A1F5: db
 
 SECTION "sram_a1f9", SRAM[$A1F9]
 _SRAM_1F9_: db
 
 SECTION "sram_a221", SRAM[$A221]
-_SRAM_221_: db
+save_data__calc_mem__SRAM_A221: db
 _SRAM_222_: db
 _SRAM_223_: db
 
 SECTION "sram_a231", SRAM[$A231]
-_SRAM_231_: db
+save_data__appt_count__SRAM_A231: db
 
 SECTION "sram_a233", SRAM[$A233]
 _SRAM_233_: db

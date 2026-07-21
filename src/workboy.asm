@@ -502,8 +502,8 @@ startup_init__0150:
     ELSE
         ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
-    ; Needs SRAM support if it's going to run on the MegaDuck
-    call savedata__maybe_some_sram_init__E42E
+
+    call savedata__check_if_initialized__reinit_if_needed__E42E
     ld   a, $01
     ld   [_RAM_C10F_], a
     ld   a, [date__dayofweek_0_to_6_sun_to_mon__decimal__RAM_C304]
@@ -1172,7 +1172,7 @@ _LABEL_5D5_:
     ld   a, [_RAM_C260_]
     or   a
     jr   z, _LABEL_5E9_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     cp   l
     ret  c
     ld   a, l
@@ -2513,7 +2513,7 @@ _LABEL_D66_:
     dec  b
     jr   nz, _LABEL_D66_
     ld   hl, $A233
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     or   a
     ret  z
 _LABEL_D73_:
@@ -3305,7 +3305,7 @@ _LABEL_1163_:
     jr   nz, _LABEL_1174_
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     or   a
     jp   z, _LABEL_DCC7_
     jr   _LABEL_11B2_
@@ -3393,7 +3393,7 @@ _LABEL_11F7_:
     jp   nz, _LABEL_200_
     bit  1, a
     jr   z, _LABEL_11DA_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     ld   c, a
     ld   a, [_RAM_C10B_]
     cp   c
@@ -5631,7 +5631,7 @@ db $4E, $46, $43, $52, $50, $45, $55, $21
 app_appointments__launch__2209:
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     or   a
     jr   z, _LABEL_2215_
     ld   a, $01
@@ -5701,7 +5701,7 @@ _LABEL_2286_:
     inc  hl
     cp   [hl]
     jr   nz, _LABEL_229E_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     cp   $1E
     jr   z, _LABEL_224C_
     xor  a
@@ -5740,7 +5740,7 @@ _LABEL_22CA_:
     inc  hl
     cp   [hl]
     jr   nz, _LABEL_22DF_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     ld   c, a
     ld   a, [_RAM_C10B_]
     cp   c
@@ -5818,9 +5818,9 @@ _LABEL_2338_:
     or   c
     jr   nz, _LABEL_2338_
 _LABEL_2340_:
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     dec  a
-    ld   [_SRAM_231_], a
+    ld   [save_data__appt_count__SRAM_A231], a
     ld   c, a
     ld   a, [_RAM_C10B_]
     cp   c
@@ -7487,7 +7487,7 @@ _LABEL_2B7D_:
     or   a  ; == KYBD_STATUS__NOT_FOUND
     ret  z
 
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     or   a
     ret  z
     ld   a, $02
@@ -7878,14 +7878,14 @@ time__handle_reset_invalid_RTC_data__2D4E:
     ld   [_RAM_C137_], a
     call rtc__load_data_to_rtc_transfer_buffer__0EB1
 
-    ; TODO: Validating 4 bytes of something in SRAM
+    ; Validating 4 bytes of save_data__init_check_sequence_maybe__E42A in SRAM
     ;
     ; Set MBC SRAM Bank to 0
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
-    ld   hl, $A1F5
-    ld   de, _DATA_E42A_
-    ld   b, $04
+    ld   hl, save_data__check_sequence_addr__SRAM_A1F5  ; $A1F5
+    ld   de, save_data__init_check_sequence__bank3_642A
+    ld   b, WORKBOY_SAVE_DATA__CHECK_SEQUENCE_LEN ; $04
     .loop__2D89:
         ld   a, [de]
         inc  de
@@ -13517,14 +13517,14 @@ _LABEL_ADB9_:
     or   c
     jr   nz, _LABEL_ADB9_
 _LABEL_ADC1_:
-    ld   hl, _SRAM_231_
+    ld   hl, save_data__appt_count__SRAM_A231
     dec  [hl]
     pop  hl
 _LABEL_ADC6_:
     pop  af
     dec  a
     jr   nz, _LABEL_AD7D_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     or   a
     jr   nz, _LABEL_ADD4_
     ld   [_RAM_C10B_], a
@@ -13538,7 +13538,7 @@ _LABEL_ADD4_:
 _LABEL_ADDA_:
     xor  a
     ld   [_RAM_C58F_], a
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     ld   hl, _SRAM_233_
 _LABEL_ADE4_:
     push af
@@ -14153,7 +14153,7 @@ _LABEL_B1C5_:
 _LABEL_B1CA_:
     ld   a, [_RAM_C10B_]
     push af
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     inc  a
     ld   [_RAM_C10B_], a
     call _LABEL_B7F7_
@@ -14389,9 +14389,9 @@ _LABEL_B375_:
     jr   _LABEL_B3E9_
 
 _LABEL_B395_:
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     inc  a
-    ld   [_SRAM_231_], a
+    ld   [save_data__appt_count__SRAM_A231], a
     ld   [_RAM_C10B_], a
     call _LABEL_B3E9_
     jp   _LABEL_B7F7_
@@ -14421,7 +14421,7 @@ _LABEL_B3C0_:
     cp   $04
     ret  nz
     call _LABEL_DE6_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     or   a
     ret  z
     ld   b, a
@@ -14455,7 +14455,7 @@ _LABEL_B3F6_:
     ldi  [hl], a
     dec  b
     jr   nz, _LABEL_B3F6_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     cp   $01
     ret  z
     ld   hl, _RAM_C7B4_
@@ -14466,10 +14466,10 @@ _LABEL_B407_:
     inc  b
     dec  a
     jr   nz, _LABEL_B407_
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
 _LABEL_B410_:
     push af
-    ld   a, [_SRAM_231_]
+    ld   a, [save_data__appt_count__SRAM_A231]
     dec  a
 _LABEL_B415_:
     push af
@@ -15198,11 +15198,11 @@ _LABEL_B88E_:
 
 _LABEL_B894_:
     call _LABEL_B955_
-    ld   a, [_SRAM_221_]
+    ld   a, [save_data__calc_mem__SRAM_A221]
     or   a
     jr   nz, _LABEL_B8AB_
     ld   a, $4D
-    ld   [_SRAM_221_], a
+    ld   [save_data__calc_mem__SRAM_A221], a
     ld   a, $30
     ld   [_SRAM_222_], a
     xor  a
@@ -15233,11 +15233,11 @@ _LABEL_B8CE_:
 
 _LABEL_B8E0_:
     call _LABEL_B955_
-    ld   a, [_SRAM_221_]
+    ld   a, [save_data__calc_mem__SRAM_A221]
     or   a
     jr   nz, _LABEL_B8F7_
     ld   a, $4D
-    ld   [_SRAM_221_], a
+    ld   [save_data__calc_mem__SRAM_A221], a
     ld   a, $30
     ld   [_SRAM_222_], a
     xor  a
@@ -15274,7 +15274,7 @@ _LABEL_B921_:
     cp   $30
     ret  nz
     xor  a
-    ld   [_SRAM_221_], a
+    ld   [save_data__calc_mem__SRAM_A221], a
     ret
 
 _LABEL_B937_:
@@ -15327,7 +15327,7 @@ _LABEL_B96C_:
 
 ; 2nd entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
 vblank__cmd_01_TODO__LABEL_B973_:
-    ld   a, [_SRAM_221_]
+    ld   a, [save_data__calc_mem__SRAM_A221]
     ld   [(_TILEMAP0 + $65)], a
     ld   de, _RAM_C466_
     ld   hl, $98E4
@@ -15425,13 +15425,13 @@ _LABEL_BA5C_:
     cp   $75
     jr   nz, _LABEL_BA75_
     xor  a
-    ld   [_SRAM_221_], a
+    ld   [save_data__calc_mem__SRAM_A221], a
     jr   _LABEL_BA26_
 
 _LABEL_BA75_:
     cp   $79
     jr   nz, _LABEL_BA84_
-    ld   a, [_SRAM_221_]
+    ld   a, [save_data__calc_mem__SRAM_A221]
     or   a
     jr   z, _LABEL_BA26_
     call _LABEL_B846_
@@ -19339,9 +19339,9 @@ _LABEL_D79C_:
     cp   [hl]
     jp   nz, app_syscontrol__launch__0D49
     xor  a
-    ld   [_SRAM_221_], a
+    ld   [save_data__calc_mem__SRAM_A221], a
     ld   [_SRAM_1F9_], a
-    ld   [_SRAM_231_], a
+    ld   [save_data__appt_count__SRAM_A231], a
     ld   [_RAM_C10B_], a
     ld   [_SRAM_A04_], a
     ld   [_RAM_C5CD_], a
@@ -19360,9 +19360,9 @@ _LABEL_D79C_:
     call mbc_sram_ON_set_srambank_to_A__0BB1
     inc  a
     ld   [_SRAM_9EF_], a
-    ld   hl, _SRAM_1F5_
-    ld   de, _DATA_E42A_
-    ld   b, $04
+    ld   hl, save_data__check_sequence_addr__SRAM_A1F5
+    ld   de, save_data__init_check_sequence__bank3_642A
+    ld   b, WORKBOY_SAVE_DATA__CHECK_SEQUENCE_LEN ; $04
 _LABEL_D7EA_:
     ld   a, [de]
     inc  de
@@ -20879,51 +20879,54 @@ _LABEL_E3DF_:
     ret
 
 ; Data from E42A to E42D (4 bytes)
-_DATA_E42A_:
+save_data__init_check_sequence__bank3_642A:
 db $49, $47, $4F, $52
 
-savedata__maybe_some_sram_init__E42E:
+savedata__check_if_initialized__reinit_if_needed__E42E:
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
-    ld   hl, $A1F5
-    ld   de, _DATA_E42A_
-    ld   b, $04
-_LABEL_E43A_:
-    ld   a, [de]
-    inc  de
-    cp   [hl]
-    jr   nz, _LABEL_E444_
-    inc  hl
-    dec  b
-    jr   nz, _LABEL_E43A_
+    ld   hl, save_data__check_sequence_addr__SRAM_A1F5  ; $A1F5
+    ld   de, save_data__init_check_sequence__bank3_642A
+    ld   b, WORKBOY_SAVE_DATA__CHECK_SEQUENCE_LEN  ; $04
+    .mem_compare_loop__E43A:
+        ld   a, [de]
+        inc  de
+        cp   [hl]
+        jr   nz, .savedata__check_sequence_mismatch__rewrite_seq__E444
+        inc  hl
+        dec  b
+        jr   nz, .mem_compare_loop__E43A
+    ; If the init sequence matched then return without any further action
     ret
 
-_LABEL_E444_:
+    ; Rewrite the missing init sequence since it was mismatched or missing
+    .savedata__check_sequence_mismatch__rewrite_seq__E444:
     ld   a, [serial_io__keyboard_detected_status__RAM_C10A]
     or   a  ; == KYBD_STATUS__NOT_FOUND
     jr   z, .skip_copy_to_sram_if_keyboard_not_connected__E45C
 
-        ; Copy 4 bytes of data from _DATA_E42A_ to SRAM Bank 0 _SRAM_1F5_
-        xor  a
-        call mbc_sram_ON_set_srambank_to_A__0BB1
-        ld   hl, _SRAM_1F5_
-        ld   de, _DATA_E42A_
-        ld   b, $04
-        .copy_to_sram_loop__E456:
-            ld   a, [de]
-            inc  de
-            ldi  [hl], a
-            dec  b
-            jr   nz, .copy_to_sram_loop__E456
+    ; Copy 4 bytes of data from save_data__init_check_sequence__bank3_642A to SRAM Bank 0 save_data__check_sequence_addr__SRAM_A1F5
+    xor  a
+    call mbc_sram_ON_set_srambank_to_A__0BB1
+    ld   hl, save_data__check_sequence_addr__SRAM_A1F5
+    ld   de, save_data__init_check_sequence__bank3_642A
+    ld   b, WORKBOY_SAVE_DATA__CHECK_SEQUENCE_LEN  ; $04
+    .copy_to_sram_loop__E456:
+        ld   a, [de]
+        inc  de
+        ldi  [hl], a
+        dec  b
+        jr   nz, .copy_to_sram_loop__E456
 
     .skip_copy_to_sram_if_keyboard_not_connected__E45C:
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
 
+    ; Zero out some app data counters (appointments, calc, others?)
     xor  a
-    ld   [_SRAM_231_], a
+    ld   [save_data__appt_count__SRAM_A231], a
     ld   [_RAM_C10B_], a
-    ld   [_SRAM_221_], a
+    ld   [save_data__calc_mem__SRAM_A221], a
     ld   [_SRAM_A04_], a
     ld   [_RAM_C5CD_], a
 
