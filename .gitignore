@@ -8,6 +8,7 @@
 *build_gb/*
 *build_duck*
 *reference_rom/*
+patches/*
 Notes.md
 notes.md
 *.sublime*

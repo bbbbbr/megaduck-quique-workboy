@@ -25,8 +25,11 @@ SRCNAME=workboy.asm
 DUCK_ROMNAME=$(ROMNAME_BASE).$(DUCK_MBC)
 
 UPS_PATCHTOOL_PATH=tools/ups_patch
+PATCHDIR=patches
+PATCH_DUCK_MD2   = $(PATCHDIR)/$(DUCK_ROMNAME)md2.patch.ups
+PATCH_DUCK_MBC5  = $(PATCHDIR)/$(DUCK_ROMNAME)mbc5.patch.ups
 
-MKDIRS = $(DIRGB) $(REF_ROM_DIR)
+MKDIRS = $(DIRGB) $(REF_ROM_DIR) $(PATCHDIR)
 ifdef DUCK_MBC
 	MKDIRS += $(DIRDUCK)
 endif
@@ -91,6 +94,14 @@ $(DIRDUCK)/$(DUCK_ROMNAME): duckgfx $(SRCDIR)/$(SRCNAME)
 # 	@if which md5sum &>/dev/null; then md5sum $(REFERENCE_ROM); else md5 $(REFERENCE_ROM); fi
 #   Overwrite save to ensure it has a working one with some data (sometimes gets reset)
 	cp -f $(TEST_SAV) $(DIRDUCK)/$(TEST_SAVE_NAME)
+
+
+# == Patches ==
+.PHONY: patches
+patches:
+	$(UPS_PATCHTOOL_PATH) diff --base $(REFERENCE_ROM) -modified build_duck_md2/$(DUCK_ROMNAME)md2   -output $(PATCH_DUCK_MD2) &
+	$(UPS_PATCHTOOL_PATH) diff --base $(REFERENCE_ROM) -modified build_duck_mbc5/$(DUCK_ROMNAME)mbc5 -output $(PATCH_DUCK_MBC5) &
+
 
 duckgfx:
 #	rgbgfx $(GFXDIR)/megaduck_logo_9x_8x8.png -o src/megaduck_logo_9_tiles.2bpp -c "#FFFFFF,#A0A0A0,#4E4E4E,#000000;"

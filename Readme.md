@@ -51,6 +51,7 @@ The patch is in UPS format. It can be applied using this online patcher (or any 
 - Liam Robertson's [research and documentary](https://www.youtube.com/watch?v=SZcrPM-jDqY)
 - [Emulicious](https://emulicious.net): Game Boy emulator with a very useful debugger and disassembler
 - [RGBDS](https://rgbds.gbdev.io) assembler
+- [UPS Patch](https://github.com/rameshvarun/ups) for generating patch output
 
 
 ### Building
