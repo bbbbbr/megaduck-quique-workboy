@@ -110,6 +110,11 @@ bindiffducks:
 bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
 
+symdiff:
+	meld build_gb/$(DUCK_ROMNAME)sym build_duck_mbc5/$(DUCK_ROMNAME)sym build_duck_md2/$(DUCK_ROMNAME)sym
+
+
+
 runduck: runduckmbc5
 
 # 0x1B 	MBC-5 	SRAM 	BATTERY 
