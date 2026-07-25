@@ -1007,7 +1007,7 @@ _LABEL_498_:
     call _LABEL_64E_
     ld   bc, $FFE4
     ld   e, $70
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
@@ -2442,7 +2442,7 @@ _LABEL_CEE_:
     call _LABEL_62C_
     ld   bc, $FFE4
     ld   e, $70
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
     call _LABEL_1563_
     xor  a
     ld   [_RAM_C11B_], a
@@ -4110,7 +4110,7 @@ _LABEL_1665_:
     ld   [_RAM_C240_], a
     ld   bc, $09E0
     ld   e, $0E
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
 _LABEL_1684_:
     rst  $18    ; Call VSYNC__RST_18
     ld   a, [_RAM_C240_]
@@ -4220,7 +4220,7 @@ _LABEL_16F5_:
     ELSE
         ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
-    call _LABEL_F790_
+    call lang_select__run_simple_menu__F790
     call gfx__turn_off_screen_2827
     call _LABEL_2735_
     pop  de
@@ -4708,7 +4708,7 @@ _LABEL_1A6A_:
     ELSE
         ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
-    call _LABEL_F790_
+    call lang_select__run_simple_menu__F790
     call _LABEL_F74D_
     ld   a, $F2
     ldh  [rOBP0], a
@@ -5072,7 +5072,10 @@ _LABEL_1CC6_:
     ld   [_RAM_C24D_], a
     ret
 
-_LABEL_1CF6_:
+; A: Line for trigger
+; B: Line for next trigger
+; C: BGP for next trigger
+sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6:
     ld   a, e
     ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
     ld   a, b
@@ -5347,11 +5350,11 @@ _LABEL_2003_:
     ld   a, h
     ld   [_RAM_C255_], a
     ldi  a, [hl]
-    ld   [_RAM_C256_], a
+    ld   [submenu__max_item_index__C256], a
     xor  a
     ld   [_RAM_C23E_], a
     inc  a
-    ld   [_RAM_C257_], a
+    ld   [submenu__selected_item_index__C257], a
     ld   a, $1B
     ldh  [rOBP0], a
     ld   a, $05
@@ -5391,6 +5394,8 @@ _LABEL_2044_:
     ld   [_RAM_C23F_], a
     ret
 
+; These are the Fancy list item menus;
+; with decorative borders around each entry
 sys_run_submenu_result_in_A__206D:
     rst  $18    ; Call VSYNC__RST_18
     ld   a, [_RAM_C25B_]
@@ -5406,125 +5411,133 @@ sys_run_submenu_result_in_A__206D:
     jr   nz, _LABEL_2088_
     ld   a, e
     ld   [_RAM_C251_], a
-_LABEL_2088_:
-    ld   a, e
-    add  $22
-    ld   e, a
-    call _LABEL_1504_
-    ld   a, [_RAM_C25C_]
-    ld   c, a
-    ld   a, [_RAM_C250_]
-    ld   b, a
-    ld   a, [_RAM_C252_]
-    inc  a
-    and  $0F
-    ld   e, a
-    ld   a, [_RAM_C253_]
-    cp   $05
-    jr   nz, _LABEL_20A9_
-    ld   a, e
-    ld   [_RAM_C252_], a
-_LABEL_20A9_:
-    ld   a, e
-    add  $22
-    ld   e, a
-    call _LABEL_1504_
-    ld   a, [_RAM_C253_]
-    dec  a
-    jr   nz, _LABEL_20B8_
-    ld   a, $05
-_LABEL_20B8_:
-    ld   [_RAM_C253_], a
-    ld   a, [_RAM_C240_]
-    or   a
-    jr   z, _LABEL_20D2_
-    dec  a
-    ld   [_RAM_C240_], a
-    ld   a, [gamepad_buttons__RAM_C103]
-    and  $C4
-    jr   nz, _LABEL_20F5_
-    xor  a
-    ld   [_RAM_C240_], a
-    jr   _LABEL_20F5_
+    _LABEL_2088_:
+        ld   a, e
+        add  $22
+        ld   e, a
+        call _LABEL_1504_
+        ld   a, [_RAM_C25C_]
+        ld   c, a
+        ld   a, [_RAM_C250_]
+        ld   b, a
+        ld   a, [_RAM_C252_]
+        inc  a
+        and  $0F
+        ld   e, a
+        ld   a, [_RAM_C253_]
+        cp   $05
+        jr   nz, _LABEL_20A9_
+        ld   a, e
+        ld   [_RAM_C252_], a
+    _LABEL_20A9_:
+        ld   a, e
+        add  $22
+        ld   e, a
+        call _LABEL_1504_
+        ld   a, [_RAM_C253_]
+        dec  a
+        jr   nz, _LABEL_20B8_
+        ld   a, $05
+    _LABEL_20B8_:
+        ld   [_RAM_C253_], a
+        ld   a, [_RAM_C240_]
+        or   a
+        jr   z, _LABEL_20D2_
+        dec  a
+        ld   [_RAM_C240_], a
+        ld   a, [gamepad_buttons__RAM_C103]
+        and  $C4
+        jr   nz, _LABEL_20F5_
+        xor  a
+        ld   [_RAM_C240_], a
+        jr   _LABEL_20F5_
 
-_LABEL_20D2_:
-    ld   a, [gamepad_buttons__RAM_C103]
-    and  $C4
-    jr   z, _LABEL_20F5_
-    ld   e, a
-    ld   a, $19
-    ld   [_RAM_C240_], a
-    ld   a, e
-    bit  6, a
-    jr   nz, _LABEL_213A_
-    bit  7, a
-    jr   nz, _LABEL_210C_
-    bit  2, a
-    jr   z, _LABEL_20F5_
-_LABEL_20EC_:
-    ld   a, [gamepad_buttons__RAM_C103]
-    bit  2, a
-    jr   nz, _LABEL_20EC_
-    jr   _LABEL_2145_
+    _LABEL_20D2_:
+        ld   a, [gamepad_buttons__RAM_C103]
+        and  $C4
+        jr   z, _LABEL_20F5_
+        ld   e, a
+        ld   a, $19
+        ld   [_RAM_C240_], a
+        ld   a, e
+        bit  6, a
+        jr   nz, submenu__up_pressed__213A
+        bit  7, a
+        jr   nz, submenu__down_pressed__210C
+        bit  2, a
+        jr   z, _LABEL_20F5_
+    _LABEL_20EC_:
+        ld   a, [gamepad_buttons__RAM_C103]
+        bit  2, a
+        jr   nz, _LABEL_20EC_
+        jr   _LABEL_2145_
 
-_LABEL_20F5_:
-    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
-    cp   $FF
-    jp   z, sys_run_submenu_result_in_A__206D
-    or   a
-    jp   z, _LABEL_200_
+    _LABEL_20F5_:
+        rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+        cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+        jp   z, sys_run_submenu_result_in_A__206D
 
-    cp   WORKBOY_SYS_KEY_RETURN  ; $0D
-    jr   z, _LABEL_2145_
+        ; Might be checking for Escape Key here, to exit to main sys menu
+        or   a
+        jp   z, _LABEL_200_
 
-    cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
-    jr   z, _LABEL_213A_
+        cp   WORKBOY_SYS_KEY_RETURN  ; $0D
+        jr   z, _LABEL_2145_
 
-    cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
-    jp   nz, sys_run_submenu_result_in_A__206D
+        cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
+        jr   z, submenu__up_pressed__213A
 
-_LABEL_210C_:
-    ld   a, [_RAM_C256_]
-    ld   c, a
-    ld   a, [_RAM_C257_]
-    cp   c
-    jr   nz, _LABEL_2117_
-    xor  a
-_LABEL_2117_:
-    inc  a
-_LABEL_2118_:
-    ld   [_RAM_C257_], a
-    ld   a, [_RAM_C254_]
-    ld   l, a
-    ld   a, [_RAM_C255_]
-    ld   h, a
-    ld   a, [_RAM_C257_]
-    add  l
-    ld   l, a
-    ld   a, h
-    adc  $00
-    ld   h, a
-    ld   a, [hl]
-    add  $02
-    add  a
-    add  a
-    add  a
-    add  $04
-    ld   [_RAM_C250_], a
-    jp   sys_run_submenu_result_in_A__206D
+        cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
+        jp   nz, sys_run_submenu_result_in_A__206D
 
-_LABEL_213A_:
-    ld   a, [_RAM_C257_]
-    dec  a
-    jr   nz, _LABEL_2118_
-    ld   a, [_RAM_C256_]
-    jr   _LABEL_2118_
+    submenu__down_pressed__210C:
+        ; Check if selected item is last item
+        ld   a, [submenu__max_item_index__C256]
+        ld   c, a
+        ld   a, [submenu__selected_item_index__C257]
+        cp   c
+        jr   nz, selected_item_not_last_item
+            ; If selected is last item then wrap around to first item
+            ; (picks up increment since list is 1-based, not zero-based)
+            xor  a
+    selected_item_not_last_item:
+        inc  a
+    submenu__update_selected_item_render_maybe__2118:
+        ld   [submenu__selected_item_index__C257], a
+        ld   a, [_RAM_C254_]
+        ld   l, a
+        ld   a, [_RAM_C255_]
+        ld   h, a
+        ld   a, [submenu__selected_item_index__C257]
+        add  l
+        ld   l, a
+        ld   a, h
+        adc  $00
+        ld   h, a
+        ld   a, [hl]
+        add  $02
+        add  a
+        add  a
+        add  a
+        add  $04
+        ld   [_RAM_C250_], a
+        jp   sys_run_submenu_result_in_A__206D
+
+    submenu__up_pressed__213A:
+        ; Decrement selected item
+        ld   a, [submenu__selected_item_index__C257]
+        dec  a
+        jr   nz, submenu__update_selected_item_render_maybe__2118
+        ; If zero reached, wrap around to last entry
+        ; (so apparently item list is 1-based, not zero-based
+        ld   a, [submenu__max_item_index__C256]
+        jr   submenu__update_selected_item_render_maybe__2118
 
 _LABEL_2145_:
     xor  a
     ld   [_RAM_C23F_], a
     call gfx__clear_shadow_oam__275B
-    ld   a, [_RAM_C257_]
+    ld   a, [submenu__selected_item_index__C257]
     ret
 
 ; Data from 2150 to 2164 (21 bytes)
@@ -5659,7 +5672,7 @@ _LABEL_2218_:
     call _LABEL_B75C_
     ld   bc, $FFE4
     ld   e, $70
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
 _LABEL_2241_:
     call _LABEL_1563_
 _LABEL_2244_:
@@ -10885,8 +10898,19 @@ db $75, $6D, $62, $65, $72, $00, $20, $20, $20, $45, $53, $43, $41, $50, $45, $2
 db $54, $4F, $20, $45, $58, $49, $54, $20, $20, $20, $20, $20, $20, $50, $52, $45
 db $53, $53, $20, $41, $4E, $59, $20, $4B, $45, $59, $20, $20, $00, $45, $6E, $67
 db $6C, $69, $73, $68, $00, $47, $65, $72, $6D, $61, $6E, $00, $46, $72, $65, $6E
-db $63, $68, $00, $53, $70, $61, $6E, $69, $73, $68, $00, $49, $74, $61, $6C, $69
-db $61, $6E, $00, $20, $4A, $41, $4E, $55, $41, $52, $59, $20, $1F, $20, $46, $45
+db $63, $68, $00, $53, $70, $61, $6E, $69, $73, $68, $00, 
+
+
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Hide Italian menu entry
+    ; (it is also made unselectable in lang_select__simple_menu__F7C3)
+    db "       "
+ELSE
+    db "Italian" ; db $49, $74, $61, $6C, $69, $61, $6E
+ENDC
+db $00
+
+db $20, $4A, $41, $4E, $55, $41, $52, $59, $20, $1F, $20, $46, $45
 db $42, $52, $55, $41, $52, $59, $1C, $20, $20, $4D, $41, $52, $43, $48, $20, $20
 db $1F, $20, $20, $41, $50, $52, $49, $4C, $20, $20, $1E, $20, $20, $20, $4D, $41
 db $59, $20, $20, $20, $1F, $20, $20, $20, $4A, $55, $4E, $45, $20, $20, $1E, $20
@@ -11130,11 +11154,21 @@ db $6C, $20, $4E, $6F, $00, $20, $20, $45, $53, $43, $41, $50, $41, $52, $20, $4
 db $20, $53, $41, $4C, $49, $44, $41, $20, $20, $50, $55, $4C, $53, $41, $52, $20
 db $43, $55, $41, $4C, $51, $20, $54, $45, $43, $4C, $41, $00, $49, $6E, $67, $6C
 db $65, $73, $00, $41, $6C, $65, $6D, $61, $6E, $00, $46, $72, $61, $6E, $63, $65
-db $73, $00, $45, $73, $70, $61, $6E, $6F, $6C, $00, $49, $74, $61, $6C, $69, $61
-db $6E
+db $73, $00, $45, $73, $70, $61, $6E, $6F, $6C, $00
 
-    ld   l, a
-    nop
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Hide Italian menu entry
+    ; (it is also made unselectable in lang_select__simple_menu__F7C3)
+    db "        "
+ELSE    
+    db "Italiano" ; db $49, $74, $61, $6C, $69, $61, $6E, $6F
+ENDC    
+db $00
+
+    ; This is likely all data, should probably get converted back
+    ;
+    ;    ld   l, a
+    ;    nop
     jr   nz, _LABEL_9A5C_
     ld   b, l
     ld   l, [hl]
@@ -16936,7 +16970,7 @@ _LABEL_C4F1_:
     ld   [vblank__dispatch_select__RAM_C27C], a
     ld   bc, $09E0
     ld   e, $06
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
 _LABEL_C521_:
     rst  $18    ; Call VSYNC__RST_18
     ld   a, [_RAM_C240_]
@@ -18511,7 +18545,7 @@ _LABEL_D133_:
     jr   nz, _LABEL_D133_
     ld   bc, $09E0
     ld   e, $16
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
     call gfx__turn_on_screen_bg_obj__2540
 _LABEL_D14A_:
     rst  $18    ; Call VSYNC__RST_18
@@ -19103,7 +19137,7 @@ _LABEL_D56A_:
     jr   nz, _LABEL_D57C_
     ld   e, $2E
 _LABEL_D57C_:
-    call _LABEL_1CF6_
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
 _LABEL_D57F_:
     rst  $18    ; Call VSYNC__RST_18
     ld   a, [_RAM_C240_]
@@ -19310,7 +19344,7 @@ app_syscontrol__submenu__D714:
 
 _LABEL_D777_:
     call gfx__clear_tilemap_0__2722
-    call _LABEL_F790_
+    call lang_select__run_simple_menu__F790
     ld   [_SRAM_1F9_], a
     ld   a, $C8
     ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
@@ -22517,7 +22551,8 @@ _LABEL_F74D_:
     ld   [_RAM_C5F4_], a
     ret
 
-_LABEL_F790_:
+; Might be for more than just language select, but it seems wired to 5 items
+lang_select__run_simple_menu__F790:
     call set_keycode_lut_ptr__altmap_OFF__026C
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00BF
@@ -22536,90 +22571,121 @@ _LABEL_F790_:
     ld   de, $00C3
     ld   hl, $99A6
     rst  $20    ; GFX_COPY_STRING__RST_20
+    ; Sets up scanline BGP inversion highlighting
+    ; B and C are separate arguments
+    ; B: $09 = LYC Line next trigger, C: $0E = BGP Palette to use
+    ; E: $06 = Line trigger
     ld   bc, $09E0
-    ld   e, $06
-    call _LABEL_1CF6_
-_LABEL_F7C3_:
-    rst  $18    ; Call VSYNC__RST_18
-    ld   a, [_RAM_C240_]
-    or   a
-    jr   z, _LABEL_F7DB_
-    dec  a
-    ld   [_RAM_C240_], a
-    ld   a, [_RAM_C3B0_]
-    and  $C4
-    jr   nz, _LABEL_F7FE_
-    xor  a
-    ld   [_RAM_C240_], a
-    jr   _LABEL_F7FE_
+    ld   e, $06  
+    call sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6
 
-_LABEL_F7DB_:
-    ld   a, [_RAM_C3B0_]
-    and  $C4
-    jr   z, _LABEL_F7FE_
-    ld   e, a
-    ld   a, $19
-    ld   [_RAM_C240_], a
-    ld   a, e
-    bit  6, a
-    jr   nz, _LABEL_F814_
-    bit  7, a
-    jr   nz, _LABEL_F825_
-    bit  2, a
-    jr   z, _LABEL_F7FE_
-_LABEL_F7F5_:
-    ld   a, [_RAM_C3B0_]
-    bit  2, a
-    jr   nz, _LABEL_F7F5_
-    jr   _LABEL_F836_
+    lang_select__simple_menu__F7C3:
+        rst  $18    ; Call VSYNC__RST_18
+        ld   a, [_RAM_C240_]
+        or   a
+        jr   z, _LABEL_F7DB_
+        dec  a
+        ld   [_RAM_C240_], a
+        ld   a, [_RAM_C3B0_]
+        and  $C4
+        jr   nz, simple_menu__check_keyboard_input__F7FE
+        xor  a
+        ld   [_RAM_C240_], a
+        jr   simple_menu__check_keyboard_input__F7FE
 
-_LABEL_F7FE_:
-    rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
-    cp   $FF
-    jr   z, _LABEL_F7C3_
-    or   a
-    jp   z, _LABEL_200_
-    cp   $0D
-    jr   z, _LABEL_F836_
-    cp   $12
-    jr   z, _LABEL_F825_
-    cp   $0F
-    jp   nz, _LABEL_F7C3_
-_LABEL_F814_:
-    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
-    cp   $06
-    jr   nz, _LABEL_F81D_
-    ld   a, $7E
-_LABEL_F81D_:
-    sub  $18
-    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
-    jp   _LABEL_F7C3_
+        _LABEL_F7DB_:
+            ld   a, [_RAM_C3B0_]
+            and  $C4
+            jr   z, simple_menu__check_keyboard_input__F7FE
+            ld   e, a
+            ld   a, $19
+            ld   [_RAM_C240_], a
+            ; Looks like gamepad input handling, but menu doesn't respond
+            ; to gamepad input up/down and this doesn't appear to trigger from that
+            ld   a, e
+            bit  6, a
+            jr   nz, simple_menu__up_pressed__F814
+            bit  7, a
+            jr   nz, simple_menu__down_pressed__F825
+            bit  2, a
+            jr   z, simple_menu__check_keyboard_input__F7FE
+        _LABEL_F7F5_:
+            ld   a, [_RAM_C3B0_]
+            bit  2, a
+            jr   nz, _LABEL_F7F5_
+            jr   _LABEL_F836_
 
-_LABEL_F825_:
-    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
-    cp   $66
-    jr   nz, _LABEL_F82E_
-    ld   a, $EE
-_LABEL_F82E_:
-    add  $18
-    ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
-    jp   _LABEL_F7C3_
+        simple_menu__check_keyboard_input__F7FE:
+            rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
+            cp   WORKBOY_SCAN_KEY_NONE  ; $FF
+            jr   z, lang_select__simple_menu__F7C3
 
-_LABEL_F836_:
-    ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
-    sub  $06
-    ld   b, $00
-_LABEL_F83D_:
-    or   a
-    jr   z, _LABEL_F845_
-    inc  b
-    sub  $18
-    jr   _LABEL_F83D_
+            ; Might be checking for Escape Key here, to exit to main sys menu
+            or   a
+            jp   z, _LABEL_200_
+            cp   WORKBOY_SYS_KEY_RETURN  ; $0D
+            jr   z, _LABEL_F836_
 
-_LABEL_F845_:
-    ld   a, b
-    ld   [_RAM_C5F5_], a
-    ret
+            cp   WORKBOY_SYS_KEY_ARROW_DOWN  ; $12
+            jr   z, simple_menu__down_pressed__F825
+
+            cp   WORKBOY_SYS_KEY_ARROW_UP  ; $0F
+            jp   nz, lang_select__simple_menu__F7C3
+
+        simple_menu__up_pressed__F814:
+            ; Check if selected item is first item
+            ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
+            cp   $06
+            jr   nz, selected_item_not_first_item__F81D
+                ; If equivalent of zero reached, wrap around to last entry
+                IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+                    ; Last item is Italian UI, don't allow it to be selected
+                    ld   a, ($7E - $18)
+                ELSE
+                    ; The math here is setting up equivalent of last item ($66) = N ($7E) - pending increment ($18)
+                    ; $06 = ($EE + $18) & $00ff                
+                    ld   a, $7E
+                ENDC
+            selected_item_not_first_item__F81D:
+                ; Decrement selected item
+                sub  $18
+                ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
+                jp   lang_select__simple_menu__F7C3
+
+        simple_menu__down_pressed__F825:
+            ; Check if selected item is last item
+            ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
+            IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+                ; Last item is Italian UI, don't allow it to be selected
+                cp   ($66 - $18)
+            ELSE
+                cp   $66
+            ENDC
+            jr   nz, selected_item_not_last_item__F82E
+                ; If selected is last item then wrap around to first item
+                ; The math here is setting up equivalent of first item ($06) = N ($EE) + pending increment ($18)
+                ; $06 = ($EE + $18) & $00ff
+                ld   a, $EE
+            selected_item_not_last_item__F82E:
+                add  $18
+                ld   [lcd_isr__lyc_line_trigger__RAM_C399], a
+                jp   lang_select__simple_menu__F7C3
+
+        _LABEL_F836_:
+            ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
+            sub  $06
+            ld   b, $00
+        _LABEL_F83D_:
+            or   a
+            jr   z, _LABEL_F845_
+            inc  b
+            sub  $18
+            jr   _LABEL_F83D_
+
+        _LABEL_F845_:
+            ld   a, b
+            ld   [_RAM_C5F5_], a
+            ret
 
 ; Data from F84A to FFFF (1974 bytes)
 db $00, $50, $4F, $53, $54, $20, $4F, $46, $46, $49, $43, $45, $00, $50, $4F, $53
@@ -22976,8 +23042,18 @@ else
     db $53, $43, $49, $52, $45, $20, $20, $50, $52, $45, $4D, $20, $51, $55, $41, $4C
     db $53, $20, $54, $41, $53, $54, $4F, $20, $00, $49, $6E, $67, $6C, $65, $73, $65
     db $00, $54, $65, $64, $65, $73, $63, $6F, $00, $46, $72, $61, $6E, $63, $65, $73
-    db $65, $00, $53, $70, $61, $67, $6E, $6F, $6C, $6F, $00, $49, $74, $61, $6C, $69
-    db $61, $6E, $6F, $00, $20, $47, $45, $4E, $4E, $41, $49, $4F, $20, $1F, $46, $45
+    db $65, $00, $53, $70, $61, $67, $6E, $6F, $6C, $6F, $00
+    
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; Hide Italian menu entry
+        ; (it is also made unselectable in lang_select__simple_menu__F7C3)
+        db "        "
+    ELSE    
+        db "Italiano" ; db $49, $74, $61, $6C, $69, $61, $6E, $6F
+    ENDC    
+    db $00
+
+    db $20, $47, $45, $4E, $4E, $41, $49, $4F, $20, $1F, $46, $45
     db $42, $42, $52, $41, $49, $4F, $20, $1C, $20, $20, $4D, $41, $52, $5A, $4F, $20
     db $20, $1F, $20, $41, $50, $52, $49, $4C, $45, $20, $20, $1E, $20, $4D, $41, $47
     db $47, $49, $4F, $20, $20, $1F, $20, $47, $49, $55, $47, $4E, $4F, $20, $20, $1E
@@ -24017,8 +24093,18 @@ db $53, $43, $41, $50, $45, $20, $2D, $20, $41, $55, $53, $47, $41, $4E, $47, $2
 db $20, $42, $45, $4C, $2E, $20, $54, $41, $53, $54, $45, $20, $44, $52, $55, $45
 db $43, $4B, $2E, $00, $45, $6E, $67, $6C, $69, $73, $63, $68, $00, $44, $65, $75
 db $74, $73, $63, $68, $00, $46, $72, $61, $6E, $7A, $6F, $65, $73, $69, $73, $63
-db $68, $00, $53, $70, $61, $6E, $69, $73, $63, $68, $00, $49, $74, $61, $6C, $69
-db $65, $6E, $69, $73, $63, $68, $00, $20, $4A, $41, $4E, $55, $41, $52, $20, $20
+db $68, $00, $53, $70, $61, $6E, $69, $73, $63, $68, $00
+
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Hide Italian menu entry
+    ; (it is also made unselectable in lang_select__simple_menu__F7C3)
+    db "           "
+ELSE
+    db "Italienisch" ; db $49, $74, $61, $6C, $69, $65, $6E, $69, $73, $63, $68
+ENDC
+db $00
+
+db $20, $4A, $41, $4E, $55, $41, $52, $20, $20
 db $1F, $20, $46, $45, $42, $52, $55, $41, $52, $20, $1C, $20, $20, $4D, $41, $45
 db $52, $5A, $20, $20, $1F, $20, $20, $41, $50, $52, $49, $4C, $20, $20, $1E, $20
 db $20, $20, $4D, $41, $49, $20, $20, $20, $1F, $20, $20, $20, $4A, $55, $4E, $49
@@ -26356,7 +26442,18 @@ db $45, $52, $53, $20, $20, $53, $4F, $52, $54, $49, $45, $50, $52, $45, $53, $5
 db $45, $52, $20, $55, $4E, $45, $20, $54, $4F, $55, $43, $48, $45, $00, $41, $6E
 db $67, $6C, $61, $69, $73, $00, $41, $6C, $6C, $65, $6D, $61, $6E, $64, $00, $46
 db $72, $61, $6E, $63, $61, $69, $73, $00, $45, $73, $70, $61, $67, $6E, $6F, $6C
-db $00, $49, $74, $61, $6C, $69, $65, $6E, $00, $20, $4A, $41, $4E, $56, $49, $45
+db $00
+
+IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+    ; Hide Italian menu entry
+    ; (it is also made unselectable in lang_select__simple_menu__F7C3)
+    db "       "
+ELSE
+    db "Italien" ; db $49, $74, $61, $6C, $69, $65, $6E
+ENDC
+db $00
+
+db $20, $4A, $41, $4E, $56, $49, $45
 db $52, $20, $1F, $20, $46, $45, $56, $52, $49, $45, $52, $20, $1C, $20, $20, $20
 db $4D, $41, $52, $53, $20, $20, $1F, $20, $20, $41, $56, $52, $49, $4C, $20, $20
 db $1E, $20, $20, $20, $4D, $41, $49, $20, $20, $20, $1F, $20, $20, $20, $4A, $55

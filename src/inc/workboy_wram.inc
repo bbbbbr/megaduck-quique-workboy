@@ -125,8 +125,8 @@ _RAM_C252_: db
 _RAM_C253_: db
 _RAM_C254_: db
 _RAM_C255_: db
-_RAM_C256_: db
-_RAM_C257_: db
+submenu__max_item_index__C256: db
+submenu__selected_item_index__C257: db
 _RAM_C258_: db
 _RAM_C259_: db
 _RAM_C25A_: db
