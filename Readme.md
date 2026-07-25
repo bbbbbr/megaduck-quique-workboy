@@ -4,7 +4,8 @@ The fabled Workboy ROM patched to run on the Mega Duck Laptop.
 
 The Mega Duck laptop is a Game Boy clone with minor changes to make it incompatible and a built-in keyboard and RTC.
 
-![Patched Workboy program title screen showing megaduck console icons](info/duckduckworkboy_title_screen.png)
+![Patched Workboy program title screen showing megaduck console icons in an emulator](info/duckduckworkboy_title_screen.png)
+![Patched Workboy program title screen showing megaduck console icons on hardware](info/duckduckworkboy_title_screen_on_hardware.jpg)
 
 
 ### Project 
