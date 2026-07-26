@@ -6355,6 +6355,8 @@ vblank__handler__25CC:
             ; a STAT interrupt instead, to avoid the
             ; vblank bank switching problems in OEM code
             ; when polling the duck keyboard via banked code
+            ;
+            ; See: duck_stat_isr__pre_handler_rom0
             REPT 10
                 nop
             ENDR
