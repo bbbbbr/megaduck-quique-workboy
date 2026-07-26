@@ -314,7 +314,8 @@ duck_io_send_cmd_and_buffer::
     ldh  a, [rIE]
     push af
 
-    ld   a, IEF_SERIAL
+    res  IEF_B_VBLANK, a ; Turn off VBlank, but allow STAT if enabled
+    set  IEF_B_SERIAL, a ; ld   a, IEF_SERIAL
     ldh  [rIE], a
 
     ; Send command to initiate buffer transfer, then check for reply
@@ -411,7 +412,8 @@ duck_io_send_cmd_and_receive_buffer::
     ldh  a, [rIE]
     push af
 
-    ld   a, IEF_SERIAL
+    res  IEF_B_VBLANK, a ; Turn off VBlank, but allow STAT if enabled
+    set  IEF_B_SERIAL, a ; ld   a, IEF_SERIAL
     ldh  [rIE], a
 
     ; Another mystery, ignore it for now. Hasn't seemed needed so far.
@@ -507,7 +509,8 @@ duck_io_controller_init::
     push bc
 
     ; IE_REG = SIO_IFLAG;
-    ld   a, IEF_SERIAL
+    res  IEF_B_VBLANK, a ; Turn off VBlank, but allow STAT if enabled
+    set  IEF_B_SERIAL, a ; ld   a, IEF_SERIAL
     ldh  [rIE], a
 
     ; Send a count up sequence through the serial IO (0,1,2,3...255)

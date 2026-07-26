@@ -219,8 +219,11 @@ INT_VBL__RST_40:
 db $26, $0E, $00, $12, $26
 
 INT_STAT__RST_48_:  ; STAT interrupt
-    jp   stat_interrupt__handler__2F64
-
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        jp    duck_stat_isr__pre_handler_rom0
+    ELSE
+        jp   stat_interrupt__handler__2F64
+    ENDC
     ; Some kind of address LUT
     ; At least read by code at label _LABEL_1504_ 
     ;
@@ -374,7 +377,15 @@ startup_init__0150:
         jr   nz, .startup__clear_wram_loop__015E
 
     ; Init gfx & interrupt  registers
-    ld   a, STATF_LYCF  ; $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC
     ldh  [rSTAT], a
     ld   [_RAM_C110_], a
     ; Set up some BG and OBJ palettes
@@ -547,7 +558,15 @@ _LABEL_200_:
     ldh  [rSCX], a
     call set_keycode_lut_ptr__altmap_OFF__026C
     di
-    ld   a, $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC
     ldh  [rSTAT], a
     ld   a, $01
     ldh  [rIE], a
@@ -1568,7 +1587,15 @@ _LABEL_839_:
     pop  af
     ld   [_RAM_C152_], a
     di
-    ld   a, $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC 
     ldh  [rSTAT], a
     ld   a, $01
     ldh  [rIE], a
@@ -2736,6 +2763,11 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
         call duck_io_restore_rIE
 
         jr   megaduck__rtc_send_patch_done__0EA5
+
+        ; Use free space here for duck STAT interrupt pre-handler
+        ; as an alternative to the sometimes blocked VBlank handler
+        include "duck/duck_laptop_stat_isr_pre_handler.asm"
+
         SECTION "megaduck__rtc_send_patch_done__0EA5", ROM0[$0EA5]
         megaduck__rtc_send_patch_done__0EA5:
     ELSE
@@ -5083,7 +5115,15 @@ sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6:
     ld   a, c
     ld   [gfx__rBGP_palette_for_LYC_match_triggered__RAM_C24F], a
     di
-    ld   a, $44
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYC | STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYC | STATF_LYCF  ; $44
+    ENDC
     ldh  [rSTAT], a
     ld   a, $03
     ldh  [rIE], a
@@ -5657,7 +5697,15 @@ _LABEL_2218_:
     ld   a, $01
     ld   [_RAM_C260_], a
     di
-    ld   a, $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC
     ldh  [rSTAT], a
     ld   a, $01
     ldh  [rIE], a
@@ -6302,10 +6350,20 @@ vblank__handler__25CC:
 
     ; 1st entry of Jump Table from 2557 (indexed by vblank__dispatch_select__RAM_C27C)
     vblank__cmd_default__25F7:
-        ld   a, [gfx__rBGP_cache__RAM_C27D]
-        ldh  [rBGP], a
-        ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
-        ldh  [rLYC], a
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            ; For duck laptop, try to handle these in 
+            ; a STAT interrupt instead, to avoid the
+            ; vblank bank switching problems in OEM code
+            ; when polling the duck keyboard via banked code
+            REPT 10
+                nop
+            ENDR
+        ELSE
+            ld   a, [gfx__rBGP_cache__RAM_C27D]
+            ldh  [rBGP], a
+            ld   a, [lcd_isr__lyc_line_trigger__RAM_C399]
+            ldh  [rLYC], a
+        ENDC
         call input_read_gamepad_buttons__ROM_24F4
         ; MAYBE: Increment frame counter
         ld   hl, vblank__frame_counter_maybe__RAM_C100
@@ -8215,7 +8273,15 @@ app_clock__launch__2F8E:
     xor  a
     call mbc_sram_ON_set_srambank_to_A__0BB1
     di
-    ld   a, $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC
     ldh  [rSTAT], a
     ld   a, $01
     ldh  [rIE], a
@@ -8771,7 +8837,15 @@ serial_io__poll_keyboard__3278:
         ld   [vblank__dispatch_select__RAM_C27C], a
         ld   [gfx__shadow_y_scroll__RAM_C102], a
         di
-        ld   a, $04
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            ; On Duck STAT is also used as a mini-vbl handler
+            ; to take care of things in VBlank that get blocked 
+            ; while running banked duck io code that turns off
+            ; VBL due to it's bank switching behavior and assumptions.
+            ld   a, (STATF_LYCF | STATF_MODE01)
+        ELSE
+            ld   a, STATF_LYCF  ; $04
+        ENDC
         ldh  [rSTAT], a
         ld   a, $01
         ldh  [rIE], a
@@ -21502,7 +21576,15 @@ _LABEL_E7EC_:
     call _LABEL_15E1_
 _LABEL_E7EF_:
     di
-    ld   a, $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC
     ldh  [rSTAT], a
     ld   a, $01
     ldh  [rIE], a
@@ -21680,7 +21762,15 @@ _LABEL_E95A_:
     xor  a
     ld   [_RAM_C110_], a
     di
-    ld   a, $04
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler
+        ; to take care of things in VBlank that get blocked 
+        ; while running banked duck io code that turns off
+        ; VBL due to it's bank switching behavior and assumptions.
+        ld   a, (STATF_LYCF | STATF_MODE01)
+    ELSE
+        ld   a, STATF_LYCF  ; $04
+    ENDC
     ldh  [rSTAT], a
     ld   a, $01
     ldh  [rIE], a
