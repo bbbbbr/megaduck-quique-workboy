@@ -137,7 +137,7 @@ runduckmd2:
 
 
 romusage:
-	romusage $(DIRDUCK)/$(ROMNAME_BASE).map -g -sRp
+	romusage build_duck_mbc5/$(ROMNAME_BASE).map -g -sRp
 
 # Needs stock inside gadgets firmware to work, can use flashgbx ui to swap it out if needed
 # Make sure 32K cart is specified
