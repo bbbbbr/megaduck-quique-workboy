@@ -2,7 +2,7 @@
 ## Duck Duck Workboy
 The fabled Workboy ROM patched to run on the Mega Duck Laptop.
 
-The Mega Duck laptop is a Game Boy clone with minor changes to make it incompatible and a built-in keyboard and RTC.
+The Mega Duck is a Game Boy clone with minor changes to make it incompatible with Game Boy ROMs. The laptop model has a built-in keyboard and RTC connected via the link port (similar to the unreleased Workboy), making it suitable alternative hardware to run on.
 
 ![Patched Workboy program title screen showing megaduck console icons in an emulator](info/duckduckworkboy_title_screen.png)
 ![Patched Workboy program title screen showing megaduck console icons on hardware](info/duckduckworkboy_title_screen_on_hardware.jpg)
@@ -43,7 +43,10 @@ The patch is in UPS format. It can be applied using this online patcher (or any 
 
 
 #### In the Super Junior Same Duck Emulator
-(TODO)
+The [Super Junior Same Duck](https://github.com/bbbbbr/SuperJuniorSameDuck) emulator can also be used to run the ROM. It supports both MD2 and MBC5 builds. For the MD2 build make sure to use the `--duck-sram-cart` flag to tell the emulator it should enable the SRAM cart in the secondary memory cart slot.
+- `superjunior_sameduck --force-mbc 0x1B workboy.mbc5`
+- `superjunior_sameduck --duck-sram-cart workboy.md2`
+
 
 
 ### Thanks, References, Tools
