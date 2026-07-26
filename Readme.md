@@ -35,18 +35,32 @@ https://bbbbbr.itch.io/mega-duck-patch-for-workboy-game-boy.
 The patch is in UPS format. It can be applied using this online patcher (or any other patcher that supports UPS patches) at: https://www.romhacking.net/patch/
 
 
-### Keyboard Setup
+### Running the Program
 
 #### On Physical Duck Laptop Hardware
-* Mega Duck -> Shift: Selects between Mega Duck regular keys vs alternates (printed on keyboard)
-* Mega Duck -> Caps Lock: Selects between Workboy regular keys vs alternates (printed on keyboard). When pressed down it emulates a Workboy `NUM` button press, and when released it emulates the a `CAPS` button press.
-
+There are a few options for running the patched ROM on the duck laptop.
+- A MegaDuck Flash Cart with "MD2" + SRAM banking support (16K banks switchable writing to 0x0001) such as the picoDuck by zwenergy (Use MD2 patch) (TODO: link to picoDuck firmware)
+- On a Game Boy MBC5 Flash Cart using a [MegaDuck Cart Slot Adapter](https://github.com/bbbbbr/gb_to_megaduck_cart_adapter/tree/main). (Use MBC5 patch)
 
 #### In the Super Junior Same Duck Emulator
 The [Super Junior Same Duck](https://github.com/bbbbbr/SuperJuniorSameDuck) emulator can also be used to run the ROM. It supports both MD2 and MBC5 builds. For the MD2 build make sure to use the `--duck-sram-cart` flag to tell the emulator it should enable the SRAM cart in the secondary memory cart slot.
 - `superjunior_sameduck --force-mbc 0x1B workboy.mbc5`
 - `superjunior_sameduck --duck-sram-cart workboy.md2`
 
+
+### Keyboard Setup
+
+#### On Physical Duck Laptop Hardware
+- Mega Duck -> Shift: Selects between Mega Duck regular keys vs alternates (printed on keyboard)
+- Mega Duck -> Caps Lock: Selects between Workboy regular keys vs alternates (printed on keyboard). When pressed down it emulates a Workboy `NUM` button press, and when released it emulates the a `CAPS` button press.
+- For some keys on the Mega Duck (such as 0-9, num pad, etc) a simulated shift is automatically sent to the ROM to make using them easier and more seamless.
+
+#### In the Super Junior Same Duck Emulator
+Running the patched ROM in an emulator means there's two layers of keyboard translation at play, which makes using it a little more convoluted in some cases.
+
+PC -> Emulating Mega Duck Keyboard -> Mega Duck -> Emulating Workboy Keyboard -> Patched ROM
+
+TODO: details/tips
 
 
 ### Thanks, References, Tools
