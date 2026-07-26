@@ -469,7 +469,7 @@ startup_init__0150:
         ; 0x01CC -> 0x1E0 (range inclusive)
 
         ; 0x01CC
-        jr startup__skip_unusual_mbc_init_resume_01AC
+        jr startup__skip_unusual_mbc_init_resume_01E1
 
         ; 0x01CE
         ; This space is used for megaduck laptop model detection
@@ -493,8 +493,8 @@ startup_init__0150:
         call mbc_sram_ON_rombank_1_srambank_0__0AFD
         halt
     ENDC
-    SECTION "startup__skip_unusual_mbc_init_resume_01AC", ROM0[$01E1]
-    startup__skip_unusual_mbc_init_resume_01AC:
+    SECTION "startup__skip_unusual_mbc_init_resume_01E1", ROM0[$01E1]
+    startup__skip_unusual_mbc_init_resume_01E1:
 
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
