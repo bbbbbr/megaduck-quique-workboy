@@ -18,7 +18,7 @@ Features/Changes:
 - Removed Italian language support to make room for Mega Duck code
 
 What doesn't work / glitches:
-- Clock time elapses too slowly. (1)
+- TBD
 
 
 ### Download and Patching
@@ -76,7 +76,3 @@ Prereq: rgbds 0.6.0 (in the system path)
 
 `make` to build the various patches
 
-
-### Notes
-
-1. Clock time is ticked in the VBlank interrupt handler. That handler is prone to switching the ROM bank without saving and restoring the bank to what it was before the interrupt. Since ROM 0 has little free space the Mega Duck keyboard and RTC IO code has been placed in banked ROM. Which means if the VBlank handler triggers when some other (banked) code is polling the keyboard (and thus switched the ROM bank for Mega Duck IO), then when the VBlank handler exits the ROM bank may be wrong, resulting in a crash. The workaround is to disable the VBlank handler when polling Mega Duck IO, and the side effect of that is the clock time in VBlank may have skipped ticks.
