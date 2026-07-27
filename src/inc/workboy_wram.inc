@@ -233,7 +233,7 @@ time__seconds__decimal__RAM_C3A1: db
 time__minutes__decimal__RAM_C3A2: db
 time__minutes__12_minus_min_mod_12_TODO__RAM_C3A3: db
 time__hours__decimal_x_5_plus_min_div_12_NOT_DONE_TODO__RAM_C3A4: db
-_RAM_C3A5_: db
+time__60hz_tick_count__RAM_C3A5: db
 _RAM_C3A6_: db
 _RAM_C3A7_: db
 

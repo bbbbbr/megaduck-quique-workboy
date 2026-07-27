@@ -22,6 +22,13 @@ duck_mbc_restore_saved_bank::
     ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ret
 
+; Combined helper to save a few bytes elsewhere
+; MUST BE in the order of: Restore bank -> re-enable blocked interrupts
+duck_mbc_restore_saved_bank__then__duck_io_restore_rIE::
+    call duck_mbc_restore_saved_bank
+    ; Return is handled in the restore rIE call
+    jp   duck_io_restore_rIE
+
 
 duck_keyboard_read_wrapper_bank_0::
     ; Temporarily turn off other interrupts since vblank may attempt banked calls

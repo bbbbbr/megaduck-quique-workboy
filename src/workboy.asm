@@ -399,7 +399,13 @@ startup_init__0150:
     ld   a, (LCDCF_ON | LCDCF_OBJON | LCDCF_BGON) ; $83
     ldh  [rLCDC], a
     ; Set up VBlank interrupt
-    ld   a, IEF_VBLANK  ; $01
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ldh  [_HRAM_FF8C_], a
     ;
@@ -568,7 +574,13 @@ _LABEL_200_:
         ld   a, STATF_LYCF  ; $04
     ENDC
     ldh  [rSTAT], a
-    ld   a, $01
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ei
     ld   hl, $FFFE
@@ -1597,7 +1609,13 @@ _LABEL_839_:
         ld   a, STATF_LYCF  ; $04
     ENDC 
     ldh  [rSTAT], a
-    ld   a, $01
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ei
     ld   a, $0A
@@ -2758,9 +2776,11 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
 
                 call duck_rtc_write__translate_from_workboy_siobuffer
 
-            call duck_mbc_restore_saved_bank
 
-        call duck_io_restore_rIE
+        ; These two got merged to a single call to free up a few bytes
+        ;     call duck_mbc_restore_saved_bank
+        ; call duck_io_restore_rIE
+        call duck_mbc_restore_saved_bank__then__duck_io_restore_rIE
 
         jr   megaduck__rtc_send_patch_done__0EA5
 
@@ -5125,7 +5145,7 @@ sys_lcd_isr__setup_enable_STAT_and_triggers_and_BGP_palette__1CF6:
         ld   a, STATF_LYC | STATF_LYCF  ; $44
     ENDC
     ldh  [rSTAT], a
-    ld   a, $03
+    ld   a, IEF_VBLANK | IEF_STAT  ; $03
     ldh  [rIE], a
     ei
     ret
@@ -5707,7 +5727,13 @@ _LABEL_2218_:
         ld   a, STATF_LYCF  ; $04
     ENDC
     ldh  [rSTAT], a
-    ld   a, $01
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ei
     call _LABEL_3EF_
@@ -8285,7 +8311,13 @@ app_clock__launch__2F8E:
         ld   a, STATF_LYCF  ; $04
     ENDC
     ldh  [rSTAT], a
-    ld   a, $01
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ei
     ld   hl, $FFFE
@@ -8332,12 +8364,34 @@ time_date__increment_time__2FE6:
     ld   [_RAM_C3A6_], a
     call _LABEL_2FF7_
 _LABEL_2FF7_:
-    ld   a, [_RAM_C3A5_]
-    dec  a
-    ld   [_RAM_C3A5_], a
+    ; 60hz Tick
+    ld   a, [time__60hz_tick_count__RAM_C3A5]
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Mega Duck 60hz ticks are updated in STAT Mode 1 isr
+        ; to avoid VBlank bank switching problems in OEM code
+        ; when polling the duck keyboard via banked code.
+        ;
+        ; The 0 decrement rollover to second increment is still
+        ; handled here, hence the OR A to set up the NZ check
+        ;
+        ; See: duck_stat_isr__pre_handler_rom0
+        or   a
+    ELSE
+        dec  a
+    ENDC
+    ld   [time__60hz_tick_count__RAM_C3A5], a
     ret  nz
-    ld   a, $3C
-    ld   [_RAM_C3A5_], a
+    ; Reload 60hz counter after it has reached zero
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)    
+        ; Due to occasional slippage with blocked VBlank and
+        ; GB being 59.73 Hz, make seconds have 59 frame ticks
+        ; instead of 60. Seems to work out ok
+        ld   a, 59
+    ELSE
+        ld   a, 60  ; $3C
+    ENDC
+    ld   [time__60hz_tick_count__RAM_C3A5], a
+
     call _LABEL_303F_
     ; Seconds++
     ld   a, [time__seconds__decimal__RAM_C3A1]
@@ -8849,7 +8903,13 @@ serial_io__poll_keyboard__3278:
             ld   a, STATF_LYCF  ; $04
         ENDC
         ldh  [rSTAT], a
-        ld   a, $01
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            ; On Duck STAT is also used as a mini-vbl handler,
+            ; so let it run even when not doing STAT LYC effects
+            ld   a, IEF_VBLANK |  IEF_STAT
+        ELSE
+            ld   a, IEF_VBLANK  ; $01
+        ENDC
         ldh  [rIE], a
         ei
         ld   hl, $FFFE
@@ -21588,7 +21648,13 @@ _LABEL_E7EF_:
         ld   a, STATF_LYCF  ; $04
     ENDC
     ldh  [rSTAT], a
-    ld   a, $01
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ei
     xor  a
@@ -21774,7 +21840,13 @@ _LABEL_E95A_:
         ld   a, STATF_LYCF  ; $04
     ENDC
     ldh  [rSTAT], a
-    ld   a, $01
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; On Duck STAT is also used as a mini-vbl handler,
+        ; so let it run even when not doing STAT LYC effects
+        ld   a, IEF_VBLANK |  IEF_STAT
+    ELSE
+        ld   a, IEF_VBLANK  ; $01
+    ENDC
     ldh  [rIE], a
     ei
     call gfx__turn_off_screen_2827
@@ -22561,6 +22633,7 @@ db $FE, $2F, $20, $1B, $FA, $9B, $C3, $FE, $30, $20, $0E, $3E, $32, $EA, $9B, $C
 db $3C, $EA, $9C, $C3, $CD, $93, $6F, $18, $BA, $3D, $EA, $9B, $C3, $3E, $39, $EA
 db $9C, $C3, $18, $AF
 
+; Clock app, some kind of update? ticks ~once per second?
 _LABEL_F6F7_:
     xor  a
     ld   [_RAM_C23E_], a
