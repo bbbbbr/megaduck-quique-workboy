@@ -2,7 +2,7 @@
 ## Duck Duck Workboy
 The fabled Workboy ROM patched to run on the Mega Duck Laptop.
 
-The Mega Duck is a Game Boy clone with minor changes to make it incompatible with Game Boy ROMs. The laptop model has a built-in keyboard and RTC connected via the link port (similar to the unreleased Workboy), making it suitable alternative hardware to run on.
+The Mega Duck is a Game Boy clone with minor changes to make it incompatible with Game Boy ROMs. The laptop model has a built-in keyboard and RTC connected via the link port (similar to the unreleased Workboy). This makes it suitable as alternative hardware for running the Workboy ROM.
 
 ![Patched Workboy program title screen showing megaduck console icons in an emulator](info/duckduckworkboy_title_screen.png)
 ![Patched Workboy program title screen showing megaduck console icons on hardware](info/duckduckworkboy_title_screen_on_hardware.jpg)
@@ -16,10 +16,9 @@ Features/Changes:
 - Support for MD2 and MBC5 cartridge memory bank controllers (mbcs)
 - Slightly modified Title Screen
 - Removed Italian language support to make room for Mega Duck code
-
-What doesn't work / glitches:
-- TBD
-
+- Removed the hidden Backup Options feature that would dump/restore cart sram to keyboard sram
+  - (Would not be usable on the Duck laptop. As far as I know right now this feature is newly discovered and untested with the single original hardware)
+  
 
 ### Download and Patching
 The patches **do not** include the ROM, you must have your own copy of the Workboy ROM to apply this modification.

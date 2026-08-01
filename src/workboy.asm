@@ -3352,7 +3352,7 @@ alt_menu__show_when_no_keyboard_found__10C3:
     ; ===== Now run the menu and handle any returned selections =====
     call sys_run_submenu_result_in_A__206D
     cp   $05
-    jp   z, alt_menu__backup_options_app__setup__2DA7
+    jp   z, alt_menu__hidden_backup_options_app__setup__2DA7
 
     ; Calculator entry
     cp   $03
@@ -8050,10 +8050,10 @@ time__handle_reset_invalid_RTC_data__2D4E:
     ret
 
 
-alt_menu__backup_options_app__setup__2DA7:
+alt_menu__hidden_backup_options_app__setup__2DA7:
         ld   a, [gamepad_buttons__RAM_C103]
         or   a
-        jr   nz, alt_menu__backup_options_app__setup__2DA7
+        jr   nz, alt_menu__hidden_backup_options_app__setup__2DA7
     ; Display message "PRESS Y TO CONFIRM" "ANY OTHER KEY ABORTS"
     call audio__todo__380D
     call gfx__clear_tilemap_0__2722
@@ -8095,145 +8095,166 @@ alt_menu__backup_options_app__setup__2DA7:
     ; This requires the workboy hardware to be connected
     ; then waits for a command *from the hardware**, 
     ; perhaps a keypress (S or R) before taking action
-    alt_menu__backup_options_app__run__2DEA:
-        call gfx__clear_tilemap_0__2722
-        di
-        .serial_io__poll_ext_hw_loop__2DEE_:
-            call serial_io__receive_byte_in_A_with_int__2E84
-
-            cp   WORKBOY_CMD_S  ; $53
-            jr   nz, .check_next_command__2DFB
-                ; Send SRAM data and then restart the program
-                .send_sram__to_ext_hw:
-                    call serial_io__send_sram_banks_0_to_3__to_ext_hw_memory__2E0C
-                    jp   reset_code_entry_point__0000
-
-            .check_next_command__2DFB:
-            cp   WORKBOY_CMD_R  ; $52
-            jr   nz, .serial_status_reply_not_recognized__2E05
-                ; Read SRAM data and then restart the program
-                .read_sram__from_ext_hw:
-                    call serial_io__read_sram_banks_0_to_3__from_ext_hw_memory__2E2B
-                    jp   reset_code_entry_point__0000
-
-        .serial_status_reply_not_recognized__2E05:
-            xor  a
-            call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-            jp   .serial_io__poll_ext_hw_loop__2DEE_
+    ;
+    ; alt_menu__backup_options_app__run__2DEA:
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        ; Remove the hidden "Backup Options" support code to free up space
+        ; since supporting them on the duck laptop doesn't make much
+        ; sense (no built-in secondary SRAM to save/load from, and
+        ; no external serial hardware to mimic the workboy keyboard SRAM)
+        ;
+        ; So use shim commands for the actual load and shace
+        alt_menu__backup_options_app__run__2DEA:
+            ld   hl, $FFFE
+            ld   sp, hl
+            jp   alt_menu__show_when_no_keyboard_found__10C3
 
 
-    serial_io__send_sram_banks_0_to_3__to_ext_hw_memory__2E0C:
-        ld   a, WORKBOY_CMD_S    ; $53
-        call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-        call delay_3_40msec__2E69
-        call delay_3_40msec__2E69
-        xor  a
-        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
-        ld   a, $01
-        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
-        ld   a, $02
-        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
-        ld   a, $03
-        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
-        ret
+        ; Put the audio remapping here
+        ; include "duck/duck_laptop_audio_helpers.asm"
 
-    serial_io__read_sram_banks_0_to_3__from_ext_hw_memory__2E2B:
-        ld   a, WORKBOY_CMD_W  ; $57
-        call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-        xor  a
-        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
-        ld   a, $01
-        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
-        ld   a, $02
-        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
-        ld   a, $03
-        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
-        ret
+        SECTION "megaduck__hidden_backup_commands_free_space_done__2E9B", ROM0[$2E9B]
+    ELSE
+        alt_menu__backup_options_app__run__2DEA:
+            call gfx__clear_tilemap_0__2722
+            di
+            .serial_io__poll_ext_hw_loop__2DEE_:
+                call serial_io__receive_byte_in_A_with_int__2E84
 
+                cp   WORKBOY_CMD_S  ; $53
+                jr   nz, .check_next_command__2DFB
+                    ; Send SRAM data and then restart the program
+                    .send_sram__to_ext_hw:
+                        call serial_io__send_sram_banks_0_to_3__to_ext_hw_memory__2E0C
+                        jp   reset_code_entry_point__0000
 
-    ; Read entire SRAM contents from serial port
-    serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44:
-        call mbc_sram_ON_set_srambank_to_A__2E9B
-        ; Load SRAM base
-        ld   de, _SRAM
-    .read_serial_bytes_loop__2E4A:
-        call serial_io__receive_byte_in_A_with_int__2E84
-        ld   [de], a
-        inc  de
-        ld   a, d
-        cp   HIGH(_RAM)  ; $C0 ; Start of WRAM
-        jr   nz, .read_serial_bytes_loop__2E4A
-        ret
+                .check_next_command__2DFB:
+                cp   WORKBOY_CMD_R  ; $52
+                jr   nz, .serial_status_reply_not_recognized__2E05
+                    ; Read SRAM data and then restart the program
+                    .read_sram__from_ext_hw:
+                        call serial_io__read_sram_banks_0_to_3__from_ext_hw_memory__2E2B
+                        jp   reset_code_entry_point__0000
+
+            .serial_status_reply_not_recognized__2E05:
+                xor  a
+                call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+                jp   .serial_io__poll_ext_hw_loop__2DEE_
 
 
-    ; Send entire SRAM contents out serial port
-    serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55:
-        call mbc_sram_ON_set_srambank_to_A__2E9B
-        ; Load SRAM base
-        ld   de, _SRAM 
-        .send_serial_bytes_loop__2E5B:
-            ld   a, [de]
+        serial_io__send_sram_banks_0_to_3__to_ext_hw_memory__2E0C:
+            ld   a, WORKBOY_CMD_S    ; $53
             call serial_io__send_byte_with_int_receive_byte_in_A__2E74
             call delay_3_40msec__2E69
+            call delay_3_40msec__2E69
+            xor  a
+            call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+            ld   a, $01
+            call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+            ld   a, $02
+            call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+            ld   a, $03
+            call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+            ret
+
+        serial_io__read_sram_banks_0_to_3__from_ext_hw_memory__2E2B:
+            ld   a, WORKBOY_CMD_W  ; $57
+            call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+            xor  a
+            call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+            ld   a, $01
+            call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+            ld   a, $02
+            call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+            ld   a, $03
+            call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+            ret
+
+
+        ; Read entire SRAM contents from serial port
+        serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44:
+            call mbc_sram_ON_set_srambank_to_A__2E9B
+            ; Load SRAM base
+            ld   de, _SRAM
+        .read_serial_bytes_loop__2E4A:
+            call serial_io__receive_byte_in_A_with_int__2E84
+            ld   [de], a
             inc  de
             ld   a, d
             cp   HIGH(_RAM)  ; $C0 ; Start of WRAM
-            jr   nz, .send_serial_bytes_loop__2E5B
-        ret
+            jr   nz, .read_serial_bytes_loop__2E4A
+            ret
 
 
-    delay_3_40msec__2E69:
-        push bc
-        ld   bc, $01FF
-        .delay_loop__2E6D:
-            dec  bc
-            ld   a, b
-            or   c
-            jr   nz, .delay_loop__2E6D
-        pop  bc
-        ret
+        ; Send entire SRAM contents out serial port
+        serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55:
+            call mbc_sram_ON_set_srambank_to_A__2E9B
+            ; Load SRAM base
+            ld   de, _SRAM 
+            .send_serial_bytes_loop__2E5B:
+                ld   a, [de]
+                call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+                call delay_3_40msec__2E69
+                inc  de
+                ld   a, d
+                cp   HIGH(_RAM)  ; $C0 ; Start of WRAM
+                jr   nz, .send_serial_bytes_loop__2E5B
+            ret
 
 
-    ; Sends byte in A over Serial IO and waits for reply via interrupt
-    ;
-    ; Returns RX byte in A
-    serial_io__send_byte_with_int_receive_byte_in_A__2E74:
-        ; Load serial byte to send from A
-        ; Clear all pending interrupts
-        ldh  [rSB], a
-        xor  a
-        ldh  [rIF], a
-        ; Enable Serial Interrupt and start a transfer
-        ld   a, IEF_SERIAL ; $08
-        ldh  [rIE], a
-        ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-        ldh  [rSC], a
-        jp   serial_io__wait_interrupt__2E92
+        delay_3_40msec__2E69:
+            push bc
+            ld   bc, $01FF
+            .delay_loop__2E6D:
+                dec  bc
+                ld   a, b
+                or   c
+                jr   nz, .delay_loop__2E6D
+            pop  bc
+            ret
 
 
-    ; Receive a byte over Serial IO and waits via interrupt
-    ;
-    ; Returns RX byte in A
-    serial_io__receive_byte_in_A_with_int__2E84:
-        ; Put 0x00 in outgoing Serial RX
-        ; Clear all pending interrupts
-        ld   a, $00
-        ldh  [rSB], a
-        ldh  [rIF], a
-        ; Enable Serial Interrupt and wait for a transfer
-        ld   a, IEF_SERIAL ; $08
-        ldh  [rIE], a
-        ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
-        ldh  [rSC], a
+        ; Sends byte in A over Serial IO and waits for reply via interrupt
+        ;
+        ; Returns RX byte in A
+        serial_io__send_byte_with_int_receive_byte_in_A__2E74:
+            ; Load serial byte to send from A
+            ; Clear all pending interrupts
+            ldh  [rSB], a
+            xor  a
+            ldh  [rIF], a
+            ; Enable Serial Interrupt and start a transfer
+            ld   a, IEF_SERIAL ; $08
+            ldh  [rIE], a
+            ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+            ldh  [rSC], a
+            jp   serial_io__wait_interrupt__2E92
 
-        ; Wait for a serial interrupt
-        serial_io__wait_interrupt__2E92:
-            ldh  a, [rIF]
-            and  IEF_SERIAL ; $08
-            jr   z, serial_io__wait_interrupt__2E92
-        ; Return resulting byte in A
-        ldh  a, [rSB]
-        ret
+
+        ; Receive a byte over Serial IO and waits via interrupt
+        ;
+        ; Returns RX byte in A
+        serial_io__receive_byte_in_A_with_int__2E84:
+            ; Put 0x00 in outgoing Serial RX
+            ; Clear all pending interrupts
+            ld   a, $00
+            ldh  [rSB], a
+            ldh  [rIF], a
+            ; Enable Serial Interrupt and wait for a transfer
+            ld   a, IEF_SERIAL ; $08
+            ldh  [rIE], a
+            ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
+            ldh  [rSC], a
+
+            ; Wait for a serial interrupt
+            serial_io__wait_interrupt__2E92:
+                ldh  a, [rIF]
+                and  IEF_SERIAL ; $08
+                jr   z, serial_io__wait_interrupt__2E92
+            ; Return resulting byte in A
+            ldh  a, [rSB]
+            ret
+        ENDC
 
 
 ; Sets MBC1 SRAM bank:
