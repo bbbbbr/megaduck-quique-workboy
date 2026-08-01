@@ -7,7 +7,7 @@
 ; This location doesn't seem to conflict with
 ; *currently known* workboy WRAM usage (aside
 ; from transitory tile, etc loading)
-SECTION "Duck Laptop Keyboard WRAM", WRAMX[$D130]
+SECTION "Duck Laptop Keyboard WRAM", WRAMX[$DFA0]
 duck_key_scancode:: db
 duck_key_flags:: db
 duck_key_flags_prev:: db

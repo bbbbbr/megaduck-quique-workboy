@@ -534,9 +534,11 @@ _RAM_D0D0_: db
 ; need to persist.
 
 ; See:
-;  SECTION "Duck Laptop IO WRAM",       WRAMX[$D100]
-;  SECTION "Duck Laptop Keyboard WRAM", WRAMX[$D130] 
-;  SECTION "Duck Laptop IO WRAM",       WRAMX[$D140]
+;  SECTION "Duck Laptop IO WRAM",       WRAMX[$DF80]
+;  SECTION "Duck Laptop Keyboard WRAM", WRAMX[$DFA0] 
+;  SECTION "Duck Laptop IO WRAM",       WRAMX[$DFB0]
+
+; Based on measurements, unused WRAM is range: 0XDF30 - 0xDFFF
 
 IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
     SECTION "wram__duck_laptop_rtc_sysrom_validate_key_start__dbfc", WRAMX[$DBFC]

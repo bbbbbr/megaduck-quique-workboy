@@ -349,6 +349,7 @@ GBcartridgeHeader__0104:
         db $69      ; Header Checksum: OK
         dw $DC17    ; Global Checksum: OK
 
+SECTION "Startup__150", ROM0[$0150]
 startup_init__0150:
     di
     ld   hl, $FFFE
@@ -15191,7 +15192,7 @@ _LABEL_B743_:
 _LABEL_B75C_:
     call gfx__turn_off_screen_2827
     call _LABEL_2735_
-    call _LABEL_B809_
+    call string_copy_to_vram_tilemap_addr_99E0__rombank2_7812__B809
 _LABEL_B765_:
     ld   a, [_RAM_C10B_]
     or   a
@@ -15291,20 +15292,23 @@ _LABEL_B7F7_:
     ld   [_RAM_C10D_], a
     ret
 
-_LABEL_B809_:
+
+; Copy string data from pointer to tilemap address 0x99E0
+; Pointer to source data in: _RAM_CF04_
+string_copy_to_vram_tilemap_addr_99E0__rombank2_7812__B809:
     ld   hl, _RAM_CF04_
     ld   e, [hl]
     inc  hl
     ld   d, [hl]
     ld   hl, $99E0
-_LABEL_B812_:
-    ld   a, [de]
-    inc  de
-    or   a
-    jr   z, _LABEL_B81C_
-    sub  $20
-    ldi  [hl], a
-    jr   _LABEL_B812_
+    .string_vram_copy_loop_rombank2_7812__B812:
+        ld   a, [de]
+        inc  de
+        or   a
+        jr   z, _LABEL_B81C_
+        sub  $20  ; Adjust ascii-ish format to VRAM font tiles format
+        ldi  [hl], a
+        jr   .string_vram_copy_loop_rombank2_7812__B812
 
 _LABEL_B81C_:
     jp   _LABEL_B743_

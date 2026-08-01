@@ -9,7 +9,7 @@
 ; This location doesn't seem to conflict with
 ; *currently known* workboy WRAM usage (aside
 ; from transitory tile, etc loading)
-SECTION "Duck Laptop IO WRAM", WRAMX[$D100]
+SECTION "Duck Laptop IO WRAM", WRAMX[$DF80]
 duck_io_rx_byte_done:: db
 duck_io_rx_byte:: db
 

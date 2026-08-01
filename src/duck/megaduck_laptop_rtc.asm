@@ -8,7 +8,7 @@
 ; *currently known* workboy WRAM usage (aside
 ; from transitory tile, etc loading).
 ; Placed after main duck laptop control vars
-SECTION "Duck Laptop IO WRAM RTC", WRAMX[$D140]
+SECTION "Duck Laptop IO WRAM RTC", WRAMX[$DFB0]
 duck_rtc::
 duck_rtc_year::    db
 duck_rtc_mon::     db
