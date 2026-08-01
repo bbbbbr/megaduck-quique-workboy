@@ -146,7 +146,7 @@ include "inc/workboy_sram.inc"
 
 SECTION "rom0", ROM0
 duck_entry_point__0000:
-_LABEL_0_:
+reset_code_entry_point__0000:
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         jp   duck_check_model_on_startup_wrapper_bank_0
     ELSE
@@ -533,7 +533,9 @@ startup_init__0150:
     xor  a
     ld   [_RAM_C10F_], a
 
-_LABEL_200_:
+
+; alt-menu non-keyboard apps sometimes jump here when they exit
+startup__post_external_hardware_init__rentry__0200:
     ld   a, $03
     call mbc_sram_ON_set_srambank_to_A__0BB1
     ld   hl, _RAM_C700_
@@ -598,7 +600,7 @@ _LABEL_200_:
     ld   a, $D2
     ldh  [rOBP0], a
     call _LABEL_277_
-    jr   _LABEL_200_
+    jr   startup__post_external_hardware_init__rentry__0200
 
 set_keycode_lut_ptr__altmap_OFF__026C:
     ; Load 0x3128 into keycode lut pointer
@@ -902,15 +904,15 @@ app_submenu__money__03BA:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00E6
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00E7
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     call sys_run_submenu_result_in_A__206D
     cp   $01
     jp   z, app_currency__launch__2845
@@ -1214,7 +1216,7 @@ _LABEL_5D5_:
     jp   _LABEL_B765_
 
 _LABEL_5E9_:
-    ld   a, [_SRAM_0_]
+    ld   a, [_SRAM]
     cp   l
     ret  c
     ld   a, l
@@ -1874,7 +1876,7 @@ _LABEL_991_:
     ; 3. $63:$40ff
     ; 4. app_worldmap__setbank_and_call_worldmap_load__8E3 ($00:$08bc)
     ; 5. app_syscontrol__submenu__D714+$05d ($03:$5771)
-    ; 6. _LABEL_200_+$067 ($00:$0267)
+    ; 6. startup__post_external_hardware_init__rentry__0200+$067 ($00:$0267)
     .loop_serial_command_until_valid_reply_byte__09C3:
         call serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C
         IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
@@ -2301,7 +2303,7 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
     ret
 
 
-_LABEL_BC3_:
+submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3:
     ld   [_RAM_C156_], a
     xor  a
     ld   [vblank__dispatch_select__RAM_C27C], a
@@ -2793,7 +2795,7 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
         megaduck__rtc_send_patch_done__0EA5:
     ELSE
         ; Put Workboy hardware into WRITE mode
-        ld   a, WORKBOY_CMD_W_TODO ; $57
+        ld   a, WORKBOY_CMD_W ; $57
         call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
         ; Check returned serial byte, return if zero
         ; also return if blank/unset (0xFF)
@@ -3272,8 +3274,9 @@ _LABEL_10A3_:
     ret
 
 ; Data from 10BD to 10C2 (6 bytes)
-_DATA_10BD_:
-db $49, $54, $43, $4D, $52, $54
+alt_menu__hidden_backup_option__enable_sequence_characters__ITCMRT__10BD:
+db "ITCMRT"
+; db $49, $54, $43, $4D, $52, $54
 
 
 alt_menu__show_when_no_keyboard_found__10C3:
@@ -3289,119 +3292,154 @@ alt_menu__show_when_no_keyboard_found__10C3:
     ELSE
         ld   [rMBC_ROMBANK], a  ; [$3FFF]
     ENDC
-    ld   a, [_RAM_C233_]
+    ; Check if "Backup Options" menu entry should be enabled/accessible (non-zero)
+    ld   a, [alt_menu__config__backup_entry__enabled_if_nonzero__RAM_C233]
     or   a
-    jr   z, ._LABEL_10DF_
-    ld   hl, _DATA_DB31_
-    jr   ._LABEL_10E2_
+    jr   z, .select_menu_without__hidden_backup_options__10DF_
+        ld   hl, no_keyboard_menu__config__with_hidden_entry__backup_options__DB31
+        jr   .load_menu_config
 
-    ._LABEL_10DF_:
-    ld   hl, _DATA_DB37_
+    ; C233 in SRAM Bank 3 was zero
+    .select_menu_without__hidden_backup_options__10DF_:
+        ld   hl, no_keyboard_menu__config__without_hidden_entry__DB37
 
-    ._LABEL_10E2_:
-    call _LABEL_2003_
+    ; Draw the animated submenus one at a time
+    .load_menu_config:
+    call load_menu_config__addr_in_hl__2003
+
+    ; "Control Menu"
     ld   de, $00DA
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0009
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+    
+    ; "Phone Book"
     ld   de, $00DB
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0309
-    call _LABEL_BC3_
-    ld   de, $00DC
-    call _LABEL_1D2D_
-    ld   bc, $0609
-    call _LABEL_BC3_
-    ld   de, $00DD
-    call _LABEL_1D2D_
-    ld   bc, $0909
-    call _LABEL_BC3_
-    ld   de, $00DE
-    call _LABEL_1D2D_
-    ld   bc, $0C09
-    call _LABEL_BC3_
-    ld   a, [_RAM_C233_]
-    or   a
-    jr   z, ._LABEL_1133_
-        ld   de, $00D7
-        call _LABEL_1D2D_
-        ld   bc, $0F09
-        call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
-    ._LABEL_1133_:
+    ; "Appointments"
+    ld   de, $00DC
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
+    ld   bc, $0609
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+    
+    ; "Calculator"
+    ld   de, $00DD
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
+    ld   bc, $0909
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+    
+    ; "Database"
+    ld   de, $00DE
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
+    ld   bc, $0C09
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+    
+    ; Check if "Backup Options" menu entry should be drawn (non-zero)
+    ld   a, [alt_menu__config__backup_entry__enabled_if_nonzero__RAM_C233]
+    or   a
+    jr   z, .skipped_drawing_hidden__backup_options__entry__1133
+        ld   de, $00D7
+        call submenu__maybe_load_string_for_entry__src_in_de_1D2D
+        ld   bc, $0F09
+        call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+
+    .skipped_drawing_hidden__backup_options__entry__1133:
+
+
+    ; ===== Now run the menu and handle any returned selections =====
     call sys_run_submenu_result_in_A__206D
     cp   $05
-    jp   z, _LABEL_2DA7_
+    jp   z, alt_menu__backup_options_app__setup__2DA7
+
+    ; Calculator entry
     cp   $03
     jp   z, app_calculator__launch__338A
     push af
+
+    ; Database entry
     cp   $04
-    jr   nz, _LABEL_1153_
+    jr   nz, alt_menu__check_entry__phone_book__1153
     ld   a, BANK(maybe_database_init_flag__SRAM_A000_BANK_2_) ;  $02
     call mbc_sram_ON_set_srambank_to_A__0BB1
     ld   a, [maybe_database_init_flag__SRAM_A000_BANK_2_]
     or   a
-    jr   nz, _LABEL_1174_
-    jp   _LABEL_DCC7_
+    jr   nz, alt_menu__run_menu_item__1174
+    jp   show_screen_notification__no_records___DCC7
 
-_LABEL_1153_:
-    cp   $01
-    jr   nz, _LABEL_1163_
-    call mbc_sram_ON_set_srambank_to_A__0BB1
-    ld   a, [_SRAM_1_]
-    or   a
-    jr   nz, _LABEL_1174_
-    jp   _LABEL_DCC7_
+    alt_menu__check_entry__phone_book__1153:
+        ; Phone book entry
+        cp   $01
+        jr   nz, alt_menu__check_entry__appointments__1163
+        call mbc_sram_ON_set_srambank_to_A__0BB1
+        ld   a, [_SRAM_1_]
+        or   a
+        jr   nz, alt_menu__run_menu_item__1174
+        jp   show_screen_notification__no_records___DCC7
 
-_LABEL_1163_:
-    cp   $02
-    jr   nz, _LABEL_1174_
-    xor  a
-    call mbc_sram_ON_set_srambank_to_A__0BB1
-    ld   a, [save_data__appt_count__SRAM_A231]
-    or   a
-    jp   z, _LABEL_DCC7_
-    jr   _LABEL_11B2_
+    alt_menu__check_entry__appointments__1163:
+        ; Appointments entry
+        cp   $02
+        jr   nz, alt_menu__run_menu_item__1174
+        xor  a
+        call mbc_sram_ON_set_srambank_to_A__0BB1
+        ld   a, [save_data__appt_count__SRAM_A231]
+        or   a
+        jp   z, show_screen_notification__no_records___DCC7
+        jr   _LABEL_11B2_
 
-_LABEL_1174_:
-    call _LABEL_1210_
-    ld   bc, $570C
-    call _LABEL_2044_
-    ld   bc, $2808
-    call _LABEL_27DD_
-    ld   a, $03
-    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
-        call duck_mbc_switch_bank_A_and_cache_banknum
-    ELSE
-        ld   [rMBC_ROMBANK], a  ; [$3FFF]
-    ENDC
-    call _LABEL_DB40_
-    push af
-    push bc
-    push de
-    push hl
-    ld   hl, $C11B
-    ld   de, _DATA_10BD_
-    ld   b, $06
-_LABEL_1197_:
-    ld   a, [de]
-    cp   [hl]
-    jr   nz, _LABEL_11A5_
-    inc  hl
-    inc  de
-    dec  b
-    jr   nz, _LABEL_1197_
-    ld   a, $01
-    ld   [_RAM_C233_], a
-_LABEL_11A5_:
-    pop  hl
-    pop  de
-    pop  bc
-    pop  af
-    pop  af
-    cp   $01
-    jp   z, _LABEL_DD5A_
-    jp   _LABEL_DCE7_
+    alt_menu__run_menu_item__1174:
+        ; Draw an on-screen keyboard at the bottom and
+        call _LABEL_1210_
+        ld   bc, $570C
+        call _LABEL_2044_
+        ld   bc, $2808
+        call _LABEL_27DD_
+        ld   a, $03
+        IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+            call duck_mbc_switch_bank_A_and_cache_banknum
+        ELSE
+            ld   [rMBC_ROMBANK], a  ; [$3FFF]
+        ENDC
+        ; Returns from this call 
+        call alt_menu__run_onscreen_keyboard_apps__DB40
+
+
+    ; Execution gets here by returning from a search in the Phone, DB, etc apps
+    ;
+    ; If the app was Phone (0x01) *and* the search string was ITCMRT (+ "Return" to search)
+    ; *then* the hidden "Backup Options" non-keyboard menu flag will
+    ; be set to enabled. The entry will become visible when the menu is returned to.
+    alt_menu__hidden_backup_option__check_sequence_to_enable__118B:
+        push af
+        push bc
+        push de
+        push hl
+        ld   hl, $C11B  ; $C11B seems often used as general scratchpad RAM, so maybe not significant
+        ld   de, alt_menu__hidden_backup_option__enable_sequence_characters__ITCMRT__10BD
+        ld   b, $06
+        .check_enable_sequence_loop__1197:
+            ld   a, [de]
+            cp   [hl]
+            jr   nz, .skip_enabling_hidden_option__11A5
+            inc  hl
+            inc  de
+            dec  b
+            jr   nz, .check_enable_sequence_loop__1197
+        ; Turning on the hidden "Backup Options" alt menu (non-keyboard mode) entry
+        ld   a, $01
+        ld   [alt_menu__config__backup_entry__enabled_if_nonzero__RAM_C233], a
+    .skip_enabling_hidden_option__11A5:
+        pop  hl
+        pop  de
+        pop  bc
+        pop  af
+        pop  af
+        cp   $01
+        jp   z, _LABEL_DD5A_
+        jp   _LABEL_DCE7_
 
 _LABEL_11B2_:
     xor  a
@@ -3443,7 +3481,7 @@ _LABEL_11EF_:
 
 _LABEL_11F7_:
     bit  0, a
-    jp   nz, _LABEL_200_
+    jp   nz, startup__post_external_hardware_init__rentry__0200
     bit  1, a
     jr   z, _LABEL_11DA_
     ld   a, [save_data__appt_count__SRAM_A231]
@@ -4128,7 +4166,7 @@ _LABEL_160B_:
     cp   $01
     jp   z, _LABEL_1A6A_
     cp   $03
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     ld   a, $03
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
@@ -4641,7 +4679,7 @@ _LABEL_199D_:
     cp   $FF
     jr   z, _LABEL_1982_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     jp   _LABEL_160B_
 
 _LABEL_19A9_:
@@ -4772,13 +4810,13 @@ _LABEL_1A6A_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $0012
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0509
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, _DATA_2150_
     ld   bc, $0F09
     ld   a, $14
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     xor  a
     ld   [_RAM_C130_], a
     ld   [_RAM_C11B_], a
@@ -4804,7 +4842,7 @@ _LABEL_1AD9_:
     cp   $FF
     jr   z, _LABEL_1AD9_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
 
     cp   WORKBOY_SYS_KEY_RETURN ; $0D
     jr   z, _LABEL_1B47_
@@ -5182,7 +5220,7 @@ _LABEL_1D26_:
     ldi  [hl], a
     jr   _LABEL_1D26_
 
-_LABEL_1D2D_:
+submenu__maybe_load_string_for_entry__src_in_de_1D2D:
     ld   h, d
     ld   l, e
     add  hl, hl
@@ -5223,19 +5261,19 @@ _LABEL_1D51_:
 
 _LABEL_1D5B_:
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     ld   de, $0028
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0029
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $002A
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    jp   _LABEL_BC3_
+    jp   submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
 ; Data from 1D85 to 1D87 (3 bytes)
 _DATA_1D85_:
@@ -5243,67 +5281,67 @@ db $02, $06, $0A
 
 _LABEL_1D88_:
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     ld   de, $001C
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $001D
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $001E
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    jp   _LABEL_BC3_
+    jp   submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
 _LABEL_1DB2_:
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     ld   de, $0022
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0023
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0024
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    jp   _LABEL_BC3_
+    jp   submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
 _LABEL_1DDC_:
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     ld   de, $0025
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0026
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0027
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    jp   _LABEL_BC3_
+    jp   submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
 _LABEL_1E06_:
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     ld   de, $001F
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0020
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0021
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    jp   _LABEL_BC3_
+    jp   submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
 ; Data from 1E30 to 1E33 (4 bytes)
 _DATA_1E30_:
@@ -5311,23 +5349,23 @@ db $03, $06, $0A, $0E
 
 _LABEL_1E34_:
     ld   hl, _DATA_1E30_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     ld   de, $0018
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0019
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $001A
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $001B
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0E09
-    jp   _LABEL_BC3_
+    jp   submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 
 _LABEL_1E6A_:
     xor  a
@@ -5401,7 +5439,7 @@ db $6B, $62
 ds 18, $63
 db $64
 
-_LABEL_2003_:
+load_menu_config__addr_in_hl__2003:
     ld   a, $0A
     ld   [_RAM_C25B_], a
     ld   a, $96
@@ -5540,7 +5578,7 @@ sys_run_submenu_result_in_A__206D:
 
         ; Might be checking for Escape Key here, to exit to main sys menu
         or   a
-        jp   z, _LABEL_200_
+        jp   z, startup__post_external_hardware_init__rentry__0200
 
         cp   WORKBOY_SYS_KEY_RETURN  ; $0D
         jr   z, _LABEL_2145_
@@ -5761,7 +5799,7 @@ _LABEL_224C_:
     cp   WORKBOY_SCAN_KEY_NONE ; $FF
     jr   z, _LABEL_224C_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     push af
     ld   a, [_RAM_C232_]
     add  a
@@ -5854,7 +5892,7 @@ _LABEL_22EF_:
 _LABEL_22F8_:
     inc  hl
     cp   [hl]
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     jp   _LABEL_224C_
 
 _LABEL_2300_:
@@ -6929,7 +6967,7 @@ else
 
     ; Put Workboy hardware in READ mode
     .serial_io__send_cmd_R__2866:
-        ld   a, WORKBOY_CMD_R_TODO  ; $52
+        ld   a, WORKBOY_CMD_R  ; $52
         call serial_io__send_command_A_wait_reply_byte_result_in_A__3356
         cp   WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO  ; $44
         ; Loop again if Serial Reply wasn't "D"
@@ -8012,10 +8050,11 @@ time__handle_reset_invalid_RTC_data__2D4E:
     ret
 
 
-_LABEL_2DA7_:
-    ld   a, [gamepad_buttons__RAM_C103]
-    or   a
-    jr   nz, _LABEL_2DA7_
+alt_menu__backup_options_app__setup__2DA7:
+        ld   a, [gamepad_buttons__RAM_C103]
+        or   a
+        jr   nz, alt_menu__backup_options_app__setup__2DA7
+    ; Display message "PRESS Y TO CONFIRM" "ANY OTHER KEY ABORTS"
     call audio__todo__380D
     call gfx__clear_tilemap_0__2722
     ld   hl, $0148
@@ -8027,13 +8066,14 @@ _LABEL_2DA7_:
     ld   de, $00A5
     ld   hl, $98E0
     rst  $20    ; GFX_COPY_STRING__RST_20
-_LABEL_2DC8_:
-    ld   a, [gamepad_buttons__RAM_C103]
-    or   a
-    jr   z, _LABEL_2DC8_
+    .gamepad_read_wait_loop__2DC8:
+        ld   a, [gamepad_buttons__RAM_C103]
+        or   a
+        jr   z, .gamepad_read_wait_loop__2DC8
     pop  de
     push af
     push de
+    ; Use _RAM_C232_ to index into data at _DATA_1071_ 
     ld   a, [_RAM_C232_]
     ld   d, $00
     ld   e, a
@@ -8044,137 +8084,156 @@ _LABEL_2DC8_:
     ld   [de], a
     pop  af
     bit  0, a
-    jr   nz, _LABEL_2DEA_
-    ld   hl, $FFFE
-    ld   sp, hl
-    jp   alt_menu__show_when_no_keyboard_found__10C3
+    jr   nz, alt_menu__backup_options_app__run__2DEA
+    ; A button not pressed. Reset stack and return to alt menu
+        ld   hl, $FFFE
+        ld   sp, hl
+        jp   alt_menu__show_when_no_keyboard_found__10C3
 
-_LABEL_2DEA_:
-    call gfx__clear_tilemap_0__2722
-    di
-_LABEL_2DEE_:
-    call serial_io__receive_byte_in_A_with_int__2E84
-    cp   $53
-    jr   nz, _LABEL_2DFB_
-    call _LABEL_2E0C_
-    jp   _LABEL_0_
+    ; Now run the backup options app
+    ; 
+    ; This requires the workboy hardware to be connected
+    ; then waits for a command *from the hardware**, 
+    ; perhaps a keypress (S or R) before taking action
+    alt_menu__backup_options_app__run__2DEA:
+        call gfx__clear_tilemap_0__2722
+        di
+        .serial_io__poll_ext_hw_loop__2DEE_:
+            call serial_io__receive_byte_in_A_with_int__2E84
 
-_LABEL_2DFB_:
-    cp   $52
-    jr   nz, _LABEL_2E05_
-    call _LABEL_2E2B_
-    jp   _LABEL_0_
+            cp   WORKBOY_CMD_S  ; $53
+            jr   nz, .check_next_command__2DFB
+                ; Send SRAM data and then restart the program
+                .send_sram__to_ext_hw:
+                    call serial_io__send_sram_banks_0_to_3__to_ext_hw_memory__2E0C
+                    jp   reset_code_entry_point__0000
 
-_LABEL_2E05_:
-    xor  a
-    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-    jp   _LABEL_2DEE_
+            .check_next_command__2DFB:
+            cp   WORKBOY_CMD_R  ; $52
+            jr   nz, .serial_status_reply_not_recognized__2E05
+                ; Read SRAM data and then restart the program
+                .read_sram__from_ext_hw:
+                    call serial_io__read_sram_banks_0_to_3__from_ext_hw_memory__2E2B
+                    jp   reset_code_entry_point__0000
 
-_LABEL_2E0C_:
-    ld   a, $53
-    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-    call _LABEL_2E69_
-    call _LABEL_2E69_
-    xor  a
-    call _LABEL_2E55_
-    ld   a, $01
-    call _LABEL_2E55_
-    ld   a, $02
-    call _LABEL_2E55_
-    ld   a, $03
-    call _LABEL_2E55_
-    ret
-
-_LABEL_2E2B_:
-    ld   a, $57
-    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-    xor  a
-    call _LABEL_2E44_
-    ld   a, $01
-    call _LABEL_2E44_
-    ld   a, $02
-    call _LABEL_2E44_
-    ld   a, $03
-    call _LABEL_2E44_
-    ret
-
-_LABEL_2E44_:
-    call mbc_sram_ON_set_srambank_to_A__2E9B
-    ld   de, _SRAM_0_
-_LABEL_2E4A_:
-    call serial_io__receive_byte_in_A_with_int__2E84
-    ld   [de], a
-    inc  de
-    ld   a, d
-    cp   $C0
-    jr   nz, _LABEL_2E4A_
-    ret
-
-_LABEL_2E55_:
-    call mbc_sram_ON_set_srambank_to_A__2E9B
-    ld   de, _SRAM_0_
-_LABEL_2E5B_:
-    ld   a, [de]
-    call serial_io__send_byte_with_int_receive_byte_in_A__2E74
-    call _LABEL_2E69_
-    inc  de
-    ld   a, d
-    cp   $C0
-    jr   nz, _LABEL_2E5B_
-    ret
-
-_LABEL_2E69_:
-    push bc
-    ld   bc, $01FF
-_LABEL_2E6D_:
-    dec  bc
-    ld   a, b
-    or   c
-    jr   nz, _LABEL_2E6D_
-    pop  bc
-    ret
+        .serial_status_reply_not_recognized__2E05:
+            xor  a
+            call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+            jp   .serial_io__poll_ext_hw_loop__2DEE_
 
 
-; Sends byte in A over Serial IO and waits for reply via interrupt
-;
-; Returns RX byte in A
-serial_io__send_byte_with_int_receive_byte_in_A__2E74:
-    ; Load serial byte to send from A
-    ; Clear all pending interrupts
-    ldh  [rSB], a
-    xor  a
-    ldh  [rIF], a
-    ; Enable Serial Interrupt and start a transfer
-    ld   a, IEF_SERIAL ; $08
-    ldh  [rIE], a
-    ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
-    ldh  [rSC], a
-    jp   serial_io__wait_interrupt__2E92
+    serial_io__send_sram_banks_0_to_3__to_ext_hw_memory__2E0C:
+        ld   a, WORKBOY_CMD_S    ; $53
+        call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+        call delay_3_40msec__2E69
+        call delay_3_40msec__2E69
+        xor  a
+        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+        ld   a, $01
+        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+        ld   a, $02
+        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+        ld   a, $03
+        call serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55
+        ret
+
+    serial_io__read_sram_banks_0_to_3__from_ext_hw_memory__2E2B:
+        ld   a, WORKBOY_CMD_W  ; $57
+        call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+        xor  a
+        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+        ld   a, $01
+        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+        ld   a, $02
+        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+        ld   a, $03
+        call serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44
+        ret
 
 
-; Receive a byte over Serial IO and waits via interrupt
-;
-; Returns RX byte in A
-serial_io__receive_byte_in_A_with_int__2E84:
-    ; Put 0x00 in outgoing Serial RX
-    ; Clear all pending interrupts
-    ld   a, $00
-    ldh  [rSB], a
-    ldh  [rIF], a
-    ; Enable Serial Interrupt and wait for a transfer
-    ld   a, IEF_SERIAL ; $08
-    ldh  [rIE], a
-    ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
-    ldh  [rSC], a
+    ; Read entire SRAM contents from serial port
+    serial_io__read_sram_bank_in_A_from_ext_hw_memory__LABEL_2E44:
+        call mbc_sram_ON_set_srambank_to_A__2E9B
+        ; Load SRAM base
+        ld   de, _SRAM
+    .read_serial_bytes_loop__2E4A:
+        call serial_io__receive_byte_in_A_with_int__2E84
+        ld   [de], a
+        inc  de
+        ld   a, d
+        cp   HIGH(_RAM)  ; $C0 ; Start of WRAM
+        jr   nz, .read_serial_bytes_loop__2E4A
+        ret
 
-    ; Wait for a serial interrupt
-    serial_io__wait_interrupt__2E92:
-        ldh  a, [rIF]
-        and  IEF_SERIAL ; $08
-        jr   z, serial_io__wait_interrupt__2E92
-    ; Return resulting byte in A
-    ldh  a, [rSB]
-    ret
+
+    ; Send entire SRAM contents out serial port
+    serial_io__send_sram_bank_in_A_to_ext_hw_memory__LABEL_2E55:
+        call mbc_sram_ON_set_srambank_to_A__2E9B
+        ; Load SRAM base
+        ld   de, _SRAM 
+        .send_serial_bytes_loop__2E5B:
+            ld   a, [de]
+            call serial_io__send_byte_with_int_receive_byte_in_A__2E74
+            call delay_3_40msec__2E69
+            inc  de
+            ld   a, d
+            cp   HIGH(_RAM)  ; $C0 ; Start of WRAM
+            jr   nz, .send_serial_bytes_loop__2E5B
+        ret
+
+
+    delay_3_40msec__2E69:
+        push bc
+        ld   bc, $01FF
+        .delay_loop__2E6D:
+            dec  bc
+            ld   a, b
+            or   c
+            jr   nz, .delay_loop__2E6D
+        pop  bc
+        ret
+
+
+    ; Sends byte in A over Serial IO and waits for reply via interrupt
+    ;
+    ; Returns RX byte in A
+    serial_io__send_byte_with_int_receive_byte_in_A__2E74:
+        ; Load serial byte to send from A
+        ; Clear all pending interrupts
+        ldh  [rSB], a
+        xor  a
+        ldh  [rIF], a
+        ; Enable Serial Interrupt and start a transfer
+        ld   a, IEF_SERIAL ; $08
+        ldh  [rIE], a
+        ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_INT) ; $81
+        ldh  [rSC], a
+        jp   serial_io__wait_interrupt__2E92
+
+
+    ; Receive a byte over Serial IO and waits via interrupt
+    ;
+    ; Returns RX byte in A
+    serial_io__receive_byte_in_A_with_int__2E84:
+        ; Put 0x00 in outgoing Serial RX
+        ; Clear all pending interrupts
+        ld   a, $00
+        ldh  [rSB], a
+        ldh  [rIF], a
+        ; Enable Serial Interrupt and wait for a transfer
+        ld   a, IEF_SERIAL ; $08
+        ldh  [rIE], a
+        ld   a, (SERIAL_XFER_ENABLE | SERIAL_CLOCK_EXT) ; $80
+        ldh  [rSC], a
+
+        ; Wait for a serial interrupt
+        serial_io__wait_interrupt__2E92:
+            ldh  a, [rIF]
+            and  IEF_SERIAL ; $08
+            jr   z, serial_io__wait_interrupt__2E92
+        ; Return resulting byte in A
+        ldh  a, [rSB]
+        ret
 
 
 ; Sets MBC1 SRAM bank:
@@ -14104,7 +14163,7 @@ _LABEL_B040_:
     ld   b, a
     and  $0C
     or   a
-    jp   nz, _LABEL_200_
+    jp   nz, startup__post_external_hardware_init__rentry__0200
     ld   a, b
     and  $03
     or   a
@@ -15592,7 +15651,7 @@ _LABEL_BA5C_:
     cp   $FF
     jr   z, _LABEL_BA26_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     call _LABEL_1094_
     cp   $7F
     jr   z, _LABEL_B9F0_
@@ -16151,7 +16210,7 @@ _LABEL_BE38_:
     cp   $FF
     jr   z, _LABEL_BE02_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $7F
     jr   nz, _LABEL_BE02_
     jp   _LABEL_B9F0_
@@ -16270,7 +16329,7 @@ _LABEL_BF06_:
     call _LABEL_BF46_
     rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0F
     jr   z, _LABEL_BF24_
     cp   $12
@@ -16584,7 +16643,7 @@ _LABEL_C18C_:
     cp   $FF
     jr   z, _LABEL_C18C_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jr   z, _LABEL_C1DA_
     cp   $80
@@ -16816,7 +16875,7 @@ _LABEL_C30A_:
     cp   $FF
     jr   z, _LABEL_C30A_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     push af
     ld   a, [_RAM_C232_]
     add  a
@@ -16852,7 +16911,7 @@ _LABEL_C348_:
     cp   $FF
     jr   z, _LABEL_C348_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     jp   _LABEL_897_
 
 _LABEL_C363_:
@@ -16867,7 +16926,7 @@ _LABEL_C36A_:
     ld   a, $14
     ld   de, _DATA_2150_
     ld   bc, $0F09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     xor  a
     ld   [_RAM_C130_], a
     ld   [_RAM_C239_], a
@@ -16885,7 +16944,7 @@ _LABEL_C391_:
     cp   WORKBOY_SCAN_KEY_NONE ; $FF
     jr   z, _LABEL_C391_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
 
     cp   WORKBOY_SYS_KEY_RETURN ; $0D
     jp   z, _LABEL_C44F_
@@ -17150,7 +17209,7 @@ _LABEL_C55C_:
     cp   $FF
     jr   z, _LABEL_C521_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jr   z, _LABEL_C592_
     cp   $12
@@ -17474,7 +17533,7 @@ _LABEL_C8BE_:
 app_calendar__keyboard_poll_loop__bank3_48CC:
     call serial_io__poll_keyboard__3278
     or   a
-    jp   z, _LABEL_200_  ; Why does it jump back to init here when keyboard poll returns 0x00?
+    jp   z, startup__post_external_hardware_init__rentry__0200  ; Why does it jump back to init here when keyboard poll returns 0x00?
     cp   WORKBOY_SCAN_KEY_NONE  ; $FF
     jr   z, app_calendar__keyboard_poll_loop__bank3_48CC
     cp   $0F
@@ -17524,15 +17583,15 @@ _LABEL_C91B_:
     call _LABEL_2735_
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $0068
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $0069
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     call sys_run_submenu_result_in_A__206D
     cp   $01
     jp   z, _LABEL_C95D_
@@ -17710,7 +17769,7 @@ _LABEL_CAC6_:
     cp   $FF
     jr   z, _LABEL_CAC6_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     push af
     ld   hl, $4A77
     ld   a, [_RAM_C232_]
@@ -17743,7 +17802,7 @@ _LABEL_CAC6_:
     jp   z, _LABEL_CE10_
     inc  hl
     cp   [hl]
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $09
     jr   nz, _LABEL_CAC6_
     ld   a, [_RAM_C10C_]
@@ -17828,7 +17887,7 @@ _LABEL_CB85_:
     ld   de, _DATA_2150_
     ld   bc, $0F09
     ld   a, $14
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 _LABEL_CB97_:
     xor  a
     ld   [_RAM_C11B_], a
@@ -18018,7 +18077,7 @@ _LABEL_CCEF_:
     cp   $FF
     jr   z, _LABEL_CCEF_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
 
     cp   WORKBOY_SYS_KEY_RETURN ; $0D
     jp   z, _LABEL_CDB9_
@@ -18726,7 +18785,7 @@ _LABEL_D185_:
     cp   $FF
     jr   z, _LABEL_D14A_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jr   z, _LABEL_D1BB_
     cp   $12
@@ -18767,14 +18826,14 @@ _LABEL_D1BB_:
     add  c
     ld   [_RAM_C5C9_], a
     ld   de, $006A
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   a, $14
     ld   bc, $0009
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $0C
     ld   de, _DATA_2150_
     ld   bc, $0F09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $30
     ld   [_RAM_C281_], a
     ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
@@ -18801,7 +18860,7 @@ _LABEL_D213_:
     cp   $FF
     jr   z, _LABEL_D213_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jp   z, _LABEL_D2B5_
     cp   $80
@@ -18957,7 +19016,7 @@ _LABEL_D321_:
     cp   $FF
     jr   z, _LABEL_D321_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     rst  $18    ; Call VSYNC__RST_18
     ; Reset vblank command to default
     xor  a
@@ -19014,9 +19073,9 @@ _LABEL_D386_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $009D
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0309
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $0C
     call _LABEL_E25B_
     ld   hl, _RAM_C283_
@@ -19161,9 +19220,9 @@ _LABEL_D459_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $009E
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0309
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $0C
     call _LABEL_E25B_
     ld   hl, _RAM_C283_
@@ -19317,7 +19376,7 @@ _LABEL_D5BA_:
     cp   $FF
     jr   z, _LABEL_D57F_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jr   z, _LABEL_D5FE_
     cp   $12
@@ -19450,24 +19509,32 @@ app_syscontrol__submenu__D714:
     ld   de, _DATA_1E9B_
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
+    ; "Control Menu"
     ld   de, $00A0
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0009
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+
+    ; "Clear all Records"
     ld   de, $00A1
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0409
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+
+    ; "Set Home"
     ld   de, $00A2
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0809
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+
+    ; "Choose Language"
     ld   de, $00D6
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0C09
-    call _LABEL_BC3_
-    ld   hl, _DATA_DB3C_
-    call _LABEL_2003_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
+
+    ld   hl, app_syscontrol__submenu__config____DB3C
+    call load_menu_config__addr_in_hl__2003
     ld   a, [_RAM_C25B_]
     sub  $06
     ld   [_RAM_C25B_], a
@@ -19771,113 +19838,116 @@ db $85, $6F, $7C, $CE, $00, $67, $7D, $81, $E7, $C9, $E5, $21, $AB, $5A, $85, $6
 db $7C, $CE, $00, $67, $7E, $12, $13, $E1, $C9
 
 ; Data from DB31 to DB36 (6 bytes)
-_DATA_DB31_:
+no_keyboard_menu__config__with_hidden_entry__backup_options__DB31:
+;  $05 = submenu max index
 db $05, $03, $06, $09, $0C, $0F
 
 ; Data from DB37 to DB3B (5 bytes)
-_DATA_DB37_:
+no_keyboard_menu__config__without_hidden_entry__DB37:
+;  $04 = submenu max index
 db $04, $03, $06, $09, $0C
 
 ; Data from DB3C to DB3F (4 bytes)
-_DATA_DB3C_:
+app_syscontrol__submenu__config____DB3C:
+; $03 = submenu max index
 db $03, $04, $08, $0C
 
-_LABEL_DB40_:
+alt_menu__run_onscreen_keyboard_apps__DB40:
     ld   a, $20
     ld   b, $14
     ld   hl, _RAM_C11B_
-_LABEL_DB47_:
-    ldi  [hl], a
-    dec  b
-    jr   nz, _LABEL_DB47_
+    _LABEL_DB47_:
+        ldi  [hl], a
+        dec  b
+        jr   nz, _LABEL_DB47_
     ld   [hl], b
-_LABEL_DB4C_:
-    ld   de, $C11B
-    ld   hl, (_TILEMAP0 + $60)
-    rst  $20    ; GFX_COPY_STRING__RST_20
-    call _LABEL_2769_
-    ld   a, [_RAM_C258_]
-    ld   c, a
-    ld   a, [_RAM_C259_]
-    ld   b, a
-    ld   a, [_RAM_C25A_]
-    ld   e, a
-    call _LABEL_1504_
-    ld   a, [_RAM_C592_]
-    or   a
-    jr   z, _LABEL_DB79_
-    ld   b, a
-    call _LABEL_DC0E_
-    cp   $0A
-    jr   z, _LABEL_DB4C_
-    cp   $FF
-    jr   nz, _LABEL_DB80_
-    jr   _LABEL_DB4C_
+    _LABEL_DB4C_:
+        ld   de, $C11B
+        ld   hl, (_TILEMAP0 + $60)
+        rst  $20    ; GFX_COPY_STRING__RST_20
+        call _LABEL_2769_
+        ld   a, [_RAM_C258_]
+        ld   c, a
+        ld   a, [_RAM_C259_]
+        ld   b, a
+        ld   a, [_RAM_C25A_]
+        ld   e, a
+        call _LABEL_1504_
+        ld   a, [_RAM_C592_]
+        or   a
+        jr   z, _LABEL_DB79_
+        ld   b, a
+        call _LABEL_DC0E_
+        cp   $0A
+        jr   z, _LABEL_DB4C_
+        cp   $FF
+        jr   nz, handle_keyperss__DB80
+        jr   _LABEL_DB4C_
 
-_LABEL_DB79_:
-    ld   a, $39
-    ld   [_RAM_C25A_], a
-    jr   _LABEL_DB4C_
+    _LABEL_DB79_:
+        ld   a, $39
+        ld   [_RAM_C25A_], a
+        jr   _LABEL_DB4C_
 
-_LABEL_DB80_:
-    or   a
-    jp   z, _LABEL_200_
-    cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
-    jr   nz, _LABEL_DB98_
-    ld   a, [_RAM_C234_]
-    dec  a
-    jr   z, _LABEL_DB4C_
-    ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
-    ld   [keyboard_cur_mode__RAM_C280], a
-    call _LABEL_1241_
-    jr   _LABEL_DB4C_
+    handle_keyperss__DB80:
+        or   a
+        jp   z, startup__post_external_hardware_init__rentry__0200
+        cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
+        jr   nz, _LABEL_DB98_
+        ld   a, [_RAM_C234_]
+        dec  a
+        jr   z, _LABEL_DB4C_
+        ld   a, KEYBD_MODE_ALT_NUMERIC_PHONE_MAYBE_OTHERS_0x02 ; $02
+        ld   [keyboard_cur_mode__RAM_C280], a
+        call _LABEL_1241_
+        jr   _LABEL_DB4C_
 
-_LABEL_DB98_:
-    cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
-    jr   nz, _LABEL_DBAC_
-    ld   a, [_RAM_C234_]
-    or   a
-    jr   z, _LABEL_DB4C_
-    ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01; $01
-    ld   [keyboard_cur_mode__RAM_C280], a
-    call _LABEL_1210_
-    jr   _LABEL_DB4C_
+    _LABEL_DB98_:
+        cp   WORKBOY_SYS_KEY_CAPS_MODE ; $0C
+        jr   nz, _LABEL_DBAC_
+        ld   a, [_RAM_C234_]
+        or   a
+        jr   z, _LABEL_DB4C_
+        ld   a, KEYBD_MODE_ALT_DEFAULT_TEXT_AND_LIST_MENU_NAV_0x01; $01
+        ld   [keyboard_cur_mode__RAM_C280], a
+        call _LABEL_1210_
+        jr   _LABEL_DB4C_
 
-_LABEL_DBAC_:
-    cp   $80
-    jr   nz, _LABEL_DBCC_
-    ld   a, [_RAM_C281_]
-    cp   $08
-    jr   z, _LABEL_DB4C_
-    sub  $08
-    ld   [_RAM_C281_], a
-    call _LABEL_21D7_
-    ld   hl, $C11A
-    add  l
-    ld   l, a
-    ld   a, h
-    adc  $00
-    ld   h, a
-    ld   [hl], $20
-    jr   _LABEL_DB4C_
+    _LABEL_DBAC_:
+        cp   $80
+        jr   nz, _LABEL_DBCC_
+        ld   a, [_RAM_C281_]
+        cp   $08
+        jr   z, _LABEL_DB4C_
+        sub  $08
+        ld   [_RAM_C281_], a
+        call _LABEL_21D7_
+        ld   hl, $C11A
+        add  l
+        ld   l, a
+        ld   a, h
+        adc  $00
+        ld   h, a
+        ld   [hl], $20
+        jr   _LABEL_DB4C_
 
-_LABEL_DBCC_:
-    cp   $0D
-    jr   nz, _LABEL_DBEB_
-    ld   a, [_RAM_C281_]
-    cp   $08
-    jp   z, _LABEL_DB4C_
-    call _LABEL_21D7_
-    dec  a
-    ld   [_RAM_C23B_], a
-    ld   hl, $C11B
-    add  l
-    ld   l, a
-    ld   a, h
-    adc  $00
-    ld   h, a
-    ld   [hl], $00
-    ret
+    _LABEL_DBCC_:
+        cp   $0D
+        jr   nz, _LABEL_DBEB_
+        ld   a, [_RAM_C281_]
+        cp   $08
+        jp   z, _LABEL_DB4C_
+        call _LABEL_21D7_
+        dec  a
+        ld   [_RAM_C23B_], a
+        ld   hl, $C11B
+        add  l
+        ld   l, a
+        ld   a, h
+        adc  $00
+        ld   h, a
+        ld   [hl], $00
+        ret
 
 _LABEL_DBEB_:
     cp   $61
@@ -19934,11 +20004,11 @@ _LABEL_DC0E_:
     ld   a, $FF
     ret
 
-_LABEL_DC4A_:
-    inc  a
-    ld   [_RAM_C25A_], a
-    ld   a, e
-    ret
+    _LABEL_DC4A_:
+        inc  a
+        ld   [_RAM_C25A_], a
+        ld   a, e
+        ret
 
 _LABEL_DC50_:
     ld   a, $39
@@ -20022,7 +20092,7 @@ _LABEL_DCC4_:
     ld   a, $FF
     ret
 
-_LABEL_DCC7_:
+show_screen_notification__no_records___DCC7:
     call gfx__clear_tilemap_0__2722
     ld   de, $00AA
     ld   hl, $98E4
@@ -20038,7 +20108,7 @@ _LABEL_DCDE_:
     ld   a, [_RAM_C592_]
     or   a
     jr   z, _LABEL_DCDE_
-    jp   _LABEL_200_
+    jp   startup__post_external_hardware_init__rentry__0200
 
 _LABEL_DCE7_:
     ld   a, $02
@@ -20065,7 +20135,7 @@ _LABEL_DCFE_:
     ld   hl, $9A20
     rst  $20    ; GFX_COPY_STRING__RST_20
     call _LABEL_DCD8_
-    jp   _LABEL_200_
+    jp   startup__post_external_hardware_init__rentry__0200
 
 _LABEL_DD22_:
     ld   a, [_RAM_C23A_]
@@ -20093,7 +20163,7 @@ _LABEL_DD43_:
 
 _LABEL_DD54_:
     call _LABEL_667_
-    jp   _LABEL_200_
+    jp   startup__post_external_hardware_init__rentry__0200
 
 _LABEL_DD5A_:
     ld   a, $01
@@ -20102,7 +20172,7 @@ _LABEL_DD5A_:
     call gfx__clear_tilemap_0__2722
     ld   a, [_SRAM_2001_]
     or   a
-    jp   z, _LABEL_DCC7_
+    jp   z, show_screen_notification__no_records___DCC7
     xor  a
     ld   [_RAM_C5C7_], a
 _LABEL_DD70_:
@@ -20159,7 +20229,7 @@ _LABEL_DDBE_:
     jp   _LABEL_DCD8_
 
 _LABEL_DDD6_:
-    jp   _LABEL_200_
+    jp   startup__post_external_hardware_init__rentry__0200
 
 _LABEL_DDD9_:
     xor  a
@@ -20173,9 +20243,9 @@ _LABEL_DDD9_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00A5
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0309
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $0F
     call _LABEL_E25B_
     xor  a
@@ -20216,24 +20286,24 @@ _LABEL_DE39_:
 
 _LABEL_DE41_:
     ld   de, $00A7
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00A8
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0509
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00A6
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, _RAM_C283_
     ld   bc, $0D09
     ld   a, $0C
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 _LABEL_DE70_:
     ld   hl, _DATA_D7FA_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     call sys_run_submenu_result_in_A__206D
     cp   $02
     jp   z, _LABEL_E026_
@@ -20308,7 +20378,7 @@ _LABEL_DEE5_:
     ld   de, _RAM_C283_
     ld   bc, $0009
     ld   a, $12
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, [_RAM_C5CD_]
     ld   hl, $A9E5
     ld   de, $0020
@@ -20345,7 +20415,7 @@ _LABEL_DF2D_:
     ld   de, _RAM_C283_
     ld   bc, $0609
     ld   a, $0C
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, [_RAM_C5DF_]
     or   a
     jr   nz, _LABEL_DF43_
@@ -20355,9 +20425,9 @@ _LABEL_DF2D_:
 _LABEL_DF43_:
     ld   de, $00B1
 _LABEL_DF46_:
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0909
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   hl, _RAM_C283_
     ld   b, $14
     ld   a, $20
@@ -20380,7 +20450,7 @@ _LABEL_DF6B_:
     ld   de, _RAM_C283_
     ld   bc, $0C09
     ld   a, $14
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00B6
     ld   hl, $9A01
     rst  $20    ; GFX_COPY_STRING__RST_20
@@ -20399,7 +20469,7 @@ _LABEL_DF7D_:
     cp   $FF
     jr   z, _LABEL_DF7D_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   [hl]
     jr   z, _LABEL_DFA3_
     inc  hl
@@ -20431,7 +20501,7 @@ _LABEL_DFC0_:
     ld   de, _DATA_2150_
     ld   bc, $0309
     ld   a, $0C
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   hl, _RAM_C700_
     ld   a, [_RAM_C5D2_]
     ldi  [hl], a
@@ -20482,10 +20552,10 @@ _LABEL_E026_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00AC
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0009
     ld   a, $14
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     call _LABEL_E1CF_
     ld   de, _RAM_C700_
     ld   hl, _RAM_C5D2_
@@ -20513,16 +20583,16 @@ _LABEL_E063_:
     ld   hl, (_TILEMAP0 + $21)
     rst  $20    ; GFX_COPY_STRING__RST_20
     ld   de, $00B0
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0909
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00B1
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0C09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     call gfx__clear_shadow_oam__275B
     ld   hl, _DATA_E1CC_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     call sys_run_submenu_result_in_A__206D
     push af
     cp   $01
@@ -20549,7 +20619,7 @@ _LABEL_E0A0_:
     ld   de, _DATA_2150_
     ld   bc, $0C09
     ld   a, $14
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $F2
     ldh  [rOBP0], a
 _LABEL_E0D0_:
@@ -20718,7 +20788,7 @@ _LABEL_E1CF_:
     ld   de, _DATA_2150_
     ld   bc, $0309
     ld   a, $0C
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 _LABEL_E1DA_:
     ld   hl, _RAM_C700_
     ld   a, [date__days__decimal__maybe__RAM_C139]
@@ -20787,7 +20857,7 @@ _LABEL_E25B_:
     inc  a
     ld   [_RAM_C5F2_], a
     ld   a, $0C
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $30
     ld   [_RAM_C281_], a
     ld   a, KEYBD_MODE_ALT_NUMERIC_AND_DATE_0x03 ; $03
@@ -20818,7 +20888,7 @@ _LABEL_E29C_:
     cp   $FF
     jr   z, _LABEL_E29C_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jp   z, _LABEL_E362_
     cp   $80
@@ -21157,7 +21227,7 @@ _LABEL_E4DB_:
     jr   nz, _LABEL_E4F1_
 _LABEL_E4EB_:
     call _LABEL_E67B_
-    jp   _LABEL_200_
+    jp   startup__post_external_hardware_init__rentry__0200
 
 _LABEL_E4F1_:
     push af
@@ -21671,14 +21741,14 @@ _LABEL_E7EF_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00BA
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0009
     ld   a, $14
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   a, $14
     ld   bc, $0F09
     ld   de, _DATA_2150_
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   hl, _RAM_C11B_
     ld   b, $12
     ld   a, $20
@@ -21715,7 +21785,7 @@ _LABEL_E867_:
     cp   $FF
     jr   z, _LABEL_E867_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $0D
     jp   z, _LABEL_E92D_
     cp   WORKBOY_SYS_KEY_NUM_MODE ; $0B
@@ -21859,15 +21929,15 @@ _LABEL_E95A_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00BC
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0009
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
 _LABEL_E98E_:
     call serial_io__poll_keyboard__3278
     cp   WORKBOY_SCAN_KEY_NONE  ; $FF
     jr   z, _LABEL_E98E_
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $23
     jr   nz, _LABEL_E9A1_
     ld   a, $0F
@@ -22623,10 +22693,10 @@ _LABEL_F6A6_:
     call _LABEL_F6F7_
     ld   a, [_RAM_C3B0_]
     or   a
-    jp   nz, _LABEL_200_
+    jp   nz, startup__post_external_hardware_init__rentry__0200
     rst  $08    ; SERIAL_POLL_KEYBOARD__RST_8
     or   a
-    jp   z, _LABEL_200_
+    jp   z, startup__post_external_hardware_init__rentry__0200
     cp   $FF
     jr   z, _LABEL_F6A6_
     jp   _LABEL_1E6A_
@@ -22702,19 +22772,19 @@ _LABEL_F74D_:
     call gfx__copy_tilemap_screen_from_DE__3969
     call gfx__turn_on_screen_bg_obj__2540
     ld   de, $00E1
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0109
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00E2
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0609
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   de, $00E3
-    call _LABEL_1D2D_
+    call submenu__maybe_load_string_for_entry__src_in_de_1D2D
     ld   bc, $0A09
-    call _LABEL_BC3_
+    call submenu__draw_animated_entry__y_pos_in_b__x_center_in_c_0BC3
     ld   hl, _DATA_1D85_
-    call _LABEL_2003_
+    call load_menu_config__addr_in_hl__2003
     call sys_run_submenu_result_in_A__206D
     dec  a
     ld   [_RAM_C5F4_], a
@@ -22791,7 +22861,7 @@ lang_select__run_simple_menu__F790:
 
             ; Might be checking for Escape Key here, to exit to main sys menu
             or   a
-            jp   z, _LABEL_200_
+            jp   z, startup__post_external_hardware_init__rentry__0200
             cp   WORKBOY_SYS_KEY_RETURN  ; $0D
             jr   z, _LABEL_F836_
 

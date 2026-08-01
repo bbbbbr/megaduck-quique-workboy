@@ -89,7 +89,7 @@ _RAM_C19C_: db
 
 SECTION "wram_c232", WRAM0[$C232]
 _RAM_C232_: db
-_RAM_C233_: db
+alt_menu__config__backup_entry__enabled_if_nonzero__RAM_C233: db
 _RAM_C234_: db
 _RAM_C235_: db
 

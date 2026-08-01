@@ -26,9 +26,10 @@ DEF KEYBD_MODE_ALT_UNKNOWN_0x04                          EQU $04 ; This gets set
 ; See: keyboard_cur_mode__RAM_C280
 ; Commands sent to the Workboy peripheral over serial IO
 DEF WORKBOY_CMD_TODO_0       EQU 0   ; $00  ; TODO: Might be a poll for "Ready"
-DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; TODO: Maybe this is more general, "just read something?"
-DEF WORKBOY_CMD_R_TODO       EQU "R" ; $52  ; TODO: Sent at startup to check hardware and read RTC
-DEF WORKBOY_CMD_W_TODO       EQU "W" ; $57  ; TODO: Is this Write mode?
+DEF WORKBOY_CMD_O_READKEY    EQU "O" ; $4F  ; Maybe this is more general, "just read something?"
+DEF WORKBOY_CMD_R            EQU "R" ; $52  ; Sent at startup to check hardware and read RTC
+DEF WORKBOY_CMD_W            EQU "W" ; $57  ; Sent when sending RTC data to hardware... and also when reading SRAM banks 0-3 from 
+DEF WORKBOY_CMD_S            EQU "S" ; $53  ; Sent before sending SRAM banks 0-3 out serial port
 
 DEF WORKBOY_REPLY_D_MAYBE_AN_ACK_TODO     EQU "D"
 
