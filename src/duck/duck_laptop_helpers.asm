@@ -46,5 +46,7 @@ duck_keyboard_read_wrapper_bank_0::
         pop  af
 
     call duck_io_restore_rIE
+    ; Check if the keypress should trigger a sound
+    call duck_audio__serial_io__sound_trigger_handler__keyboard
 
     ret

@@ -388,7 +388,7 @@ startup_init__0150:
         ld   a, STATF_LYCF  ; $04
     ENDC
     ldh  [rSTAT], a
-    ld   [_RAM_C110_], a
+    ld   [maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110], a
     ; Set up some BG and OBJ palettes
     ld   a, $1B
     ldh  [rBGP], a
@@ -479,7 +479,7 @@ startup_init__0150:
     ld   [_RAM_C3BC_], a
     ld   [_RAM_C3C6_], a
     ld   [_RAM_C3D0_], a
-    call audio__todo__380D
+    call audio__reset_and_disable_maybe__380D
     ; Most likely These are not needed megaduck
     ; Seems related to some quirks of their MBC cart
     ; perhaps needing repeated writes to "take"
@@ -548,10 +548,10 @@ startup__post_external_hardware_init__rentry__0200:
     ld   hl, _SRAM_6_
     ld   de, _RAM_C700_
     call _LABEL_F0_
-    call audio__todo__380D
+    call audio__reset_and_disable_maybe__380D
     call gfx__clear_shadow_oam__275B
     ld   a, $01
-    ld   [_RAM_C110_], a
+    ld   [maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110], a
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         call duck_mbc_switch_bank_A_and_cache_banknum
     ELSE
@@ -2786,10 +2786,6 @@ serial_io__send_rtc__conv_from_ascii_into_bcd__0E6C:
         call duck_mbc_restore_saved_bank__then__duck_io_restore_rIE
 
         jr   megaduck__rtc_send_patch_done__0EA5
-
-        ; Use free space here for duck STAT interrupt pre-handler
-        ; as an alternative to the sometimes blocked VBlank handler
-        include "duck/duck_laptop_stat_isr_pre_handler.asm"
 
         SECTION "megaduck__rtc_send_patch_done__0EA5", ROM0[$0EA5]
         megaduck__rtc_send_patch_done__0EA5:
@@ -6437,7 +6433,7 @@ vblank__handler__25CC:
         inc  [hl]
 
         call time_date__increment_time__2FE6  ; WARNING: It conditionally calls a bank switch
-        call maybe_alarm_sound_related__357E
+        call audio__vblank_sound_update__357E
         ld   a, [_RAM_C3AA_]
         or   a
         jr   z, _LABEL_2659_
@@ -6447,7 +6443,7 @@ vblank__handler__25CC:
         call _LABEL_1E88_
         ld   a, [_RAM_C3DE_]
         cp   $0D
-        call nc, audio__todo__380D
+        call nc, audio__reset_and_disable_maybe__380D
         jr   _LABEL_2659_
 
     _LABEL_2628_:
@@ -6477,7 +6473,7 @@ vblank__handler__25CC:
         ld   b, $04
         ld   a, $2C
         ld   c, $11
-        call _LABEL_33FC_
+        call audio__maybe_serial_io__sound_handler__33FC
         ld   a, $3C
         ld   [_RAM_C3AB_], a
     _LABEL_2659_:
@@ -6939,6 +6935,18 @@ IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
 
         call duck_mbc_restore_saved_bank
         ; ld   [rMBC_ROMBANK], 3  ; Restore ROM bank, assume bank 3 is expected default
+
+        ; TODO: Could mimic post RTC Read sound that sometimes triggers (alarm?)
+        ; call duck_audio__serial_io__sound_trigger_handler
+        ;
+        ; See:
+        ; -> serial_io__startup_check_and_read_rtc__2854
+        ;    -> .serial_io__send_cmd_R__2866
+        ;       -> serial_io__send_command_A_wait_reply_byte_result_in_A__3356
+        ;         -> .send_command_and_wait_reply__3361
+        ;                   ld   a, [maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110]
+        ;                   ...
+        ;                   -> call audio__maybe_serial_io__sound_handler__33FC
 
     jr   megaduck__resume__serial_io__startup_check_and_read_rtc__2883
     SECTION "megaduck__resume__serial_io__startup_check_and_read_rtc__2883", ROM0[$2883]
@@ -8055,7 +8063,7 @@ alt_menu__hidden_backup_options_app__setup__2DA7:
         or   a
         jr   nz, alt_menu__hidden_backup_options_app__setup__2DA7
     ; Display message "PRESS Y TO CONFIRM" "ANY OTHER KEY ABORTS"
-    call audio__todo__380D
+    call audio__reset_and_disable_maybe__380D
     call gfx__clear_tilemap_0__2722
     ld   hl, $0148
     call _LABEL_1076_
@@ -8110,8 +8118,13 @@ alt_menu__hidden_backup_options_app__setup__2DA7:
             jp   alt_menu__show_when_no_keyboard_found__10C3
 
 
-        ; Put the audio remapping here
-        ; include "duck/duck_laptop_audio_helpers.asm"
+        ; Put the duck audio remapping here
+        include "duck/duck_laptop_audio_helpers.asm"
+
+        ; Also put the duck STAT interrupt pre-handler here,
+        ; it's an alternative to the sometimes blocked VBlank handler
+        include "duck/duck_laptop_stat_isr_pre_handler.asm"
+
 
         SECTION "megaduck__hidden_backup_commands_free_space_done__2E9B", ROM0[$2E9B]
     ELSE
@@ -8936,7 +8949,7 @@ serial_io__poll_keyboard__3278:
         push af
 
     ; Probably Begin handling all kinds of function key related actions and eventual dispatch
-        call audio__todo__380D
+        call audio__reset_and_disable_maybe__380D
         pop  af
         cp   $09  ; Is it the Telephone function key?
         jr   nz, _LABEL_32C7_
@@ -8961,7 +8974,7 @@ serial_io__poll_keyboard__3278:
 
     _LABEL_32D7_:
         ld   a, $01
-        ld   [_RAM_C110_], a
+        ld   [maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110], a
         ld   a, [_RAM_C117_]
         or   a
         call nz, _LABEL_E67B_
@@ -9108,12 +9121,12 @@ serial_io__send_command_A_wait_reply_byte_result_in_A__3356:
             ret  z
 
             push af
-            ld   a, [_RAM_C110_]  ; TODO: What is this testing after a serial transfer? set to 4 on initial startup, then 1 on startup, and later 0 or 1 occasionally
+            ld   a, [maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110]  ; Appears to maybe test whether to trigger a sound based on the returned serial data
             or   a
             jr   z, .return_serial_reply_byte_in_A__3388
             ld   a, $24
             ld   bc, $0211
-            call _LABEL_33FC_
+            call audio__maybe_serial_io__sound_handler__33FC
 
         .return_serial_reply_byte_in_A__3388:
             pop  af
@@ -9190,7 +9203,7 @@ db $01, $40, $F0, $95, $0B
 _DATA_33F7_:
 db $02, $80, $F0, $95, $0B
 
-_LABEL_33FC_:
+audio__maybe_serial_io__sound_handler__33FC:
     push af
     ld   a, c
     ld   [_RAM_C3D2_], a
@@ -9244,8 +9257,12 @@ _LABEL_3443_:
     ret  z
     ldi  a, [hl]
     ldh  [rAUD1LEN], a
-    ldi  a, [hl]
-    ldh  [rAUD1ENV], a
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_audio__rAUD1ENV_nibble_swap_from_hl_and_hl_inc
+    ELSE
+        ldi  a, [hl]
+        ldh  [rAUD1ENV], a
+    ENDC
     ld   c, [hl]
     inc  hl
     ld   b, [hl]
@@ -9293,8 +9310,12 @@ _LABEL_349C_:
     ret  z
     ldi  a, [hl]
     ldh  [rAUD2LEN], a
-    ldi  a, [hl]
-    ldh  [rAUD2ENV], a
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_audio__rAUD2ENV_nibble_swap_from_hl_and_hl_inc
+    ELSE
+        ldi  a, [hl]
+        ldh  [rAUD2ENV], a
+    ENDC
     ld   c, [hl]
     inc  hl
     ld   b, [hl]
@@ -9334,8 +9355,12 @@ _LABEL_349C_:
 _LABEL_34F3_:
     ld   a, [_RAM_C3D5_]
     ld   [_RAM_C3CF_], a
-    ldi  a, [hl]
-    ldh  [rAUD3LEVEL], a
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
+        call duck_audio__rAUD3LEVEL_swizzle_from_hl_and_hl_inc
+    ELSE
+        ldi  a, [hl]
+        ldh  [rAUD3LEVEL], a
+    ENDC
     ld   c, [hl]
     inc  hl
     ld   b, [hl]
@@ -9393,10 +9418,17 @@ _LABEL_3507_:
 _LABEL_3556_:
     ld   a, [_RAM_C3D5_]
     ld   [_RAM_C3D1_], a
-    ldi  a, [hl]
-    ldh  [rAUD4ENV], a
-    ldi  a, [hl]
-    ldh  [rAUD4POLY], a
+    IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)        
+        nop
+        nop
+        nop
+        call duck_audio__rAUD4ENV_rAUD4POLY_nibble_swap_from_hl_and_hl_inc
+    ELSE
+        ldi  a, [hl]
+        ldh  [rAUD4ENV], a
+        ldi  a, [hl]
+        ldh  [rAUD4POLY], a
+    ENDC
     ld   a, [_RAM_C3D2_]
     add  a
     add  a
@@ -9414,7 +9446,7 @@ _LABEL_3556_:
     ld   [_RAM_C3D0_], a
     ret
 
-maybe_alarm_sound_related__357E:
+audio__vblank_sound_update__357E:
     ld   a, [_RAM_C3B2_]
     inc  a
     jp   z, _LABEL_3626_
@@ -9425,9 +9457,11 @@ maybe_alarm_sound_related__357E:
     ld   a, [_RAM_C3D6_]
     or   a
     jr   nz, _LABEL_35A4_
+    ; Mask out channel 1 Left and Right
     ldh  a, [rAUDTERM]
-    and  $EE
+    and  ~(AUDTERM_1_LEFT | AUDTERM_1_RIGHT)  ; $EE
     ldh  [rAUDTERM], a
+    ; Maybe they're trying to reset audio here?
     ldh  a, [rAUDENA]
     and  $FE
     ldh  [rAUDENA], a
@@ -9678,7 +9712,7 @@ _LABEL_374E_:
 _LABEL_376C_:
     ld   [_RAM_C3DE_], a
     push af
-    call audio__todo__380D
+    call audio__reset_and_disable_maybe__380D
     xor  a
     ld   [_RAM_C3DC_], a
     ld   a, $03
@@ -9713,7 +9747,7 @@ _LABEL_379C_:
 _LABEL_37AA_:
     ldi  a, [hl]
     cp   $FF
-    jp   z, audio__todo__380D
+    jp   z, audio__reset_and_disable_maybe__380D
     cp   $F0
     jr   c, _LABEL_37B8_
     and  $0F
@@ -9733,7 +9767,7 @@ _LABEL_37B8_:
     ld   b, a
     ld   a, c
     ld   c, $11
-    call _LABEL_33FC_
+    call audio__maybe_serial_io__sound_handler__33FC
 _LABEL_37D4_:
     ld   a, [_RAM_C3BC_]
     inc  a
@@ -9745,7 +9779,7 @@ _LABEL_37D4_:
 _LABEL_37E2_:
     ldi  a, [hl]
     cp   $FF
-    jp   z, audio__todo__380D
+    jp   z, audio__reset_and_disable_maybe__380D
     cp   $F0
     jr   c, _LABEL_37F0_
     and  $0F
@@ -9765,22 +9799,31 @@ _LABEL_37F0_:
     ld   b, a
     ld   a, c
     ld   c, $11
-    call _LABEL_33FC_
+    call audio__maybe_serial_io__sound_handler__33FC
 _LABEL_380C_:
     ret
 
-audio__todo__380D:
-    ld   a, $FF
+audio__reset_and_disable_maybe__380D:
+    ld   a, AUDTERM_LEFT_RIGHT_ALL_ON ; $FF
     ld   [_RAM_C3DE_], a
+
+    ; Turn all audio channels L/R off (why even read the register?)
     ldh  a, [rAUDTERM]
     xor  a
     ldh  [rAUDTERM], a
+
+    ; Are they trying to turn the sound off for channel 1? It wouldn't work.
+    ; Why mask the read only channel bits? They're read-only
     ldh  a, [rAUDENA]
     and  $FE
     ldh  [rAUDENA], a
+    
+    ; Turn all audio channels L/R off... again
     ldh  a, [rAUDTERM]
     xor  a
     ldh  [rAUDTERM], a
+
+    ; Are they trying to turn the sound off for channel 2 now? (again, it wouldn't work)
     ldh  a, [rAUDENA]
     and  $FD
     ldh  [rAUDENA], a
@@ -21923,7 +21966,7 @@ _LABEL_E95A_:
     ldh  [rOBP0], a
     call set_keycode_lut_ptr__altmap_ON__002B
     xor  a
-    ld   [_RAM_C110_], a
+    ld   [maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110], a
     di
     IF DEF(BUILD_USE_DUCK_LAPTOP_HARDWARE)
         ; On Duck STAT is also used as a mini-vbl handler
@@ -22011,11 +22054,11 @@ _LABEL_E9B3_:
     ld   [_RAM_C3D6_], a
     ld   [_RAM_C3D7_], a
     ld   bc, $0511
-    call _LABEL_33FC_
+    call audio__maybe_serial_io__sound_handler__33FC
     pop  de
     ld   a, $FF
     ld   bc, $0611
-    call _LABEL_33FC_
+    call audio__maybe_serial_io__sound_handler__33FC
     ld   b, $0A
 _LABEL_E9F3_:
     rst  $18    ; Call VSYNC__RST_18
@@ -22106,11 +22149,11 @@ _LABEL_EA56_:
     ld   [_RAM_C3D6_], a
     ld   [_RAM_C3D7_], a
     ld   bc, $0511
-    call _LABEL_33FC_
+    call audio__maybe_serial_io__sound_handler__33FC
     pop  de
     ld   a, $FF
     ld   bc, $0611
-    call _LABEL_33FC_
+    call audio__maybe_serial_io__sound_handler__33FC
     ld   b, $0F
 _LABEL_EA84_:
     rst  $18    ; Call VSYNC__RST_18

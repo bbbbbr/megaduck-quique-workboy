@@ -19,7 +19,7 @@ _RAM_C10C_: db
 _RAM_C10D_: db
 _RAM_C10E_: db
 _RAM_C10F_: db
-_RAM_C110_: db
+maybe__audio__serial_io__reply_byte__sound_trigger__RAM_C110: db
 main_menu__icon_cur_column__C111: db
 main_menu__icon_cur_row__C112: db
 _RAM_C113_: db

@@ -24,7 +24,7 @@ duck_check_model_on_startup_wrapper_bank_0::
     call duck_mbc_switch_bank_A_and_cache_banknum__and_save_current_first
     ; ld   [rMBC_ROMBANK], BANK(duck_io_keyboard_poll)
 
-        call duck_check_model
+        call duck_startup_check_model_and_init_expected_registers
 
     ; Don't actually care about restoring the bank here,
     ; it will have nonsense in it. Save a few bytes by omitting
@@ -39,6 +39,22 @@ duck_check_model_on_startup_wrapper_bank_0::
 ; Leave section floating to be placed inside the removed
 ; Italian Translation section in Bank 4
 SECTION "Duck Laptop Detect Model ROMX", ROMX, BANK[$4]
+
+duck_startup_check_model_and_init_expected_registers::
+    call duck_init_expected_registers
+    call duck_check_model
+    ret
+
+
+duck_init_expected_registers::
+    ; Set up some registers that the oem code expects the GB boot ROM to have configured for them
+    ld   a, AUDENA_ON  ; $80, since other bits in reg are read only, so can't set to $F3 literally
+    ldh  [rAUDENA], a
+    ld   a, (AUDVOL_LEFT_MAX | AUDVOL_RIGHT_MAX)   ; $77
+    ldh  [rAUDVOL], a
+    ld   a, $FF ; ~(AUDTERM_4_RIGHT | AUDTERM_3_RIGHT)  ; $F3
+    ldh  [rAUDTERM],a
+    ret
 
 ; ===== Laptop Model Detection =====
 
