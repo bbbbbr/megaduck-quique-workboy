@@ -4,7 +4,7 @@ all: allducks gb
 # TODO: This is a bit of a mess, could be cleaned up
 
 ifndef DUCK_MBC
-	DUCK_MBC=md2
+	DUCK_MBC=md2s
 endif
 
 DIRDUCK=build_duck_$(DUCK_MBC)
@@ -26,7 +26,7 @@ DUCK_ROMNAME=$(ROMNAME_BASE).$(DUCK_MBC)
 
 UPS_PATCHTOOL_PATH=tools/ups_patch
 PATCHDIR=patches
-PATCH_DUCK_MD2   = $(PATCHDIR)/$(DUCK_ROMNAME)md2.patch.ups
+PATCH_DUCK_md2s   = $(PATCHDIR)/$(DUCK_ROMNAME)md2s.patch.ups
 PATCH_DUCK_MBC5  = $(PATCHDIR)/$(DUCK_ROMNAME)mbc5.patch.ups
 
 MKDIRS = $(DIRGB) $(REF_ROM_DIR) $(PATCHDIR)
@@ -71,18 +71,18 @@ duck: $(DIRDUCK)/$(DUCK_ROMNAME)
 
 duckmbc5:
 	${MAKE} duck DUCK_MBC=mbc5 DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC5
-duckmd2:
-	${MAKE} duck DUCK_MBC=md2  DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC_MD2
+duckmd2s:
+	${MAKE} duck DUCK_MBC=md2s  DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC_MD2S
 
 clean-duckmbc5:
 	${MAKE} cleanduck DUCK_MBC=mbc5 DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC5
-clean-duckmd2:
-	${MAKE} cleanduck DUCK_MBC=md2  DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC_MD2
+clean-duckmd2s:
+	${MAKE} cleanduck DUCK_MBC=md2s  DUCK_BUILD_FLAG=BUILD_USE_DUCK_MBC_MD2S
 
 
-clean-allducks: clean-duckmbc5 clean-duckmd2
+clean-allducks: clean-duckmbc5 clean-duckmd2s
 
-allducks: duckmbc5 duckmd2
+allducks: duckmbc5 duckmd2s
 
 cleanduck:
 	rm -f $(DIRDUCK)/*
@@ -99,7 +99,7 @@ $(DIRDUCK)/$(DUCK_ROMNAME): duckgfx $(SRCDIR)/$(SRCNAME)
 # == Patches ==
 .PHONY: patches
 patches:
-	$(UPS_PATCHTOOL_PATH) diff --base $(REFERENCE_ROM) -modified build_duck_md2/$(DUCK_ROMNAME)md2   -output $(PATCH_DUCK_MD2) &
+	$(UPS_PATCHTOOL_PATH) diff --base $(REFERENCE_ROM) -modified build_duck_md2s/$(DUCK_ROMNAME)md2s   -output $(PATCH_DUCK_md2s) &
 	$(UPS_PATCHTOOL_PATH) diff --base $(REFERENCE_ROM) -modified build_duck_mbc5/$(DUCK_ROMNAME)mbc5 -output $(PATCH_DUCK_MBC5) &
 
 
@@ -112,17 +112,17 @@ bindiffduck: bindiffduck-mbc5
 bindiffduck-mbc5:
 	vbindiff $(REFERENCE_ROM) build_duck_mbc5/$(DUCK_ROMNAME)mbc5
 
-bindiffduck-md2:
-	vbindiff $(REFERENCE_ROM) build_duck_md2/$(DUCK_ROMNAME)md2
+bindiffduck-md2s:
+	vbindiff $(REFERENCE_ROM) build_duck_md2s/$(DUCK_ROMNAME)md2s
 
 bindiffducks:
-	vbindiff build_duck_mbc5/$(DUCK_ROMNAME)mbc5 build_duck_md2/$(DUCK_ROMNAME)md2
+	vbindiff build_duck_mbc5/$(DUCK_ROMNAME)mbc5 build_duck_md2s/$(DUCK_ROMNAME)md2s
 
 bindiffgb:
 	vbindiff $(REFERENCE_ROM) $(DIRGB)/$(ROMNAME_BASE).gb
 
 symdiff:
-	meld build_gb/$(DUCK_ROMNAME)sym build_duck_mbc5/$(DUCK_ROMNAME)sym build_duck_md2/$(DUCK_ROMNAME)sym
+	meld build_gb/$(DUCK_ROMNAME)sym build_duck_mbc5/$(DUCK_ROMNAME)sym build_duck_md2s/$(DUCK_ROMNAME)sym
 
 
 
@@ -132,8 +132,8 @@ runduck: runduckmbc5
 runduckmbc5:
 	superjunior_sameduck --force-mbc 0x1B build_duck_mbc5/$(DUCK_ROMNAME)mbc5
 
-runduckmd2:
-	superjunior_sameduck --duck-sram-cart build_duck_md2/$(DUCK_ROMNAME)md2
+runduckmd2s:
+	superjunior_sameduck build_duck_md2s/$(DUCK_ROMNAME)md2s
 
 
 romusage:
@@ -146,7 +146,7 @@ flashduck:
 
 
 # rom-first-32k:
-#	dd bs=32K count=1 if=$(REFERENCE_ROM) of=$(REFERENCE_ROM)_32k.md2
+#	dd bs=32K count=1 if=$(REFERENCE_ROM) of=$(REFERENCE_ROM)_32k.md2s
 
 
 # create necessary directories after Makefile is parsed but before build

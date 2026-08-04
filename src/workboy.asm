@@ -14,7 +14,7 @@
 ; Temp workaround while MBC1 isn't supported in OG SameDuck (supported in forked Sameduck)
 IF DEF (TARGET_MEGADUCK)
 ;    TODO: for MD2 it may also need sram switching changes and sram enable write suppression
-;    def BUILD_USE_DUCK_MBC_MD2 = 1
+;    def BUILD_USE_DUCK_MBC_MD2S = 1
 ;
 ;    OR
 ;    def BUILD_USE_DUCK_MBC5 = 1
@@ -72,7 +72,7 @@ DEF MBC_NUM_MBC1         EQU $03
 
 
 
-IF DEF(BUILD_USE_DUCK_MBC_MD2)
+IF DEF(BUILD_USE_DUCK_MBC_MD2S)
     ; === MBC MD2 ====
     ; MBC Register defines
     DEF rMBC_ROMBANK        EQU $0001
@@ -334,7 +334,7 @@ GBcartridgeHeader__0104:
     ; 0147: Title area, etc
     SECTION "GBcartridgeHeader_cart_type__0147", ROM0[$0147]
 
-        IF DEF(BUILD_USE_DUCK_MBC_MD2)
+        IF DEF(BUILD_USE_DUCK_MBC_MD2S)
             db MBC_NUM_DUCK_MD2 ; MegaDuck MD2 16K banks, (SRAM depends on cart or cart in SRAM SLOT)
         ELIF DEF(BUILD_USE_DUCK_MBC5)
             db MBC_NUM_MBC5 ; # 0x1B: MBC-5   SRAM    BATTERY 
@@ -2111,7 +2111,7 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
     ; write 0 to the SRAM Bank select
 
     ; RAM Enable/Disable not available for MD2 (always connected)
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2S)
         REPT 5
             nop
         ENDR        
@@ -2128,7 +2128,7 @@ mbc_sram_ON_rombank_1_srambank_0__0AFD:
     ENDC
 
     ; RAM mode not needed for MD2 and MBC5
-    IF (DEF(BUILD_USE_DUCK_MBC_MD2) || DEF(BUILD_USE_DUCK_MBC5))
+    IF (DEF(BUILD_USE_DUCK_MBC_MD2S) || DEF(BUILD_USE_DUCK_MBC5))
         REPT 5
             nop
         ENDR
@@ -2267,7 +2267,7 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
     ld   c, a
 
     ; RAM Enable/Disable not available for MD2 (always connected)
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2S)
         REPT 5
             nop
         ENDR        
@@ -2277,7 +2277,7 @@ mbc_sram_ON_set_srambank_to_A__0BB1:
     ENDC
 
     ; RAM mode not needed for MD2 and MBC5
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2S)
         ; 9 bytes of space
         ; MD2 SRAM bank is set by writing upper nibble
         swap c
@@ -7316,7 +7316,7 @@ serial_io__maybe__send_00_wait_3msec_receive_byte_in_A__29C3:
     ; Is this doing something non-Standard for MBC1 instead of turning of SRAM enable
 
     ; RAM Enable/Disable not available for MD2 (always connected)
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2S)
         REPT 5
             nop
         ENDR        
@@ -8284,7 +8284,7 @@ mbc_sram_ON_set_srambank_to_A__2E9B:
     ld   c, a
 
     ; RAM Enable/Disable not available for MD2 (always connected)
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2S)
         REPT 5
             nop
         ENDR        
@@ -8294,7 +8294,7 @@ mbc_sram_ON_set_srambank_to_A__2E9B:
     ENDC
 
     ; RAM mode not needed for MD2 and MBC5
-    IF DEF(BUILD_USE_DUCK_MBC_MD2)
+    IF DEF(BUILD_USE_DUCK_MBC_MD2S)
         ; 9 bytes of space
         ; MD2 SRAM bank is set by writing upper nibble
         swap c
