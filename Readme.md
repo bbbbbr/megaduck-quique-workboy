@@ -13,7 +13,7 @@ This is a partial disassembly and rom patch of the fabled Game Boy Workboy acces
 
 Features/Changes:
 - RTC and Keyboard are patched and translated to use the Mega Duck laptop versions
-- Support for MD2 and MBC5 cartridge memory bank controllers (mbcs)
+- Support for MD2+SRAM and MBC5 cartridge memory bank controllers (mbcs)
 - Slightly modified Title Screen
 - Removed Italian language support to make room for Mega Duck code
 - Removed the hidden Backup Options feature that would dump/restore cart sram to keyboard sram
@@ -37,14 +37,15 @@ The patch is in UPS format. It can be applied using this online patcher (or any 
 
 #### On Physical Duck Laptop Hardware
 There are a few options for running the patched ROM on the duck laptop.
-- A MegaDuck Flash Cart with "MD2" + SRAM banking support (16K banks switchable writing to 0x0001) such as the picoDuck by zwenergy (Use MD2 patch) (TODO: link to picoDuck firmware)
+- A MegaDuck Flash Cart with MD2 + SRAM banking support (16K banks switchable writing to 0x0001) such as the picoDuck by zwenergy (Use MD2S patch) (TODO: link to picoDuck firmware)
 - On a Game Boy MBC5 Flash Cart using a [MegaDuck Cart Slot Adapter](https://github.com/bbbbbr/gb_to_megaduck_cart_adapter/tree/main). (Use MBC5 patch)
 
 #### In the Super Junior Same Duck Emulator
-The [Super Junior Same Duck](https://github.com/bbbbbr/SuperJuniorSameDuck) emulator can also be used to run the ROM. It supports both MD2 and MBC5 builds. For the MD2 build make sure to use the `--duck-sram-cart` flag to tell the emulator it should enable the SRAM cart in the secondary memory cart slot.
-- `superjunior_sameduck --force-mbc 0x1B workboy.mbc5`
-- `superjunior_sameduck --duck-sram-cart workboy.md2`
-
+The [Super Junior Same Duck](https://github.com/bbbbbr/SuperJuniorSameDuck) emulator can also be used to run the ROM. It supports both MD2 + SRAM and MBC5 builds. Use version `1.0.2` or higher.
+- For the MD2 + SRAM build make sure to use a `.md2s` file extension to tell the emulator it should enable the SRAM cart in the secondary memory cart slot.
+  - `workboy.md2s`
+- For the MBC5 build make sure to use a `.mbc5` file extension to tell the emulator to use the mbc5 mapper
+  - `workboy.mbc5`
 
 ### Keyboard Setup
 
