@@ -59,8 +59,6 @@ Running the patched ROM in an emulator means there's two layers of keyboard tran
 
 PC -> Emulating Mega Duck Keyboard -> Mega Duck -> Emulating Workboy Keyboard -> Patched ROM
 
-TODO: details/tips
-
 
 ### Thanks, References, Tools
 - [Same Boy](https://github.com/LIJI32/SameBoy) / LIJI32 : Same Boy emu and Workboy reference
